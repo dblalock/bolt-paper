@@ -1,0 +1,165 @@
+
+% Get cost equation in here; ops are CRUD, and existing work focuses on extremely read-heavy workloads
+
+As datasets grow larger, so too do the costs of learning from them. These costs include not only the space to store the data, but also the compute time to operate on it. When the dataset is fixed, vector quantization methods enable significant reductions in both of these costs. By replacing each vector with a learned approximation, these methods both reduce the space needed to store the vectors and enable fast approximate scalar reductions, such as dot products and Euclidean distances. With as little as 8B per vector, these techniques can preserve distances and dot products with extremely high accuracy % [][][].
+
+However, computing the approximation for a given vector can be time-consuming. The state-of-the-art method of [LSQ], for example, requires up to \textit{4ms} to encode a single $128$-dimensional vector. Other techniques are faster, but as we show experimentally, virtually all suffer from encoding times that yield significant overhead when data is being added or changed rapidly.
+
+We describe a vector quantization method, Bolt, that greatly reduces both the time to encode vectors and the time to compute scalar reductions over them. This makes encoding worthwhile even for fast-changing or fast-arriving data. Our key idea is to use much smaller codebooks than similar techniques for the quantization, which both facilitates finding the optimal encoding and allows scans over codes to be done in a vectorized manner.
+
+Contributions:
+\begin{enumerate}
+\item A vector quantization algorithm that encodes vectors significantly faster than existing algorithms for a given level of representational fidelity.
+\item A fast means of computing approximate similarities and distances using quantized vectors. Possible similarities and distances include dot products, cosine similarities, and distances in $L_p$ spaces, such as the Euclidean distance.
+\item Empirical demonstration that approximate distances can be used to accelerate several popular algorithms, such as k-means clustering and word2vec word embedding.
+\item Theoretical analysis of both our approach and popular related approaches.
+\end{enumerate}
+
+
+% Many machine learning algorithms are built around some combination of matrix multiplications, dot products, and distance computations in vector spaces. Such algorithms include deep neural networks, k-means and hierarchical clustering, and linear regression, among many others.
+
+% Lots of people have tried speeding up deep neural nets, mostly by pruning them post-hoc or adopting elementwise quantization / sparsity
+
+
+% for ease of exposition, we will refer to computing ``similarities'' as shorthand for computing either dot products or euclidean distances throughout the remainder of this work, because typing ``dot products or distances'' is really verbose
+
+
+% Contributions:
+
+% A fast means of preprocessing vectors so as to minimize quantization loss. This method is compatible with most techniques in the rapidly-evolving area of vector quantization.
+
+% A hardware-friendly means of computing approximate distances using quantized vectors.
+
+% Theoretical analysis of our technique's effectiveness.
+
+% Empirical demonstration that approximate distances suffice for many real-world applications.
+
+
+% somewhere sneak in the fact that Bolt is an acronym for Based On Lookup Tables
+
+
+\subsection{Problem Statement}
+
+
+
+\definecolor{bestGreen}{rgb}{0.1,.8,.2}
+\definecolor{goodGreen}{rgb}{0.1,.5,.2}
+% \definecolor{goodYellow}{yellow}  % nope, this syntax doesn't work
+\definecolor{goodRed}{rgb}{0.8,.1,.2}
+
+\newcommand{\splitablecell}[2][c]{%
+  \begin{tabular}[#1]{@{}c@{}}#2\end{tabular}}
+
+% \begin{center}
+% \begin{wraptable}
+% \begin{figure}[t]
+% \begin{table}[t]
+\begin{table*}[t]
+  \caption{Performance of Vector Quantization Algorithms. I should reference + explain this somewhere.}
+  \label{tab:table1}
+  \large
+  % \begin{tabularx}{\linewidth}{lllll}
+
+% \resizebox{\textwidth}{!}{%
+  % \begin{tabularx}{\textwidth}{p{2cm}|YYYY}
+  % \begin{tabularx}{\textwidth}{Y|YYYY}
+  \def\arraystretch{1.1}%  1 is the default, change whatever you need
+  \begin{tabularx}{\linewidth}{X|YYYY}
+\toprule
+% \pbox[c]{99cm}{Data Encoding \\ Speed}
+% & \splitablecell{Data Encoding \\ Speed}
+% & \pbox{99cm}{Data Vector \\ Encoding Speed}
+    & \hspace{1mm} Data Vector \hphantom{ } Encoding Speed & Query Vector Encoding Speed & Similarity/Distance Computation Speed & \vspace{.5mm} Compression \\
+\hline
+    \textbf{Bolt (proposed)} & \textbf{Very High} & \textbf{Very High} & \textbf{Very High} & Medium \\
+    % Binary Embedding & High & High & High & Very Low \\
+    PQ  & High & High & High & Low \\
+    OPQ & High & High & High & Medium \\
+    RVQ & Medium & High & High & Medium \\
+    \pbox[c]{99cm}{ \small GRVQ, LSQ, CQ, AQ, OTQ} & Low, Very Low & Medium & High & \textbf{High} \\
+    Raw Floats & N/A & N/A & Low & None \\
+
+    % \textbf{Bolt (proposed)} & \cellcolor{bestGreen} \textbf{Very High} & \cellcolor{bestGreen} \textbf{Very High} & \cellcolor{bestGreen} \textbf{Very High} & \cellcolor{yellow} Medium \\
+    % % Binary Embedding & High & High & High & Very Low \\
+    % PQ  & \cellcolor{goodGreen} \color{white} High & \cellcolor{goodGreen} \color{white} High & \cellcolor{goodGreen} \color{white} High & \cellcolor{goodRed} Low \\
+    % OPQ & \cellcolor{goodGreen} \color{white} High & \cellcolor{goodGreen} \color{white} High & \cellcolor{goodGreen} \color{white} High & Medium \\
+    % RVQ & \cellcolor{goodGreen} \color{white} High & \cellcolor{goodGreen} \color{white} High & \cellcolor{goodGreen} \color{white} High & Medium \\
+    % GRVQ, LSQ, CQ, AQ, OTQ & \cellcolor{goodRed} \color{white} Low, Very Low & Medium & High & High \\
+    % Raw Floats & N/A & N/A & \cellcolor{goodRed} \color{white} Low & \cellcolor{goodRed} \color{white} None \\
+\bottomrule
+\end{tabularx}
+% }
+\end{table*}
+% \end{figure}
+% \end{center}
+% \end{wraptable}
+
+Formally, the problem our algorithm addresses is the following.
+
+Let $\vec{q} \in \mathbb{R}^D$ be a \textit{query} vector and let $\mathcal{X} = \{\vec{x}_1,\ldots,\vec{x}_N\}, \vec{x}_i \in \mathbb{R}^D$ be a collection of \textit{database} vectors. Further let $d: \mathbb{R}^D \times \mathbb{R}^D \rightarrow \mathbb{R}$ be a distance or similarity function that can be written as:
+\begin{align}
+        d(\vec{q}, \vec{x}) = f(\sum_{j=1}^D d_j(q_j, x_j))
+\end{align}
+
+% TODO this technically doesn't include how additive methods do ED;
+%   wait, nvm, we're fine cuz they use the d_hat equation, not this one
+
+where $f: \mathbb{R} \rightarrow \mathbb{R}$, $d_j: \mathbb{R}^D \times \mathbb{R}^D \rightarrow \mathbb{R}$. This includes both distances in $L_p$ spaces and dot products as special cases. In the former case, $d_j(q_j, x_j) = (q_j - x_j)^p$ and $f(r) = r^{(1/p)}$; in the latter case, $d_j(q_j, x_j) = q_j x_j$ and $f(r) = r$. For brevity, we will henceforth refer to $d$ as a distance function and its output as a distance, though our remarks apply to all functions of the above form unless noted otherwise.
+
+Our task is to construct three functions $g: \mathbb{R}^D \rightarrow \mathcal{G}$, $h: \mathbb{R}^D \rightarrow \mathcal{H}$, and $\hat{d}: \mathcal{G} \times \mathcal{H} \rightarrow R$ such that the loss:
+\begin{align}
+    \mathcal{L} = E_{\vec{q},\vec{x}}[(d(\vec{q}, \vec{x}) - \hat{d}(g(\vec{q}), h(\vec{x})))^2]
+    % \mathcal{L}[g, h, \hat{d}] = E_{q,x}[(d(q, x) - \hat{d}(g(q), h(x)))^2]
+\end{align}
+is minimized. Moreover, each of these functions should be as fast to compute as possible.
+
+Intuitively, the function $g$ encodes the query, $h$ encodes the database vectors, and $\hat{d}$ computes an approximate similarity or distance based on the encodings. In general, it is possible to drive the loss arbitrarily low by increasing the time and space usage of these functions. Indeed, the loss can be fixed at 0 by setting $g$ and $h$ to identity functions and setting $\hat{d} = d$. Consequently, our metric of interest is \textbf{computation time for a given loss}. The primary contribution of this work is the introduction of $g$, $h$ and $\hat{d}$ functions that are significantly faster than those of existing work for a given loss $\mathcal{L} > 0$.
+
+% \begin{center}
+% % \begin{tabu} to \linewidth [0]{ X[l] | X[c] | X[c] | X[c] | X[c]}
+% \begin{tabu} to \textwidth [0]{ X[l] | X[c] | X[c] | X[c] | X[c]}
+% % \caption{Performance of Vector Quantization Algorithms}
+% \hline
+%     & Data Encoding Speed & Query Encoding Speed & Search Speed & Compression \\
+% \hline
+%     Bolt (proposed) & Very High & Very High & Very High & Medium \\
+%     % Binary Embedding & High & High & High & Very Low \\
+%     PQ & High & High & High & Low \\
+%     OPQ & High & High & High & Medium \\
+%     RVQ & High & Medium & High & Medium \\
+%     GRVQ, LSQ, CQ, AQ, OTQ & Low, Very Low & Medium & High & High \\
+%     Raw Floats & N/A & N/A & Low & None \\
+% \hline
+% \end{tabu}
+% \end{center}
+
+
+
+
+\subsection{Assumptions}
+
+Like other work [][][][], we assume that there is an initial training phase during which the functions $g$ and $h$ may be learned. This phase contains a training dataset for $X$, but not necessarily for $\vec{q}$. Following this training phase, there is a testing phase wherein we are given database vectors $\vec{x}$ that must be encoded and query vectors $\vec{q}$ for which we must compute the distances to all of the database vectors received so far. $\vec{x}$ vectors may be given all at once, or one at a time; they may also be modified or deleted, necessitating re-encoding or removal. This is in contrast to most existing work, which assumes that $\vec{x}$ vectors are all added at once before any queries are recieved [][][][].
+
+In practice, one might require the distances between $\vec{q}$ and only some of the database vectors $\mathcal{X}$ (in particular, the $k$ closest vectors). This can be achieved using an indexing structure, such as an Inverted Multi-Index [][] or Locality-Sensitive Hashing hash tables [][], that allow inspection of only a fraction of $\mathcal{X}$. Such indexing is complementary to our work in that our approach could be used to accelerate the computation of distances to the subset of $\mathcal{X}$ that is inspected. Consequently, we assume that the task is to compute the distances to all vectors, noting that, in a production setting, ``all vectors'' for a given query might be a subset of a full database.
+
+
+
+% TODO prolly say we want distances to all the vectors x_i
+
+    % -given query $q \in Q$, $q = \{q_j\}$, $q_j \in Q'$, collection of vectors $X = \{x_i\}, x_i \in tilde(X), x_i = \{x_j\} \in X'$.
+
+    % -let $d: Q \times X \rightarrow R$ be some function that can be written as:
+
+% \begin{align}
+%         d(q, x) = f(sum_j d_j(q_j, x_j)), q = {q_j}, x = {x_j}, f: R -> R, d_j: Q x X -> R
+% \end{align}
+
+%     -then our task is to construct three functions g: Q -> G, h: X -> H, and d_hat: G x H -> R such $E_{q,x}[(d(q, x) - d_hat(g(q), h(x)))^2]$ is minimized.
+
+%     -moreover, we would like g, h, and d_hat to be fast to evaluate, and the representations of G and H to be smaller than those of Q and X.
+
+%     -note that both distances in lp spaces and dot products are a special case where {q_j} and {x_j} are the elements of vectors q and x. In the case of distances, d_j(q_j, x_j) = (q_j - x_j)^p and f(r) = r^(1/p). In the case of inner products, f(r) = r and d_j(q_j, x_j) = q_j * x_j.
+
+%     -we consider only dot products and euclidean distances throughout this work since they are by far the most common, but note that our approach could in principle be generalized to any similarity or distance of the above form.\footnote{Practically speaking, functions with a large range of values for d_j(q_j, x_j), such as distances in Lp space with p > 2, are unlikely to be approximated well.}
+
+

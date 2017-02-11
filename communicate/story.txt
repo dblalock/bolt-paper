@@ -1,0 +1,41 @@
+
+
+================================================================
+basic idea
+================================================================
+
+inner products and distances are ubiquitous in machine learning
+    -and so is the need to store large vectors of parameters
+    -so more concisely, the need to compute inner products and distances between vectors of parameters is ubiquitous in machine learning
+
+we describe a method of computing approximate inner products and distances that greatly reduces time and space costs with virtually no loss of accuracy
+
+our method is simple and general-purpose
+
+also allows fast-changing data, which methods such as LSH that require lots of precomputation to index a point do not
+s
+our basic idea is to store a fast-to-compute and compressed representation of the relevant vectors that allows rapid approximate distance calculations
+
+our core contribution is a fast means of computing approximate distances that is compatible with many ways of compressing the data
+    -prolly be more specific and scope compression to MCQ
+
+we believe our method is faster than any known scalar reduction (at least on a CPU), including the popcnt approach binary-embedding algorithms are designed to leverage
+
+we show experimentally that it can increase speed and decrease memory consumption by an order of magnitude or more
+
+
+applications:
+    -softmax
+    -kmeans
+    -brute force nn (since compatible with indexing)
+    -hierarchical clustering?
+    -one-vs-one classifiers?
+
+
+what we're doing that's different from other MCQ stuff:
+    -smaller codebooks
+    -quantized LUTs
+    -vectorized lookups
+
+    -(reordered) early abandoning, if we do that
+

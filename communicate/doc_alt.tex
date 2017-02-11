@@ -1,0 +1,165 @@
+
+% \documentclass[conference]{IEEEtran}
+% \documentclass{sig-alternate} % pre 2017
+\documentclass[sigconf]{acmart}  % starting in 2017
+\input{setup.tex}
+
+\begin{document}
+
+\setcopyright{rightsretained}
+
+%Conference
+\acmConference[KDD 2017]{ACM SIGKDD}{August 2017}{Halifax, Nova Scotia Canada}
+\acmYear{2017}
+\copyrightyear{2017}
+% \acmPrice{15.00}
+
+% ================================================================
+\title{Bolt: Accelerated Data Mining with Fast Vector Compression}
+% ================================================================
+
+\author{Davis W. Blalock}
+% \orcid{1234-5678-9012}
+\affiliation{%
+  \institution{Computer Science and Artificial \\ Intelligence Laboratory}
+  \institution{Massachusetts Institute of Technology}
+  % \streetaddress{P.O. Box 1212}
+  % \city{Dublin}
+  % \state{Ohio}
+  % \postcode{43017-6221}
+}
+\email{dblalock@mit.edu}
+
+\author{John V. Guttag}
+\affiliation{%
+  \institution{Computer Science and Artificial \\ Intelligence Laboratory}
+  \institution{Massachusetts Institute of Technology}
+  % \streetaddress{P.O. Box 1212}
+  % \city{Dublin}
+  % \state{Ohio}
+  % \postcode{43017-6221}
+}
+\email{guttag@mit.edu}
+
+% ------------------------------------------------
+\begin{abstract}
+% ------------------------------------------------
+
+v1 (partial)
+
+The need to store and operate on vectors of numbers is at the heart of data mining. However, doing so can require great amounts of storage space, memory, and computation time. A great deal of work has been done on generating compressed representations to reduce this cost, but most existing work either assumes data characteristics such as sparsity, preserves only aggregate statistics, or focuses on slow, one-time encoding of large databases.
+
+
+v2
+
+Traditionally, compression has been a tool only to reduce space usage, with some recent work on learning compressed representations to accelerate similarity search or neural network inference. We describe an algorithm that allows compression to be used to accelerate virtually any algorithm using vector distances or dot products. Specifically, by learning a compressed representation on which vector operations can be approximated directly, we can both reduce space consumption and increase speed by $10\times$ or more with little or no loss in accuracy. Moreover, and in sharpest contrast to existing work, our technique can encode vectors at over 4GB/s in a single CPU thread, making conversion to our representation nearly free and worthwhile even on fast-changing data such as model parameters.
+
+We show experimentally that our approach can be used to accelerate neural network training, k-means clustering, nearest neighbor search, and maximum inner product search by up to $20\times$. Furthermore, our approximate Euclidean distance and dot product computations are faster not only than those of related algorithms with much slower encodings, but even faster than Hamming distance computations, which have direct hardware support on the tested platforms.
+
+% We demonstrate that, with an informative  sufficiently fast compression algorithm,
+
+% focuses on slow, one-time encoding of large databases, sketches that preserve only statics about the data, or sub-Nyquist sampling of sparse data.
+
+% In contrast, we propose a compression technique for arbitrary data whose encoding is fast enough \textit{to be embedded in other algorithms}. For example, while other techniques can accelerate
+
+
+% We propose an algorithm that  offers not only reduced space consumption, but encoding speed
+
+% To reduce these costs, we propose a fast, lossy compression algorithm for real-valued data. In addition to dramatically reducing space usage, our compressed representation allows for direct computation of dot products and distances without decompression. These computations execute over 10$\times$ faster than on the original data, with little or no loss in accuracy. We can encode hundreds of millions of hundred-dimensional vectors per second, making our approach suitable for streaming data or rapidly changing parameters. I
+
+% Our compressed representation allows approximate computation of inner products and distances directly, without decompression, and does so at speeds exceeding those of any similar technique and greatly exceeding
+
+% can encode hundreds of millions of vectors per second. Moreover, because
+
+% The need to compute dot products and distances between vectors or matrices of parameters is ubiquitous in machine learning. These computations are often responsible for most of an algorithm's running time, and storing the parameters is usually responsible for most of its space consumption.
+
+% We describe an approximate method of computing dot products and distances that greatly reduces both time and space consumption with little or no loss in accuracy. Our approach is based on vector quantization, and entails replacing the original computation with lookups in a compact table of sufficient statistics about the vectors in question. Unlike similar techniques, our algorithm does not assume that vectors are static and is designed to be hardware-friendly.
+
+% We show experimentally that our approach can be used to accelerate matrix multiplications, k-means clustering, nearest neighbor search, and maximum inner product search by an order of magnitude or more. Furthermore, our approach is faster than even hamming distance computation, which has explicit hardware support on the tested platforms.
+
+% Our approach is to quantize one of the vectors and replace the original computation with lookups in a compact table of sufficient statistics about the other.
+
+\end{abstract}
+
+% ------------------------------------------------
+% CCS taxonomy stuff / keywords
+% ------------------------------------------------
+
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10002950.10003648</concept_id>
+<concept_desc>Mathematics of computing~Probability and statistics</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10002950.10003648.10003671</concept_id>
+<concept_desc>Mathematics of computing~Probabilistic algorithms</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+<concept>
+<concept_id>10002950.10003648.10003688.10003696</concept_id>
+<concept_desc>Mathematics of computing~Dimensionality reduction</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+<concept>
+<concept_id>10002950.10003705</concept_id>
+<concept_desc>Mathematics of computing~Mathematical software</concept_desc>
+<concept_significance>100</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Mathematics of computing~Probability and statistics}
+\ccsdesc[300]{Mathematics of computing~Probabilistic algorithms}
+\ccsdesc[300]{Mathematics of computing~Dimensionality reduction}
+\ccsdesc[100]{Mathematics of computing~Mathematical software}
+
+% \keywords{ACM proceedings, \LaTeX, text tagging}
+
+\maketitle
+
+% ================================================================
+\section{Introduction} \label{sec:intro}
+% ================================================================
+
+\input{intro.tex}
+
+% % ================================================================
+% \section{Definitions and Problem} \label{sec:problem}
+% % ================================================================
+
+% \input{problem.tex}
+
+% ================================================================
+\section{Related Work} \label{sec:relatedWork}
+% ================================================================
+
+\input{related_work.tex}
+
+% ================================================================
+% \vspace{-2mm}
+\section{Method} \label{sec:method}
+% ================================================================
+
+\input{method.tex}
+
+% ================================================================
+\section{Results} \label{sec:results}
+% ================================================================
+
+\input{results.tex}
+
+% ================================================================
+\section{Conclusion} \label{sec:conclusion}
+% ================================================================
+
+% ================================================================
+% References
+% ================================================================
+
+% \IEEEtriggeratref{27}	% trigger column break to make cols even
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{doc}
+
+\end{document}

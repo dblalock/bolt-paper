@@ -1,0 +1,25 @@
+
+
+show that it makes matrix-vector muls way faster for various matrix sizes
+    -also show approximation error
+        -which suggests getting lots of meaningful matrices, ideally fc layer weights
+    -prolly have to show both speed and err as a function of code length
+same for matrix-matrix; speed and acc
+    -is there any way we'll be better here? maybe for skinny mats...
+
+show that we can speed up kmeans a lot, and point out that this is orthogonal to other ppl's speedups based on pruning which ones you consider moving and/or using minibatches
+    -prolly pick a couple datasets and show it as a function of k
+
+a couple experiments on sift1m scan and mnist scan, prolly; maybe sift10m / deep10m also
+
+somewhere introduce the "cold scan" problem, wherein we also have to add in time to compress everything, but then we get a batch of queries
+    -if just 1 query, you're always worse off doing the encoding
+    -metric of interest is how many queries you have to do @k database vectors before it's faster than a matmul
+        -and you should also report the times for different query counts and db counts
+
+    -and prolly also the "warm scan" problem; you only have to encode some subset of the db (cuz it changed)
+
+    -or maybe the "hot scan" problem cuz data is hot; in contrast to fixed data, which is cold/frozen
+
+
+

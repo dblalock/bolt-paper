@@ -1,0 +1,50 @@
+
+As mentioned in the problem statement, our goal is to construct a distance (or similarity) function $\hat{d}$ and two encoding functions $g$ and $h$ such that $\hat{d}(g(\vec{q}), h(\vec{x})) \approx d(\vec{q}, \vec{x})$ for some ``true'' distance (or similarity) function $d$. To explain how we do this, we first begin with a review of Product Quantization, and then describe how our method differs.
+
+\subsection{Background: Product Quantization}
+
+Recall that, by assumption, the function $d$ can be written as:
+\begin{align*}
+        d(\vec{q}, \vec{x}) = f(\sum_{j=1}^D d_j(q_j, x_j))
+\end{align*}
+where $f: \mathbb{R} \rightarrow \mathbb{R}$, $d_j: \mathbb{R}^D \times \mathbb{R}^D \rightarrow \mathbb{R}$. Now, suppose one has a partition $\mathcal{P} = \{p_1,\ldots,p_M \}$ of the indices $j$, such that $i \ne j \implies p_i \cap p_j = \emptyset$ and $\bigcup_m p_m = \{1,\ldots,D\}$. The argument to $f$ can then be written as:
+\begin{align*}
+        \sum_{m=1}^M \sum_{j \in p_m} d_j(q_j, x_j)
+            = \sum_{m=1}^M d_m(\vec{q}_m, \vec{x}_m)
+\end{align*}
+where $\vec{q}_m$ and $\vec{x}_m$ are the vectors formed by gathering the indices of $\vec{q}$ and $\vec{x}$ at the indices $j \in p_m$, and $d_m$ sums the relevant $d_j$ functions. The idea of Product Quantization (PQ) is to replace each $x_m$ with one vector $\vec{c}_m$ from a \textit{codebook} $\mathcal{C}_m$ of possibilities. That is: % (\vec{q_m}, \vec{x}) = \sum_{j = 1}^|p_m d_j(q_j, x_j)$.
+\begin{align*}
+        \sum_{m=1}^M d_m(\vec{q}_m, \vec{x}_m) \approx \sum_{m=1}^M d_m(\vec{q}_m, \vec{c}_m)
+\end{align*}
+This allows one to store only $m$ indices into codebooks instead of the original vector $\vec{x}$. Moreover,  under the assumption that $x \sim MVN(\mu, \Sigma)$ with $\Sigma_{ij} = 0$ for all $i, j$ in different subspaces $p_m$ and $|\Sigma_m| = const$, where $\Sigma_m$ is the covariance within subspace $p_m$, this formulation achieves the information-theoretic lower bound on code length for a given squared error [OPQ].
+
+Using a fixed set of codebooks also enables construction of a fast query encoding $g$ and distance approximation $\hat{d}$.
+
+
+SELF: pick up here by explaining LUT creation.
+
+
+
+
+% overview
+%     -as mentioned in the problem statement, our goal is to construct a distance (or similarity) function $\hat{d}(q, x)$ that approximates some true distance (or similarity) function d(q, x).
+
+%     -Further recall that $\hat{d}$ need not operate on the original spaces Q and X, but can instead use transformed spaces $G = g(Q)$ and $H = h(X)$, so that its signature is instead $\hat{d}: G x H \rightarrow R$.
+
+%     -our method entails offline learning of the functions $G$ and $H$ in a manner similar to existing Multi-Codebook Quantization (MCQ) techniques, and online computation of the distance
+
+%     -we first describe the function $h(.)$, which quantizes the vectors X.
+
+%     -we then describe the functions $g(.)$, which computes sufficient statistics about the vector q
+
+%     -we finally describe the function $\hat{d}(.,.)$, which returns a distance based on $g(q)$ and $h(x)$.
+
+% Quantization scheme
+%     -product quantization background
+%     -our novel permutation method
+
+% Distance computation
+%     -asymetric distance computation background
+
+
+
