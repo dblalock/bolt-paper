@@ -96,17 +96,17 @@ Contributions:
 
 Formally, the problem our algorithm addresses is the following.
 
-Let $\vec{q} \in \mathbb{R}^D$ be a \textit{query} vector and let $\mathcal{X} = \{\vec{x}_1,\ldots,\vec{x}_N\}, \vec{x}_i \in \mathbb{R}^D$ be a collection of \textit{database} vectors. Further let $d: \mathbb{R}^D \times \mathbb{R}^D \rightarrow \mathbb{R}$ be a distance or similarity function that can be written as:
+Let $\vec{q} \in \mathbb{R}^J$ be a \textit{query} vector and let $\mathcal{X} = \{\vec{x}_1,\ldots,\vec{x}_N\}, \vec{x}_i \in \mathbb{R}^J$ be a collection of \textit{database} vectors. Further let $d: \mathbb{R}^J \times \mathbb{R}^J \rightarrow \mathbb{R}$ be a distance or similarity function that can be written as:
 \begin{align}
-        d(\vec{q}, \vec{x}) = f(\sum_{j=1}^D d_j(q_j, x_j))
+        d(\vec{q}, \vec{x}) = f(\sum_{j=1}^J d_j(q_j, x_j))
 \end{align}
 
 % TODO this technically doesn't include how additive methods do ED;
 %   wait, nvm, we're fine cuz they use the d_hat equation, not this one
 
-where $f: \mathbb{R} \rightarrow \mathbb{R}$, $d_j: \mathbb{R}^D \times \mathbb{R}^D \rightarrow \mathbb{R}$. This includes both distances in $L_p$ spaces and dot products as special cases. In the former case, $d_j(q_j, x_j) = (q_j - x_j)^p$ and $f(r) = r^{(1/p)}$; in the latter case, $d_j(q_j, x_j) = q_j x_j$ and $f(r) = r$. For brevity, we will henceforth refer to $d$ as a distance function and its output as a distance, though our remarks apply to all functions of the above form unless noted otherwise.
+where $f: \mathbb{R} \rightarrow \mathbb{R}$, $d_j: \mathbb{R}^J \times \mathbb{R}^J \rightarrow \mathbb{R}$. This includes both distances in $L_p$ spaces and dot products as special cases. In the former case, $d_j(q_j, x_j) = (q_j - x_j)^p$ and $f(r) = r^{(1/p)}$; in the latter case, $d_j(q_j, x_j) = q_j x_j$ and $f(r) = r$. For brevity, we will henceforth refer to $d$ as a distance function and its output as a distance, though our remarks apply to all functions of the above form unless noted otherwise.
 
-Our task is to construct three functions $g: \mathbb{R}^D \rightarrow \mathcal{G}$, $h: \mathbb{R}^D \rightarrow \mathcal{H}$, and $\hat{d}: \mathcal{G} \times \mathcal{H} \rightarrow R$ such that the loss:
+Our task is to construct three functions $g: \mathbb{R}^J \rightarrow \mathcal{G}$, $h: \mathbb{R}^J \rightarrow \mathcal{H}$, and $\hat{d}: \mathcal{G} \times \mathcal{H} \rightarrow R$ such that the loss:
 \begin{align}
     \mathcal{L} = E_{\vec{q},\vec{x}}[(d(\vec{q}, \vec{x}) - \hat{d}(g(\vec{q}), h(\vec{x})))^2]
     % \mathcal{L}[g, h, \hat{d}] = E_{q,x}[(d(q, x) - \hat{d}(g(q), h(x)))^2]
