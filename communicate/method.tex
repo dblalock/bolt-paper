@@ -58,7 +58,7 @@ Change (1) directly increases the speeds of $g$ and $h$, as well as training, wh
 
 Write this if we end up using this approach. Otherwise remove change 1. We're just gonna make the rotation matrix block diagonal so we can run OPQ and in disjoint subspaces and apply several small rotations instead of one big, slow one.
 
-\subsubsection{Fewer Centroids and Approximate Distances}
+\subsubsection{Fewer Centroids and Approximate Distances} \label{sec:boltVectorize}
 
 Change (2), reducing the size of codebooks $C$, directly reduces the constant factor associated with both query and data encoding. Although this is novel insofar as virtually all other papers have taken for granted the value $C = 256$ to the best of our knowledge, this is a simple change of parameter setting and we do not discuss it further.
 

@@ -138,6 +138,10 @@ Specifically, we show experimentally that our approach can be used to accelerate
 \section{Conclusion} \label{sec:conclusion}
 % ================================================================
 
+We have described Bolt, a vector quantization algorithm that rapidly compresses large collections of vectors and enables computation of approximate Euclidean distances and dot products directly on the lossily-compressed representations. Bolt both compresses data and computes these distances/products significantly faster than similar existing algorithms. Its approximate computations are up to $20\times$ faster than the exact computations on the original floating-point numbers but up to $99\%$+ correlated with the true values. Moreover, Bolt can achieve up to $15\times$ compression at this level of accuracy. Furthermore, because Bolt compression is fast enough to be nearly free, it can be used on rapidly-changing data with little or no overhead. This also means Bolt can easily be embedded in other algorithms, such as k-means, to dramatically speed them up without deteriorating the quality of the results.
+
+It is our hope that Bolt will be used in many production systems to greatly reduce storage and computation costs for large, real-valued datasets.
+
 % ================================================================
 % References
 % ================================================================
