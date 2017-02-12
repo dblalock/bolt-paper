@@ -45,25 +45,14 @@
 
 %-------------------------------------------------------------- Figures setup
 
-% \ifCLASSINFOpdf
-  % \usepackage[pdftex]{graphicx}
-  \usepackage{graphicx}
-  \usepackage[space]{grffile}   % allow spaces in file names
-  % declare the path(s) where your graphic files are
-  \graphicspath{{../figs/}}
-  % and their extensions so you won't have to specify these
-  \DeclareGraphicsExtensions{.pdf,.jpeg,.png}
-% \else
-  % or other class option (dvipsone, dvipdf, if not using dvips). graphicx
-  % will default to the driver specified in the system graphics.cfg if no
-  % driver is specified.
-  % \usepackage[dvips]{graphicx}
-  % declare the path(s) where your graphic files are
-  % \graphicspath{{../eps/}}
-  % and their extensions so you won't have to specify these with
-  % every instance of \includegraphics
-  % \DeclareGraphicsExtensions{.eps}
-% \fi
+% \usepackage[pdftex]{graphicx}
+\usepackage{graphicx}
+\usepackage[space]{grffile}   % allow spaces in file names
+% declare the path(s) where your graphic files are
+\graphicspath{{../figs/}}
+% and their extensions so you won't have to specify these
+\DeclareGraphicsExtensions{.pdf,.jpeg,.jpg,.png}
+
 
 %\textfloatsep: space between last top float or first bottom float and the text (default = 20.0pt plus 2.0pt minus 4.0pt).
 %\intextsep : space left on top and bottom of an in-text float (default = 12.0pt plus 2.0pt minus 2.0pt).

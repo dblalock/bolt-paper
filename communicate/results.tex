@@ -1,4 +1,67 @@
 
+To assess Bolt's effectiveness, we implemented both it and the algorithms to which we compare it in C++, with wrappers in Python. All of our code is publicly available at [website], along with thorough documentation that we hope facilitates reproduction and extension of our work. All experiments use a single thread on a 2013 Macbook Pro with a 2.6GHz Intel Core i7-4960HQ processor.
+
+Because there are no conditional branches in either Bolt or the comparison algorithms (when implemented efficiently), all running times are independent of the data and query distributions. Consequently, we report timing results primarily on random data. For accuracy measurements, we make use of numerous public benchmark datasets. We have done our best to optimize the implementations of the comparison algorithms to the greatest extent possible, and find that our timings are far superior to those described in previous works. For example, [] reports encoding roughly 190,000 128-dimensional vectors per second with product quantization, while our implementation encodes over 24 million per second. Indeed, we believe that the sheer extent to which PQ and related methods can be sped up is an interesting result in itself, though we do not explore it further.
+
+Our comparison algorithms include Multi-Codebook Quantization (MCQ) methods that have high encoding speeds ($\ll 1$ms / vector on a CPU). If encoding speed is not a design consideration or is dominated by a need for maximal compression, we recommend using a method such as GRVQ [] or LSQ [] instead of Bolt (although Bolt \textit{might} still be desirable for its high query speed if maximal compression is not critical). Since most research in this area has focused on improving accuracy for a given code length at the \textit{expense} of encoding time, only Product Quantization (PQ) [], Optimized Product Quantization (OPQ) [], and variations thereon such as [polysemous], [googleMips], [pairwiseQ] [LOPQ], [NOIMI] meet our inclusion criterion. Since [LOPQ], [NOIMI] and similar methods are coupled to an indexing structure, which is compatible with but orthogonal to our work, we do not compare to them. Moreover, the optimization of [googleMips] is essentially subsumed by that of [pairwise], which can itself by combined with OPQ by multiplying the rotation matrix by another matrix learned from the query distribution. As a result, the effective encoding and query speeds of each these methods are equal to those of OPQ. In short, by comparing to PQ and OPQ, we can effectively assess the performance of almost all fast-encoding MCQ algorithms, modulo the accuracy improvements afforded by different optimization approaches.
+
+TODO integrate pairQ mat + OPQ rotation mat for each Bolt subspace; then, just compare to OPQ with pairQ premultiply, since it's strictly better. Or maybe PQ, OPQ, PairQ OPQ so we have 3 things instead of 2.
+
+We do not to compare to binary embedding methods in terms of accuracy or encoding speed as they are known to yield much lower accuracy for a given code length than MCQ methods [][][] and, as we show, are also slower in computing distances than Bolt.
+
+% \subsection{Comparison }
+
+\subsection{Greater Speed than Binary Embedding}
+
+As mentioned in Section~\ref{sec:relatedWork}, the current fastest method of obtaining approximate distances over compressed vectors is to embed them into Hamming space and use the \texttt{popcount} instruction to quickly compute the Hamming distances between them. Indeed, the speed of this approach is much of the motivation for the class of binary embedding methods (e.g., [][][][]), as well as more recent attempts to integrate hamming distances into product quantization [polysemous].
+
+In shown in Figure~\ref{fig:bolt_vs_popcount}, Bolt can compute approximate distances (of any kind expressible via ~\ref{eq:distFuncForm}) faster than popcount can compute Hamming distances. Moreover, because Bolt can compute Hamming distances exactly (since the possible distances between pairs of 4 bits can be stored exactly in a 16B lookup table), it is both faster and more flexible than using popcount. It also has the benefit that it can use encoding lengths that are not multiples of 8B without loss of efficiency.
+
+\begin{figure}[h]
+\begin{center}
+\label{fig:bolt_vs_popcount}
+% \includegraphics[width=\linewidth, trim={0 2cm 0 0},clip]{moose0}
+% \includegraphics[width=\linewidth, trim={0 1cm 0 0},clip]{moose0}
+\includegraphics[width=\linewidth]{moose0}
+\vspace*{-1mm}
+\caption{Bolt can compute various distances, including Hamming distances, faster than binary embedding methods can compute Hamming distances (using the \texttt{popcount} instruction).}
+\end{center}
+\end{figure}
+
+\subsection{Encoding Speeds}
+
+Bolt can encode both data and queries faster than any other Multi-Codebook Quantization (MCQ) method of which we are aware. As shown in Figure~\ref{fig:encoding_speeds}a, Bolt can encode data vectors at up to 2GB/s, while the fastest comparison, PQ, reaches at most 200MB/s. For perspective, Bolt's encoding rate is sufficient to encode the entire Sift1M dataset of 1 million vectors in 250ms, and the Sift1B dataset of 1 billion vectors in 250s. This rate is also much higher than that of high-performance (but general-purpose) compression algorithms such as Snappy [], which reports an encoding speed of 250MB/s.
+
+Similarly, Bolt can compute the lookup tables constituting a query's encoding at up to 7 million queries/s, while PQ obtains only 500,000 queries/s Figure~\ref{fig:encoding_speeds}b. Both of these numbers are sufficiently high that encoding the query is unlikely to ever be a bottleneck in computing distances to it.
+
+\begin{figure}[h]
+\begin{center}
+\label{fig:encoding_speeds}
+% \includegraphics[width=\linewidth, trim={0 2cm 0 0},clip]{moose0}
+% \includegraphics[width=\linewidth, trim={0 1cm 0 0},clip]{moose0}
+\includegraphics[width=\linewidth]{moose1}
+\vspace*{-1mm}
+\caption{Bolt encodes both data vectors and query vectors significantly faster than existing algorithms.}
+\end{center}
+\end{figure}
+
+
+\subsection{Query Speed}
+
+
+
+
+\subsection{Nearest Neighbor Accuracy}
+
+% Moreover, because these distances can better capture distance Euclidean distances, dot products, etc, better than the Hamming distance can, Bolt is both faster and more accurate than current binary embedding methods. Note too that, because Bolt can compute Hamming distances exactly, it would still be strictly better than using popcount even if it did not allow more
+
+
+\subsection{Case Study: K-Means Clustering}
+
+\subsection{Case Study: Word Embedding}
+
+Hope I have time to do this. Need to ask whether there's an obvious successor to word2vec other than Glove (which isn't amenable to our approach).
+
 
 show that it makes matrix-vector muls way faster for various matrix sizes
     -also show approximation error

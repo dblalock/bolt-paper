@@ -97,7 +97,7 @@ Contributions:
 Formally, the problem our algorithm addresses is the following.
 
 Let $\vec{q} \in \mathbb{R}^J$ be a \textit{query} vector and let $\mathcal{X} = \{\vec{x}_1,\ldots,\vec{x}_N\}, \vec{x}_i \in \mathbb{R}^J$ be a collection of \textit{database} vectors. Further let $d: \mathbb{R}^J \times \mathbb{R}^J \rightarrow \mathbb{R}$ be a distance or similarity function that can be written as:
-\begin{align}
+\begin{align} \label{eq:distFuncForm}
         d(\vec{q}, \vec{x}) = f(\sum_{j=1}^J d_j(q_j, x_j))
 \end{align}
 
