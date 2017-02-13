@@ -1,13 +1,26 @@
 
 % Get cost equation in here; ops are CRUD, and existing work focuses on extremely read-heavy workloads
 
-As datasets grow larger, so too do the costs of learning from them. These costs include not only the space to store the data, but also the compute time to operate on it. When the dataset is fixed, vector quantization methods enable significant reductions in both of these costs. By replacing each vector with a learned approximation, these methods both reduce the space needed to store the vectors and enable fast approximate scalar reductions, such as dot products and Euclidean distances. With as little as 8B per vector, these techniques can preserve distances and dot products with extremely high accuracy % [][][].
+As datasets grow larger, so too do the costs of mining them. These costs include not only the space to store the data, but also the compute time to operate on it. Such costs can be decomposed into:
+\begin{align}
+    \texttt{Cost}_{\text{total}} = \texttt{Cost}_{\text{storage}} + \texttt{Cost}_{\text{read}} + \texttt{Cost}_{\text{write}}
+\end{align}
+where $\texttt{Cost}_{\texttt{storage}}$ is the cost of memory or disk space, $\texttt{Cost}_{\texttt{read}}$ is the time cost of reading data, and $\texttt{Cost}_{\texttt{write}}$ is the time cost of creating, updating, or deleting data.
 
-However, computing the approximation for a given vector can be time-consuming. The state-of-the-art method of [LSQ], for example, requires up to \textit{4ms} to encode a single $128$-dimensional vector. Other techniques are faster, but as we show experimentally, virtually all suffer from encoding times that yield significant overhead when data is being added or changed rapidly.
+Vector quantization methods presently enable significant reductions in $\texttt{Cost}_{\texttt{storage}}$ and $\texttt{Cost}_{\texttt{read}}$ on datasets of real-valued vectors. By replacing each vector with a learned approximation, these methods both decrease space usage and enable fast approximate scalar reductions, such as dot products and Euclidean distances. With as little as 8B per vector, these techniques can preserve distances and dot products with extremely high accuracy [][][].
 
-We describe a vector quantization method, Bolt, that greatly reduces both the time to encode vectors and the time to compute scalar reductions over them. This makes encoding worthwhile even for fast-changing or fast-arriving data. Our key idea is to use much smaller codebooks than similar techniques for the quantization, which both facilitates finding the optimal encoding and allows scans over codes to be done in a vectorized manner.
 
-Contributions:
+
+ % but add overhead to Cost_{\texttt{write}}.
+
+
+% When the dataset is fixed, vector quantization methods enable significant reductions in both of these costs. By replacing each vector with a learned approximation, these methods both reduce the space needed to store the vectors and enable fast approximate scalar reductions, such as dot products and Euclidean distances.
+
+However, computing the approximation for a given vector can be time-consuming, adding greatly to $\texttt{Cost}_{\texttt{write}}$. The state-of-the-art method of [LSQ], for example, requires up to \textit{4ms} to encode a single $128$-dimensional vector. Other techniques are faster, but as we show experimentally, virtually all suffer from encoding times that yield significant overhead when data is being added or changed rapidly.
+
+We describe a vector quantization method, Bolt, that greatly reduces both the time to encode vectors ($\texttt{Cost}_{\texttt{write}}$) and the time to compute scalar reductions over them ($\texttt{Cost}_{\texttt{read}}$). This makes quantization worthwhile even for fast-changing or fast-arriving data. Our key idea is to use much smaller codebooks than similar techniques for the quantization, which both facilitates finding the optimal encoding and allows scans over codes to be done in a vectorized manner.
+
+Our contributions consist of:
 \begin{enumerate}
 \item A vector quantization algorithm that encodes vectors significantly faster than existing algorithms for a given level of representational fidelity.
 \item A fast means of computing approximate similarities and distances using quantized vectors. Possible similarities and distances include dot products, cosine similarities, and distances in $L_p$ spaces, such as the Euclidean distance.
@@ -138,7 +151,7 @@ Intuitively, the function $g$ encodes the query, $h$ encodes the database vector
 
 \subsection{Assumptions}
 
-Like other work [][][][], we assume that there is an initial training phase during which the functions $g$ and $h$ may be learned. This phase contains a training dataset for $X$, but not necessarily for $\vec{q}$. Following this training phase, there is a testing phase wherein we are given database vectors $\vec{x}$ that must be encoded and query vectors $\vec{q}$ for which we must compute the distances to all of the database vectors received so far. $\vec{x}$ vectors may be given all at once, or one at a time; they may also be modified or deleted, necessitating re-encoding or removal. This is in contrast to most existing work, which assumes that $\vec{x}$ vectors are all added at once before any queries are recieved [][][][].
+Like other work [][][][], we assume that there is an initial training phase during which the functions $g$ and $h$ may be learned. This phase contains a training dataset for $X$, but not necessarily for $\vec{q}$. Following this training phase, there is a testing phase wherein we are given database vectors $\vec{x}$ that must be encoded and query vectors $\vec{q}$ for which we must compute the distances to all of the database vectors received so far. The vectors of $\mat{X}$ may be given all at once, or one at a time; they may also be modified or deleted, necessitating re-encoding or removal. This is in contrast to most existing work, which assumes that $\vec{x}$ vectors are all added at once before any queries are recieved [][][][].
 
 In practice, one might require the distances between $\vec{q}$ and only some of the database vectors $\mathcal{X}$ (in particular, the $k$ closest vectors). This can be achieved using an indexing structure, such as an Inverted Multi-Index [][] or Locality-Sensitive Hashing hash tables [][], that allow inspection of only a fraction of $\mathcal{X}$. Such indexing is complementary to our work in that our approach could be used to accelerate the computation of distances to the subset of $\mathcal{X}$ that is inspected. Consequently, we assume that the task is to compute the distances to all vectors, noting that, in a production setting, ``all vectors'' for a given query might be a subset of a full database.
 

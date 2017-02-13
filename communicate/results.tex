@@ -40,7 +40,8 @@ In shown in Figure~\ref{fig:bolt_vs_popcount}, Bolt can compute approximate dist
 \label{fig:bolt_vs_popcount}
 % \includegraphics[width=\linewidth, trim={0 2cm 0 0},clip]{moose0}
 % \includegraphics[width=\linewidth, trim={0 1cm 0 0},clip]{moose0}
-\includegraphics[width=\linewidth]{moose0}
+% \includegraphics[width=\linewidth]{moose0}
+\includegraphics[width=\linewidth]{popcount_speed}
 \vspace*{-1mm}
 \caption{Bolt can compute various distances, including Hamming distances, faster than binary embedding methods can compute Hamming distances (using the \texttt{popcount} instruction).}
 \end{center}
@@ -50,20 +51,35 @@ Above figure should use 8, 16, 32B. And ideally version of Bolt that immediately
 
 \subsection{Encoding Speed}
 
-Bolt can encode both data and queries faster than any other Multi-Codebook Quantization (MCQ) method of which we are aware. As shown in Figure~\ref{fig:encoding_speeds}a, Bolt can encode data vectors at up to 2GB/s, while the fastest comparison, PQ, reaches at most 200MB/s. For perspective, Bolt's encoding rate is sufficient to encode the entire Sift1M dataset of 1 million vectors in 250ms, and the Sift1B dataset of 1 billion vectors in 250s. This rate is also much higher than that of high-speed (but general-purpose) compression algorithms such as Snappy [], which reports an encoding speed of 250MB/s.
+Bolt can encode both data and queries faster than any other Multi-Codebook Quantization (MCQ) method of which we are aware. As shown in Figure~\ref{fig:encoding_speeds}.\textit{left}, Bolt can encode data vectors at up to 2GB/s, while the fastest comparison, PQ, reaches at most 200MB/s. For perspective, Bolt's encoding rate is sufficient to encode the entire Sift1M dataset of 1 million vectors in 250ms, and the Sift1B dataset of 1 billion vectors in 250s. This rate is also much higher than that of high-speed (but general-purpose) compression algorithms such as Snappy [], which reports an encoding speed of 250MB/s.
 
-Similarly, Bolt can compute the distance matrix constituting a query's encoding at up to 7 million queries/s, while PQ obtains only 500,000 queries/s Figure~\ref{fig:encoding_speeds}b. Both of these numbers are sufficiently high that encoding the query is unlikely to ever be a bottleneck in computing distances to it.
+Similarly, Bolt can compute the distance matrix constituting a query's encoding at up to 7 million queries/s, while PQ obtains only 500,000 queries/s Figure~\ref{fig:encoding_speeds}.\textit{right}. Both of these numbers are sufficiently high that encoding the query is unlikely to ever be a bottleneck in computing distances to it.
 
 \begin{figure}[h]
 \begin{center}
 \label{fig:encoding_speeds}
 % \includegraphics[width=\linewidth, trim={0 2cm 0 0},clip]{moose0}
 % \includegraphics[width=\linewidth, trim={0 1cm 0 0},clip]{moose0}
-\includegraphics[width=\linewidth]{moose1}
+% \includegraphics[width=\linewidth]{moose1}
+% \includegraphics[width=\linewidth]{encoding_speed_data}
+\includegraphics[width=\linewidth]{encoding_speed}
 \vspace*{-1mm}
-\caption{Bolt encodes both data vectors and query vectors significantly faster than existing algorithms.}
+% \caption{Bolt encodes data vectors significantly faster than existing algorithms.}
+\caption{Bolt encodes both data and query vectors significantly faster than existing algorithms.}
 \end{center}
 \end{figure}
+
+% \begin{figure}[h]
+% \begin{center}
+% \label{fig:encoding_speeds}
+% % \includegraphics[width=\linewidth, trim={0 2cm 0 0},clip]{moose0}
+% % \includegraphics[width=\linewidth, trim={0 1cm 0 0},clip]{moose0}
+% % \includegraphics[width=\linewidth]{moose1}
+% \includegraphics[width=\linewidth]{encoding_speed_query}
+% \vspace*{-1mm}
+% \caption{Bolt encodes query vectors significantly faster than existing algorithms.}
+% \end{center}
+% \end{figure}
 
 Above needs to show times for 8B and 16B codes.
 TODO vary query batch size? Because OPQ (and bolt if we add in rotations) will go faster with bigger batches
@@ -73,14 +89,14 @@ TODO vary query batch size? Because OPQ (and bolt if we add in rotations) will g
 
 Much of the appeal of MCQ methods is that they allow fast computation of approximate distances and similarites directly on compressed data. We compared Bolt's speed in computing Euclidean distances from a batch of queries to each vector in a compressed dataset. We omit profiling of other distances and similarities since they only alter the computation of queries' distance matrices and therefore have nearly identical speeds. In all experiments, the number of compressed data vectors $N$ is fixed at $100,000$.
 
-\begin{figure}[h]
-\begin{center}
-\label{fig:query_speeds}
-\includegraphics[width=\linewidth]{moose2}
-\vspace*{-1mm}
-\caption{Bolt can compute the distances/similarities between a query $\vec{q}$ and the vectors of a compressed database $H$ up to $5\times$ faster than other MCQ algorithms. It is also faster than batched distance computations on floats using matrix multiplies up to a batch size of TODO.}
-\end{center}
-\end{figure}
+% \begin{figure}[h]
+% \begin{center}
+% \label{fig:query_speeds}
+% \includegraphics[width=\linewidth]{moose2}
+% \vspace*{-1mm}
+% \caption{Bolt can compute the distances/similarities between a query $\vec{q}$ and the vectors of a compressed database $H$ up to $5\times$ faster than other MCQ algorithms. It is also faster than batched distance computations on floats using matrix multiplies up to a batch size of TODO.}
+% \end{center}
+% \end{figure}
 
 % In addition to reducing the space consumption of a database of vectors $\mathcal{X}$, MCQ methods also allow direct computation of distances and similarities matching the form of~\ref{eq:distFuncForm}.
 
@@ -90,7 +106,7 @@ Use query batch sizes of {1, 32, 64, 128,...,512}; NBytes={8, 16, 32}; fix N at 
 
 \subsection{Nearest Neighbor Accuracy}
 
-By far the most common assessment of MCQ and binary embedding algorithms' accuracy is their Recall@R on various benchmark datasets. The Recall@R is the fraction of the queries $\vec{q}$ for which the true nearest neighbor in Euclidean space is among the top $R$ points with smallest approximate distances to $\vec{q}$. As shown in Figure~\ref{fig:nn_acc}, Bolt yields lower accuracy for a given encoding length than other methods designed for maximal compression. And hopefully some comment about how it's at least better than PQ.
+By far the most common assessment of MCQ and binary embedding algorithms' accuracy is their Recall@R. This is defined as the fraction of the queries $\vec{q}$ for which the true nearest neighbor in Euclidean space is among the top $R$ points with smallest approximate distances to $\vec{q}$. As shown in Figure~\ref{fig:nn_acc}, Bolt yields lower accuracy for a given encoding length than other methods designed for maximal compression. And hopefully some comment about how it's at least better than PQ.
 
 \begin{figure}[h]
 \begin{center}
