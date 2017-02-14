@@ -47,7 +47,7 @@ In shown in Figure~\ref{fig:bolt_vs_popcount}, Bolt can compute approximate dist
 \end{center}
 \end{figure}
 
-Above figure should use 8, 16, 32B. And ideally version of Bolt that immediately upcasts to uint16s, which is the most robust to overflows but might not be faster than popcount.
+% TODO Above figure should use 8, 16, 32B. And ideally version of Bolt that immediately upcasts to uint16s, which is the most robust to overflows but might not be faster than popcount.
 
 \subsection{Encoding Speed}
 
@@ -69,20 +69,7 @@ Similarly, Bolt can compute the distance matrix constituting a query's encoding 
 \end{center}
 \end{figure}
 
-% \begin{figure}[h]
-% \begin{center}
-% \label{fig:encoding_speeds}
-% % \includegraphics[width=\linewidth, trim={0 2cm 0 0},clip]{moose0}
-% % \includegraphics[width=\linewidth, trim={0 1cm 0 0},clip]{moose0}
-% % \includegraphics[width=\linewidth]{moose1}
-% \includegraphics[width=\linewidth]{encoding_speed_query}
-% \vspace*{-1mm}
-% \caption{Bolt encodes query vectors significantly faster than existing algorithms.}
-% \end{center}
-% \end{figure}
-
-Above needs to show times for 8B and 16B codes.
-TODO vary query batch size? Because OPQ (and bolt if we add in rotations) will go faster with bigger batches
+% TODO vary query batch size? Because OPQ (and bolt if we add in rotations) will go faster with bigger batches
 
 
 \subsection{Query Speed}
@@ -180,7 +167,8 @@ In addition to accelerating standalone similarity searches, Bolt can be embedded
 \begin{figure}[h]
 \begin{center}
 \label{fig:kmeans}
-\includegraphics[width=\linewidth]{moose6}
+% \includegraphics[width=\linewidth]{moose6}
+\includegraphics[width=\linewidth]{kmeans}
 % \vspace*{-1mm}
 \caption{Using Bolt to compute distances within K-means decreases its runtime greatly without increasing its mean squared error (MSE). Standard errors across 10 runs are shown shaded.}
 \end{center}
