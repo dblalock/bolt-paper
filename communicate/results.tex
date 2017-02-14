@@ -42,7 +42,7 @@ In shown in Figure~\ref{fig:bolt_vs_popcount}, Bolt can compute approximate dist
 % \includegraphics[width=\linewidth, trim={0 1cm 0 0},clip]{moose0}
 % \includegraphics[width=\linewidth]{moose0}
 \includegraphics[width=\linewidth]{popcount_speed}
-\vspace*{-1mm}
+% \vspace*{-1mm}
 \caption{Bolt can compute various distances, including Hamming distances, faster than binary embedding methods can compute Hamming distances (using the \texttt{popcount} instruction).}
 \end{center}
 \end{figure}
@@ -87,21 +87,26 @@ TODO vary query batch size? Because OPQ (and bolt if we add in rotations) will g
 
 \subsection{Query Speed}
 
-Much of the appeal of MCQ methods is that they allow fast computation of approximate distances and similarites directly on compressed data. We compared Bolt's speed in computing Euclidean distances from a batch of queries to each vector in a compressed dataset. We omit profiling of other distances and similarities since they only alter the computation of queries' distance matrices and therefore have nearly identical speeds. In all experiments, the number of compressed data vectors $N$ is fixed at $100,000$.
+Much of the appeal of MCQ methods is that they allow fast computation of approximate distances and similarites directly on compressed data. We assessed various algorithms' speed in computing Euclidean distances from a batch of queries to each vector in a compressed dataset. We omit profiling of other distances and similarities since they only alter the computation of queries' distance matrices and therefore have nearly identical speeds. In all experiments, the number of compressed data vectors $N$ is fixed at $100,000$ and their dimensionality is fixed at $256$.
 
-% \begin{figure}[h]
-% \begin{center}
-% \label{fig:query_speeds}
+\begin{figure}[h]
+\begin{center}
+\label{fig:query_speeds}
 % \includegraphics[width=\linewidth]{moose2}
+\includegraphics[width=\linewidth]{query_speed}
 % \vspace*{-1mm}
-% \caption{Bolt can compute the distances/similarities between a query $\vec{q}$ and the vectors of a compressed database $H$ up to $5\times$ faster than other MCQ algorithms. It is also faster than batched distance computations on floats using matrix multiplies up to a batch size of TODO.}
-% \end{center}
-% \end{figure}
+\caption{Bolt can compute the distances/similarities between a query $\vec{q}$ and the vectors of a compressed database $H$ up to $5\times$ faster than other MCQ algorithms. It is also faster than batched distance computations on floats using matrix multiplies up to a batch size of TODO.}
+\end{center}
+\end{figure}
+
+Matmul-$n$ refers to matrix multiplying the raw floating-point data and a batch of $n$ floating-point queries, which can be used to quickly obtain the $n$ Euclidean distances or dot products. Such batching is not possible unless queries arrive extremely frequently relative to the desired latency in answering them. However, batching matrix-vector multiplies into matrix-matrix multiplies is a ubiquitous speedup technique in machine learning, so we include it as a comparison. We omit it from other experiments since it entails no encoding and has perfect accuracy.
+
+Comment about implications of Bolt speed vs matmul speed, depending on how this turns out.
 
 % In addition to reducing the space consumption of a database of vectors $\mathcal{X}$, MCQ methods also allow direct computation of distances and similarities matching the form of~\ref{eq:distFuncForm}.
 
 
-Use query batch sizes of {1, 32, 64, 128,...,512}; NBytes={8, 16, 32}; fix N at 100k. Compare Bolt, matmul, other MCQ methods.
+% Use query batch sizes of {1, 32, 64, 128,...,512}; NBytes={8, 16, 32}; fix N at 100k. Compare Bolt, matmul, other MCQ methods.
 
 
 \subsection{Nearest Neighbor Accuracy}
@@ -111,9 +116,10 @@ By far the most common assessment of MCQ and binary embedding algorithms' accura
 \begin{figure}[h]
 \begin{center}
 \label{fig:nn_acc}
-\includegraphics[width=\linewidth]{moose3}
-\vspace*{-1mm}
-\caption{Bolt is less accurate in retrieving the nearest neighbor for a given encoding length than MCQ algorithms optimized for small encodings, but $<$ hopefully optimistic comment $>$.}
+% \includegraphics[width=\linewidth]{moose3}
+\includegraphics[width=\linewidth]{l2_recall}
+% \vspace*{-1mm}
+\caption{Compared to MCQ algorithms optimized for small encodings, Bolt is less accurate in retrieving the nearest neighbor for a given encoding length for a given encoding length. $<$ hopefully optimistic comment $>$.}
 \end{center}
 \end{figure}
 
@@ -142,13 +148,13 @@ Because dot products are perhaps even more common vector operations than Euclidi
 \begin{figure}[h]
 \begin{center}
 \label{fig:mips_acc}
-\includegraphics[width=\linewidth]{moose4}
-\vspace*{-1mm}
-\caption{Bolt is less accurate in retrieving the neighbor having maximum dot product with the query than MCQ algorithms optimized for small encodings. Again, $<$ hopefully optimistic comment $>$.}
+\includegraphics[width=\linewidth]{mips_recall}
+% \vspace*{-1mm}
+\caption{Compared to MCQ algorithms optimized for small encodings, Bolt is less accurate in retrieving the neighbor having maximum dot product with the query for a given encoding length. Again, $<$ hopefully optimistic comment $>$.}
 \end{center}
 \end{figure}
 
-Might not get to this because we need to modify Bolt to allow int8s in LUT instead of just uint8s.
+% Might not get to this because we need to modify Bolt to allow int8s in LUT instead of just uint8s.
 
 \subsection{Accuracy in Preserving Distances and Dot Products}
 
@@ -157,13 +163,14 @@ The above experiments characterize how well algorithms preserve distances and si
 \begin{figure}[h]
 \begin{center}
 \label{fig:corr_acc}
-\includegraphics[width=\linewidth]{moose5}
-\vspace*{-1mm}
+% \includegraphics[width=\linewidth]{moose5}
+\includegraphics[width=\linewidth]{l2_distortion}
+% \vspace*{-1mm}
 \caption{Bolt Euclidean distances are highly correlated with true Euclidean distances, though slightly less so than the distances from other MCQ algorithms.}
 \end{center}
 \end{figure}
 
-Maybe omit this because accuracy results make us look worse and it's not reported in any other MCQ paper.
+% Maybe omit this because accuracy results make us look worse and it's not reported in any other MCQ paper.
 
 
 \subsection{Case Study: K-Means Clustering}
@@ -174,20 +181,20 @@ In addition to accelerating standalone similarity searches, Bolt can be embedded
 \begin{center}
 \label{fig:kmeans}
 \includegraphics[width=\linewidth]{moose6}
-\vspace*{-1mm}
+% \vspace*{-1mm}
 \caption{Using Bolt to compute distances within K-means decreases its runtime greatly without increasing its mean squared error (MSE). Standard errors across 10 runs are shown shaded.}
 \end{center}
 \end{figure}
 
 Use K = 16, K = 256.
 
-\subsection{Case Study: Power Iteration}
+% \subsection{Case Study: Power Iteration}
 
-Backup if we don't have time for word embedding. Should compare time taken to find top k eigenvects + eigenvals, and just report cosine sims between former and raw values of latter in a table. Use gram schmidt to get eigenvectors after the first (think we have to decompress to do this--so this might not be faster at all).
+% Backup if we don't have time for word embedding. Should compare time taken to find top k eigenvects + eigenvals, and just report cosine sims between former and raw values of latter in a table. Use gram schmidt to get eigenvectors after the first (think we have to decompress to do this--so this might not be faster at all).
 
-\subsection{Case Study: Word Embedding}
+% \subsection{Case Study: Word Embedding}
 
-Hope I have time to do this. Need to ask whether there's an obvious successor to word2vec other than Glove (which isn't amenable to our approach).
+% Hope I have time to do this. Need to ask whether there's an obvious successor to word2vec other than Glove (which isn't amenable to our approach).
 
 
 

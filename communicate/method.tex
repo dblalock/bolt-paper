@@ -12,7 +12,7 @@ where $f: \mathbb{R} \rightarrow \mathbb{R}$, $d_j: \mathbb{R}^J \times \mathbb{
         \sum_{m=1}^M \sum_{j \in p_m} d_j(q_j, x_j)
             = \sum_{m=1}^M d_m(\vec{q}_m, \vec{x}_m)
 \end{align}
-where $\vec{q}_m$ and $\vec{x}_m$ are the vectors formed by gathering the indices of $\vec{q}$ and $\vec{x}$ at the indices $j \in p_m$, and $d_m$ sums the relevant $d_j$ functions. The idea of Product Quantization (PQ) is to replace each $x_m$ with one vector $\vec{c}_{m}$ from a \textit{codebook} set $\mathcal{C}_m$ of possibilities. That is: % (\vec{q_m}, \vec{x}) = \sum_{j = 1}^|p_m d_j(q_j, x_j)$.
+where $\vec{q}_m$ and $\vec{x}_m$ are the vectors formed by gathering the elements of $\vec{q}$ and $\vec{x}$ at the indices $j \in p_m$, and $d_m$ sums the relevant $d_j$ functions. The idea of Product Quantization (PQ) is to replace each $x_m$ with one vector $\vec{c}_{m}$ from a \textit{codebook} set $\mathcal{C}_m$ of possibilities. That is: % (\vec{q_m}, \vec{x}) = \sum_{j = 1}^|p_m d_j(q_j, x_j)$.
 \begin{align} \label{eq:pqDistNoLut}
         \sum_{m=1}^M d_m(\vec{q}_m, \vec{x}_m) \approx \sum_{m=1}^M d_m(\vec{q}_m, \vec{c}_{m})
 \end{align}
@@ -27,7 +27,7 @@ Using a fixed set of codebooks also enables construction of a fast query encodin
 \end{align}
 Then we can rewrite the approximate distance on the right hand side of ~\ref{eq:pqDistNoLut} as:
 \begin{align} \label{eq:pqDist}
-        \sum_{m=1}^M \mat{D}_{im}, i = h(x)_m
+        \sum_{m=1}^M \mat{D}_{im}, \hspace{2mm} i = h(x)_m
 \end{align}
 In other words, the distance can be reduced to a sum of precomputed distances between $\vec{q_m}$ and the codebook vectors $\vec{c}_{im}$ used to approximate $\vec{x}$. Finally, by reintroducing $f$, one can now define:
 \begin{align} \label{eq:pq_dhat}
@@ -37,7 +37,13 @@ If $M \ll D$ and $C \ll |\mathcal{X}|$, then computation of $\hat{d}$ is much fa
 
 The total computational cost of product quantization is $\Theta(CJ)$ to encode each $\vec{x}$, $\Theta(CJ)$ to encode each query $\vec{q}$, and $\Theta(M)$ to compute the approximate distance between a given $\vec{q}$ and $\vec{x}$. Because queries must be encoded before distance computations can be performed, this means that the cost of computing the distances to the $N$ database vectors $\mathcal{X}$ when a query is received is $\Theta(CJ) + \Theta(NM)$. Lastly, since codebooks are learned using k-means clustering, the time to learn the codebook vectors is $O(CNJT)$, where $T$ is the number of k-means iterations. In all works of which we are aware, $C$ is set to $256$ so that each element of $h(\vec{x})$ can be encoded as one byte. Further, the subspaces $p_m$ are the contiguous blocks of $J/M$ dimensions, possibly after a random permutation.
 
-In certain cases, Product Quantization is nearly an optimal encoding scheme. Specifically, under the assumptions that 1) $\vec{x}_m \sim MVN(\vec{\mu}_m, \Sigma_m)$, 2) $Pr[\vec{x}] = \prod_m Pr[\vec{x}_m]$; and 3) $\forall_m |\Sigma_m| = \textit{const}$, PQ achieves the information-theoretic lower bound on code length for a given quantization error [OPQ]. In words, this means that PQ encoding is optimal if $x$ is drawn from a multivariate gaussian and the subspaces $p_m$ are independent and have the same variance.
+In certain cases, Product Quantization is nearly an optimal encoding scheme. Specifically, under the assumptions that:
+\begin{enumerate}
+\item $\vec{x} \sim MVN(\vec{\mu}, \mat{\Sigma})$, and therefore $\vec{x}_m \sim MVN(\vec{\mu}_m, \mat{\Sigma}_m)$,
+\item $\forall_m |\mat{\Sigma}_m| = |\mat{\Sigma}|^{1/m}$,
+% \item $Pr[\vec{x}] = \prod_m Pr[\vec{x}_m]$,
+\end{enumerate}
+PQ achieves the information-theoretic lower bound on code length for a given quantization error [OPQ]. In words, this means that PQ encoding is optimal if $x$ is drawn from a multivariate Gaussian and the subspaces $p_m$ are independent and have the same variance.
 
 In practice, however, most datasets are not Gaussian and their subspaces are neither independent nor homoscedastic. Consequently, many works have generalized PQ to capture relationships across subspaces or decrease the dependenies between them [][][][]. One work of particular note is Optimized Product Quantization (OPQ). OPQ exploits the fact that Euclidean distances and dot products are invariant to rotatations by learning a rotation that reduces the PQ quantization error.
 
@@ -48,7 +54,7 @@ Talk about OPQ more here if we have time to plug in our modified version of it.
 Bolt is similar to Optimized Product Quantization but differs in three key ways:
 \begin{enumerate}
 \item It constrains the rotation matrix such that vectors can be rotated more quickly.
-\item It uses far fewer centroids.
+\item It uses much smaller codebooks.
 \item It uses an approximate query encoding distance matrix $\mat{D}$.
 \end{enumerate}
 
@@ -58,7 +64,7 @@ Change (1) directly increases the speeds of $g$ and $h$, as well as training, wh
 
 Write this if we end up using this approach. Otherwise remove change 1. We're just gonna make the rotation matrix block diagonal so we can run OPQ and in disjoint subspaces and apply several small rotations instead of one big, slow one.
 
-\subsubsection{Fewer Centroids and Approximate Distances} \label{sec:boltVectorize}
+\subsubsection{Smaller Codebooks and Approximate Distances} \label{sec:boltVectorize}
 
 Change (2), reducing the size of codebooks $C$, directly reduces the constant factor associated with both query and data encoding. Although this is novel insofar as virtually all other papers have taken for granted the value $C = 256$ to the best of our knowledge, this is a simple change of parameter setting and we do not discuss it further.
 
