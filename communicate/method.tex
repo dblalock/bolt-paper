@@ -10,34 +10,33 @@ Recall that, by assumption, $d$ can be written as:
         d(\vec{q}, \vec{x}) = f(\sum_{j=1}^J \delta(q_j, x_j))
 \end{align*}
 where $f: \mathbb{R} \rightarrow \mathbb{R}$, $\delta: \mathbb{R}^J \times \mathbb{R}^J \rightarrow \mathbb{R}$. Now, suppose one has a partition $\mathcal{P} = \{p_1,\ldots,p_M \}$ of the indices $j$, such that $k \ne l \implies p_k \cap p_l = \emptyset$ and $\bigcup_m p_m = \{1,\ldots,J\}$. The argument to $f$ can then be written as:
-% \begin{align}
-%         \sum_{m=1}^M \sum_{j \in p_m} \delta(q_j, x_j)
-%             = \sum_{m=1}^M d_m(\vec{q}_m, \vec{x}_m)
-% \end{align}
-% where $\vec{q}_m$ and $\vec{x}_m$ are the vectors formed by gathering the elements of $\vec{q}$ and $\vec{x}$ at the indices $j \in p_m$, and $d_m$ sums the relevant $\delta$ functions. Product quantization replaces each $x_m$ with one vector $\vec{c}_{m}$ from a \textit{codebook} set $\mathcal{C}_m$ of possibilities. That is: % (\vec{q_m}, \vec{x}) = \sum_{j = 1}^|p_m \delta(q_j, x_j)$.
-% \begin{align} \label{eq:pqDistNoLut}
-%         \sum_{m=1}^M d_m(\vec{q}_m, \vec{x}_m) \approx \sum_{m=1}^M d_m(\vec{q}_m, \vec{c}_{m})
-% \end{align}
-% This allows one to store only the identity of the codebook vector chosen, instead of the elements of the original vector $\vec{x}_m$. More formally, let $\mathcal{\mat{C}} = \{\mathcal{C}_1,\ldots,\mathcal{C}_M\}$ be a set of $M$ codebooks where each codebook $\mathcal{C}_m $ is itself a set of $K$ vectors $\{\vec{c}_{1m},\ldots,\vec{c}_{Km}\}$; for ease of exposition, we will refer to the codebook vectors as \textit{centroids}. Given this set of codebooks, the PQ encoding function $h(\vec{x})$ is:
-% \begin{align}
-%     h(\vec{x}) = \langle i_1,\ldots,i_M \rangle,  i_m = \argmin_i d(\vec{c}_{im}, \vec{x_m})
-% \end{align}
-% Using these codebooks also enables construction of a fast query encoding $g$ and distance approximation $\hat{d}$. Specifically, let the query encoding space $\mathcal{G}$ be $R^{M \times K}$ and define $\mat{D} = g(\vec{q})$ as: % $g: \mathbb{R}^J \rightarrow R^{M \times C}$ as:
-% \begin{align}
-%     \mat{D}_{im} \triangleq d_m(\vec{q}_m, \vec{c}_{im})
-% \end{align}
-% Then we can rewrite the approximate distance on the right hand side of ~\ref{eq:pqDistNoLut} as:
-% \begin{align} \label{eq:pqDist}
-%         \sum_{m=1}^M \mat{D}_{im}, \hspace{2mm} i = h(x)_m
-% \end{align}
-% In other words, the distance can be reduced to a sum of precomputed distances between $\vec{q_m}$ and the codebook vectors $\vec{c}_{im}$ used to approximate $\vec{x}$. Each column of $D$ represents the distances between a $\vec{q_m}$ and the $K$ centroids in codebook $\mathcal{C}_M$. Computation of the distance proceeds by iterating through the columns, looking up the distance in row $h(x)_m$, and adding it to a running total. By reintroducing $f$, one can now define:
-% \begin{align} \label{eq:pq_dhat}
-%     \hat{d}(g(\vec{q}), h(\vec{x})) \triangleq f(\sum_{m=1}^M \mat{D}_{im}, i = h(x)_m)
-% }
-% \end{align}
-% If $M \ll D$ and $C \ll |\mathcal{X}|$, then computation of $\hat{d}$ is much faster than computation of $d$ given the $g(\vec{q})$ matrix $\mat{D}$ and data encodings $\mathcal{H} = \{h(\vec{x}), \vec{x} \in \mathcal{X} \}$.
+\begin{align}
+        \sum_{m=1}^M \sum_{j \in p_m} \delta(q_j, x_j)
+            = \sum_{m=1}^M d_m(\vec{q}_m, \vec{x}_m)
+\end{align}
+where $\vec{q}_m$ and $\vec{x}_m$ are the vectors formed by gathering the elements of $\vec{q}$ and $\vec{x}$ at the indices $j \in p_m$, and $d_m$ sums the $\delta$ functions applied to each dimension. Product quantization replaces each $\vec{x}_m$ with one vector $\vec{c}_{m}$ from a \textit{codebook} set $\mathcal{C}_m$ of possibilities. That is: % (\vec{q_m}, \vec{x}) = \sum_{j = 1}^|p_m \delta(q_j, x_j)$.
+\begin{align} \label{eq:pqDistNoLut}
+        \sum_{m=1}^M d_m(\vec{q}_m, \vec{x}_m) \approx \sum_{m=1}^M d_m(\vec{q}_m, \vec{c}_{m})
+\end{align}
+This allows one to store only the identity of the codebook vector chosen, instead of the elements of the original vector $\vec{x}_m$. More formally, let $\mathcal{\mat{C}} = \{\mathcal{C}_1,\ldots,\mathcal{C}_M\}$ be a set of $M$ codebooks where each codebook $\mathcal{C}_m $ is itself a set of $K$ vectors $\{\vec{c}_{1m},\ldots,\vec{c}_{Km}\}$; for ease of exposition, we will refer to the codebook vectors as \textit{centroids}. Given this set of codebooks, the PQ encoding function $h(\vec{x})$ is:
+\begin{align}
+    h(\vec{x}) = \langle i_1,\ldots,i_M \rangle,  i_m = \argmin_i d(\vec{c}_{im}, \vec{x_m})
+\end{align}
+Using these codebooks also enables construction of a fast query encoding $g$ and distance approximation $\hat{d}$. Specifically, let the query encoding space $\mathcal{G}$ be $R^{M \times K}$ and define $\mat{D} = g(\vec{q})$ as: % $g: \mathbb{R}^J \rightarrow R^{M \times C}$ as:
+\begin{align}
+    \mat{D}_{im} \triangleq d_m(\vec{q}_m, \vec{c}_{im})
+\end{align}
+Then we can rewrite the approximate distance on the right hand side of ~\ref{eq:pqDistNoLut} as:
+\begin{align} \label{eq:pqDist}
+        \sum_{m=1}^M \mat{D}_{im}, \hspace{2mm} i = h(x)_m
+\end{align}
+In other words, the distance can be reduced to a sum of precomputed distances between $\vec{q}_m$ and the codebook vectors $\vec{c}_{im}$ used to approximate $\vec{x}$. Each column of $D$ represents the distances between a $\vec{q}_m$ and the $K$ centroids in codebook $\mathcal{C}_M$. Computation of the distance proceeds by iterating through the columns, looking up the distance in row $h(\vec{x})_m$, and adding it to a running total. By reintroducing $f$, one can now define:
+\begin{align} \label{eq:pq_dhat}
+    \hat{d}(g(\vec{q}), h(\vec{x})) \triangleq f(\sum_{m=1}^M \mat{D}_{im}, i = h(x)_m)
+\end{align}
+If $M \ll D$ and $C \ll |\mathcal{X}|$, then computation of $\hat{d}$ is much faster than computation of $d$ given the $g(\vec{q})$ matrix $\mat{D}$ and data encodings $\mathcal{H} = \{h(\vec{x}), \vec{x} \in \mathcal{X} \}$.
 
-% The total computational cost of product quantization is $\Theta(KJ)$ to encode each $\vec{x}$, $\Theta(KJ)$ to encode each query $\vec{q}$, and $\Theta(M)$ to compute the approximate distance between a given $\vec{q}$ and $\vec{x}$. Because queries must be encoded before distance computations can be performed, this means that the cost of computing the distances to the $N$ database vectors $\mathcal{X}$ when a query is received is $\Theta(KJ) + \Theta(NM)$. Lastly, since codebooks are learned using k-means clustering, the time to learn the codebook vectors is $O(KNJT)$, where $T$ is the number of k-means iterations. In all works of which we are aware, $K$ is set to $256$ so that each element of $h(\vec{x})$ can be encoded as one byte. Further, the subspaces $p_m$ are the contiguous blocks of $J/M$ dimensions, possibly after a random permutation.
+The total computational cost of product quantization is $\Theta(KJ)$ to encode each $\vec{x}$, $\Theta(KJ)$ to encode each query $\vec{q}$, and $\Theta(M)$ to compute the approximate distance between a given $\vec{q}$ and $\vec{x}$. Because queries must be encoded before distance computations can be performed, this means that the cost of computing the distances to the $N$ database vectors $\mathcal{X}$ when a query is received is $\Theta(KJ) + \Theta(NM)$. Lastly, since codebooks are learned using k-means clustering, the time to learn the codebook vectors is $O(KNJT)$, where $T$ is the number of k-means iterations. In all works of which we are aware, $K$ is set to $256$ so that each element of $h(\vec{x})$ can be encoded as one byte. Further, the subspaces $p_m$ are the contiguous blocks of $J/M$ dimensions, possibly after a random permutation.
 
 In certain cases, Product Quantization is nearly an optimal encoding scheme. Specifically, under the assumptions that:
 \begin{enumerate}
@@ -49,49 +48,81 @@ PQ achieves the information-theoretic lower bound on code length for a given qua
 
 In practice, however, most datasets are not Gaussian and their subspaces are neither independent nor homoscedastic. Consequently, many works have generalized PQ to capture relationships across subspaces or decrease the dependenies between them [][][][].
 
-% In summary, PQ consists of three components:
-% \begin{enumerate}
-%     \item Encoding every $\vec{x}$ in the database using $h(\vec{x})$. This transforms $\vec{x}$ to a set of $M$ 8-bit integers.
-%     \item Encoding a query $\vec{q}$ when it is received using $g(\vec{q})$. This transforms returns an $K \times M$ matrix $\mat{D}$ whose columns are the distances to each centroid in codebook $\mathcal{C}_m$.
-%     \item Scanning the database. Once a query is computed, the approximated distance to each $\vec{x}$ is computed using~\ref{eq:pq_dhat} by looking up and summing the appropriate entries in each column of $\mat{D}$.
-% \end{enumerate}
+In summary, PQ consists of three components:
+\begin{enumerate}
+    \item Encoding every $\vec{x}$ in the database using $h(\vec{x})$. This transforms $\vec{x}$ to a set of $M$ 8-bit integers.
+    \item Encoding a query $\vec{q}$ when it is received using $g(\vec{q})$. This transforms returns an $K \times M$ matrix $\mat{D}$ whose columns are the distances to each centroid in codebook $\mathcal{C}_m$.
+    \item Scanning the database. Once a query is computed, the approximated distance to each $\vec{x}$ is computed using~\ref{eq:pq_dhat} by looking up and summing the appropriate entries in each column of $\mat{D}$.
+\end{enumerate}
 
-% \subsection{Bolt}
+\subsection{Bolt}
 
-% Bolt is similar to Product Quantization but differs in two key ways:
-% \begin{enumerate}
-% \item It uses much smaller codebooks.
-% \item It uses an approximate query encoding distance matrix $\mat{D}$.
-% \end{enumerate}
+Bolt is similar to Product Quantization but differs in two key ways:
+\begin{enumerate}
+\item It uses much smaller codebooks.
+\item It uses an approximate query encoding distance matrix $\mat{D}$.
+\end{enumerate}
 
-% Change (1) directly increases the speeds of the encoding functions $g$ and $h$. This is because it reduces the number of k-means centroids for which the distances to a given subvector must be computed. More specifically, by using $K = 16$ centroids (motivated below) instead of 256, we reduce the computation by a factor of $256 / 16 = 16$. This is the source of Bolt's fast encoding. Using fewer centroids also reduces the k-means training time, although this is not our focus.
+Change (1) directly increases the speeds of the encoding functions $g$ and $h$. This is because it reduces the number of k-means centroids for which the distances to a given subvector $\vec{x}_m$ or $\vec{q}_m$ must be computed. More specifically, by using $K = 16$ centroids (motivated below) instead of 256, we reduce the computation by a factor of $256 / 16 = 16$. This is the source of Bolt's fast encoding. Using fewer centroids also reduces the k-means training time, although this is not our focus.
 
-% Change (2), approximating the query distance matrix $\mat{D}$, allows us to reduce the size of $\mat{D}$. This is separate from approximating the overall distance---in other algorithms, the entries of $\mat{D}$ are the exact distances between each $\vec{q}_m$ and the corresponding centroids $\mathcal{C}_m$. In Bolt, the entries of $\mat{D}$ are learned 8-bit quantizations of these exact distances.
+Change (2), approximating the query distance matrix $\mat{D}$, allows us to reduce the size of $\mat{D}$. This approximation is separate from approximating the overall distance---in other algorithms, the entries of $\mat{D}$ are the exact distances between each $\vec{q}_m$ and the corresponding centroids $\mathcal{C}_m$. In Bolt, the entries of $\mat{D}$ are learned 8-bit quantizations of these exact distances.
 
-% Together, changes (1) and (2) allow hardware vectorization of the lookups in $\mat{D}$. Concretely, instead of looking up the entry in each column of $D$
+Together, changes (1) and (2) allow hardware vectorization of the lookups in $\mat{D}$. Concretely, instead of looking up the entry in a given column of $D$ for one $\vec{x}$ (a standard load from memory), we can leverage vector instructions to instead perform $V$ lookups for $V$ consecutive $\vec{x}$, $\vec{x}_i,\ldots,\vec{x}_{i+V}$, where $V = $ 16, 32, or 64 depending on the platform. Under the mild assumption that $\mathcal{X}$ can be stored in blocks of at least $V$ elements, this affords roughly a $V$-fold speedup in the computation of distances. The ability to perform such vectorized lookups is present on nearly all modern desktops, laptops, servers, tablets, and CUDA-enabled GPUs.\footnote{The relevant instructions are \texttt{vpshufb} on x86, \texttt{vtbl} on ARM, \texttt{vperm} on PowerPC, and \texttt{\_\_shfl} on CUDA, among others on less popular architectures.} Consequently, while the performance gain comes from fairly low-level hardware functionality, Bolt is not tied to any particular architecture, processor, or platform.
+
+Mathematically, the challenge in the above approach is quantizing $\mat{D}$. The distances in this matrix vary tremendously as a function of dataset, query vector, and even codebook. Naively truncating the floating-point values to integers in the range [0, 255], for example, would yield almost entirely 0s for datasets with entries $ \ll 1$ and almost entirely 255s for datasets with entries $ \gg 255$. This can of course be counteracted to some extent by globally shifting and scaling the dataset, but such global changes do not account for query-specific and codebook-specific variation.
+
+Consequently, we propose to learn a quantization function at training time. The basic approach is to learn the distribution of distances within a given column of $\mat{D}$ (the distances to centroids within one codebook) across many queries sampled from the training set and find upper and lower cutoffs such that the expected squared error between the quantized and original distances is minimized.
+
+Formally, for a given column $m$ of $\mat{D}$ (henceforth, one \textit{lookup table}), let $Q$ be the distribution of query subvectors $\vec{q}_m$, $X$ be the distribution of database subvectors $\vec{x}_m$, and $Y$ be the scalar-valued distribution of distances within that table. I.e.:
+\begin{align}
+    % Pr[Y] \triangleq \int_{\vec{q}_m, \vec{x}_m} Pr[Q =\vec{q}_m, X = \vec{x}_m]d_m(\vec{q}_m, \vec{x}_m)
+    % p(Y = y) \triangleq \int_{\vec{q}_m, \vec{x}_m} p(\vec{q}_m, \vec{x}_m)I\{d_m(\vec{q}_m, \vec{x}_m) = y\}
+    Y \triangleq \int_{\vec{q}_m, \vec{x}_m} p(\vec{q}_m, \vec{x}_m)d_m(\vec{q}_m, \vec{x}_m)
+\end{align}
+% We seek to learn a function $\beta: \mathbb{R} \rightarrow \{0,\ldots,255\} $ that minimizes the loss $\mathcal{L}[\beta]$, defined as:
+We seek to learn a quantization function $\beta_m: \mathbb{R} \rightarrow \{0,\ldots,255\} $ that minimizes the loss:
+\begin{align}
+    % \mathcal{L}[\beta] \triangleq E_Y[(\beta(y) - y)^2]
+    E_Y[(\beta_m(y) - y)^2]
+\end{align}
+Furthermore, for computational efficiency, we constrain $\beta(y)$ to be of the form:
+\begin{align}
+    \beta_m(y) = \max(0, \min(255, \floor*{ay - b}))
+\end{align}
+for some constants $a$ and $b$. $Y$ can be an arbitrary distribution (though we assume it has finite mean and variance) and the value of $\beta(y)$ is constrained to a finite set of integers, so there is not an obvious solution to this problem.
+
+We propose to set $b = F^{-1}(\alpha)$, $a = 255 / (F^{-1}(1 - \alpha) - b)$, where $F^{-1}$ is the inverse CDF of $Y$, estimated empirically. That is, we set $a$ and $b$ such that the $\alpha$ and $1 - \alpha$ quantiles of $Y$ are mapped to 0 and 255. Because both $F^{-1}(\alpha)$ and the loss function are cheap to compute, we can find a suitable $\alpha$ at training time via a simple grid search. In our experiments, we search over the values $\{.001, .002, .005, .01, .02, .05, .1\}$. In practice, the chosen $\alpha$ tends to be among the smaller values, consistent with the observation that loss from extreme values of $y$ is more costly than reduced granularity in representing typical values of $y$.
+
+To quantize multiple lookup tables, we learn a $b$ value for each table and set $a$ based on the CDF of the aggregated distances $Y$ across all tables. We cannot learn table-specific $a$ values because this would amount to the weighting distances from each differently. The $b$ values can be table-specific because they sum to one overall offset in the distance, which is known at the end of training time and can be corrected for.
+
+% TODO math here
+
+In summary, Bolt is an extension of product quantization with fast encoding speed stemming from small codebooks and fast distance computations stemming from adaptively quantized lookup tables and efficient use of hardware.
+
+
 
 % works together with Change (1) to allow hardware vectorization of the lookups in $\mat{D}$ with which distances are computed
 
 
 % , as well as training, while (2) and (3) work together to increase the speeds of $g$, $h$, and $\hat{d}$.
 
-\subsubsection{Smaller Codebooks and Approximate Distances} \label{sec:boltVectorize}
+% \subsubsection{Smaller Codebooks and Approximate Distances} \label{sec:boltVectorize}
 
-Change (2), reducing the size of codebooks $C$, directly reduces the constant factor associated with both query and data encoding. Although this is novel insofar as virtually all other papers have taken for granted the value $C = 256$ to the best of our knowledge, this is a simple change of parameter setting and we do not discuss it further.
+% Change (2), reducing the size of codebooks $C$, directly reduces the constant factor associated with both query and data encoding. Although this is novel insofar as virtually all other papers have taken for granted the value $C = 256$ to the best of our knowledge, this is a simple change of parameter setting and we do not discuss it further.
 
-More importantly, changes (2) and (3) together allow accelerated computation of $\hat{d}$. Specifically, if we fix $C = 16$, each of the $M$ codes in the data encoding $h(\vec{x})$ can be expressed using 4 bits. At the same time, if we quantize each entry of $\mat{D}$ to a single byte, instead of a 32-bit or 64-bit float, the rows of $\mat{D}$ can be fit in 16 bytes. This means that each $i \in h(\vec{x})$ is a 4-bit index into a 16-byte array. On virtually all personal computers, servers, CUDA-enabled GPUs, tablets, and smart phones, lookups into 16B arrays can be vectorized; i.e., some number $V$ of them (typically 16, 32, or 64) can be performed by the processor simultaneously\footnote{The relevant instructions are \texttt{vpshufb} on x86 [], \texttt{vtbl} on ARM [], \texttt{vperm} on PowerPC [], and \texttt{\_\_shfl} on CUDA [], among others on less popular architectures.}. Moreover, on CPUs, the entire column of $\mat{D}$ in question can be stored in a SIMD register, obviating the need to access L1 cache. In theory then, for $V$ simultaneous lookups, this affords over a $V$-fold speedup in the computation of $\hat{d}$. The speedup is lower in practice---see Section~\ref{sec:results}).
+% More importantly, changes (2) and (3) together allow accelerated computation of $\hat{d}$. Specifically, if we fix $C = 16$, each of the $M$ codes in the data encoding $h(\vec{x})$ can be expressed using 4 bits. At the same time, if we quantize each entry of $\mat{D}$ to a single byte, instead of a 32-bit or 64-bit float, the rows of $\mat{D}$ can be fit in 16 bytes. This means that each $i \in h(\vec{x})$ is a 4-bit index into a 16-byte array. On virtually all personal computers, servers, CUDA-enabled GPUs, tablets, and smart phones, lookups into 16B arrays can be vectorized; i.e., some number $V$ of them (typically 16, 32, or 64) can be performed by the processor simultaneously\footnote{The relevant instructions are \texttt{vpshufb} on x86 [], \texttt{vtbl} on ARM [], \texttt{vperm} on PowerPC [], and \texttt{\_\_shfl} on CUDA [], among others on less popular architectures.}. Moreover, on CPUs, the entire column of $\mat{D}$ in question can be stored in a SIMD register, obviating the need to access L1 cache. In theory then, for $V$ simultaneous lookups, this affords over a $V$-fold speedup in the computation of $\hat{d}$. The speedup is lower in practice---see Section~\ref{sec:results}).
 
-It is worth noting that [] used a similar vectorization strategy to accelerate PQ distance computations. However, their method requires hundreds of thousands or millions of encodings to be sorted lexicographically and stored contiguously ahead of time, as well as scanned through serially. This is untenable when the data is rapidly changing or when using an indexing structure, which would split the data into far smaller partitions. Their approach also requires a second refinement pass of non-vectorized PQ distance computations for encodings that might correspond to nearest neighbors or are otherwise of interest, since it computes only a lower bound on the PQ approximate distance. Probably move this to related work. % In practice, this theoretical speedup is not attained because of the loads, stores, and other instructions necessary to scan through the data, but a factor of $5$ or more is common (c.f. Section~\ref{sec:results}).
+% It is worth noting that [] used a similar vectorization strategy to accelerate PQ distance computations. However, their method requires hundreds of thousands or millions of encodings to be sorted lexicographically and stored contiguously ahead of time, as well as scanned through serially. This is untenable when the data is rapidly changing or when using an indexing structure, which would split the data into far smaller partitions. Their approach also requires a second refinement pass of non-vectorized PQ distance computations for encodings that might correspond to nearest neighbors or are otherwise of interest, since it computes only a lower bound on the PQ approximate distance. Probably move this to related work. % In practice, this theoretical speedup is not attained because of the loads, stores, and other instructions necessary to scan through the data, but a factor of $5$ or more is common (c.f. Section~\ref{sec:results}).
 
-Unfortunately, it is not obvious how to quantize the elements of the distance matrix $\mat{D}$ in a manner that captures the full range of distances in the matrix. Or maybe it is; I don't have a formal experiment showing this, particularly when you upcast to uint16s as soon as you do the lookup. Either way, write a paragraph about how we end up doing it.
+% Unfortunately, it is not obvious how to quantize the elements of the distance matrix $\mat{D}$ in a manner that captures the full range of distances in the matrix. Or maybe it is; I don't have a formal experiment showing this, particularly when you upcast to uint16s as soon as you do the lookup. Either way, write a paragraph about how we end up doing it.
 
-Maybe pseudocode for the query encoding and/or dist computations here? I think the latter would just add confusion because we have to use a weird partially-column-major storage layout that I'd rather not walk people through.
+% Maybe pseudocode for the query encoding and/or dist computations here? I think the latter would just add confusion because we have to use a weird partially-column-major storage layout that I'd rather not walk people through.
 
-Worth switching from D as dimensionality to J or something? The goal is to get the distance matrix $\mat{D}$ to instead be $\mat{D}$. Also to decouple $d$ as a distance function from $D$ which has little to do with it.
+% Worth switching from D as dimensionality to J or something? The goal is to get the distance matrix $\mat{D}$ to instead be $\mat{D}$. Also to decouple $d$ as a distance function from $D$ which has little to do with it.
 
-% modern x86 processors [vpshufb], ARM processors [vtbl], PowerPC processors [vperm], and CUDA GPUs [__shfl], which together comprise the overwhelming majority of personal computers, servers, and smart phones, lookups into 16B arrays can be vectorized; i.e., 16 or, more commonly, 32 of them can be carried out simultaneously.
+% % modern x86 processors [vpshufb], ARM processors [vtbl], PowerPC processors [vperm], and CUDA GPUs [__shfl], which together comprise the overwhelming majority of personal computers, servers, and smart phones, lookups into 16B arrays can be vectorized; i.e., 16 or, more commonly, 32 of them can be carried out simultaneously.
 
-% Product quantization can yield high accuracy, but depends upon the characteristics of the data. In particular, because it quantizes subspaces independently, it cannot exploit mutual information between variables in different subspaces. When there is little or none of this information, however,
+% % Product quantization can yield high accuracy, but depends upon the characteristics of the data. In particular, because it quantizes subspaces independently, it cannot exploit mutual information between variables in different subspaces. When there is little or none of this information, however,
 
 
 
