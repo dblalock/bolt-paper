@@ -1,13 +1,13 @@
 
-To assess Bolt's effectiveness, we implemented both it and the algorithms to which we compare it in C++, with wrappers in Python. All of our code and raw results are publicly available at [website]. This website also s contains many additional experiments and thorough documentation of both our code and experimental setups that we hope facilitates reproduction and extension of our work. All experiments use a single thread on a 2013 Macbook Pro with a 2.6GHz Intel Core i7-4960HQ processor. % This processor supports 32 simultaneous table lookups (c.f. Section~\ref{sec:boltVectorize}), which is fewer than the 64 available on more recent processors; this suggests that Bolt would be even faster on a more recent machine.
+To assess Bolt's effectiveness, we implemented both it and the algorithms to which we compare it in C++, with wrappers in Python. All of our code and raw results are publicly available at [website]. This website also contains many additional experiments and thorough documentation of both our code and experimental setups. All experiments use a single thread on a 2013 Macbook Pro with a 2.6GHz Intel Core i7-4960HQ processor. % This processor supports 32 simultaneous table lookups (c.f. Section~\ref{sec:boltVectorize}), which is fewer than the 64 available on more recent processors; this suggests that Bolt would be even faster on a more recent machine.
+
+Because there are no conditional branches in either Bolt or the comparison algorithms (when implemented efficiently), all running times are independent of the data and query distributions. Consequently, we report timing results on random data. All timings are the best of 5 runs, averaged over 10 trials (i.e., the code is executed 50 times). We use the best in each trial, rather than average, since this is standard practice in performance benchmarking.
 
 \subsection{Datasets}
 
-Because there are no conditional branches in either Bolt or the comparison algorithms (when implemented efficiently), all running times are independent of the data and query distributions. Consequently, we report timing results primarily on random data. All timings are the best of 5 runs, averaged over 10 trials (i.e., the code is executed 50 times). We use the best in each trial, rather than average, since this is standard practice in performance benchmarking.
-
 For assessing accuracy, we use several datasets widely used to benchmark Multi-Codebook Quantization (MCQ) algorithms:
 \begin{itemize}
-\item \textbf{Sift1M} [] --- 1 million 128-dimensional SIFT descriptors of images. Sift1M vectors tend to have high correlations among many dimensions, and so be highly compressible for algorithms that allow global rotations or do not employ space partitions. This dataset has a predefined query/train database/test database split, consisting of 10,000 query vectors, 100,000 training vectors, and 1 million testing vectors.
+\item \textbf{Sift1M} [] --- 1 million 128-dimensional SIFT descriptors of images. Sift1M vectors tend to have high correlations among many dimensions, and so be highly compressible by algorithms that allow global rotations or do not employ space partitions. This dataset has a predefined query/train database/test database split, consisting of 10,000 query vectors, 100,000 training vectors, and 1 million database vectors.
 \item \textbf{Convnet1M} [] --- 1 million 128-dimensional Convnet descriptors of images. These vectors have some amount of correlation, but less so than Sift1M. It has a query/train/test split matching that of Sift1M.
 \item \textbf{LabelMe22k} [] --- 22,000 960-dimensional GIST descriptors of images. Like Sift, it has a great deal of correlation between many dimensions. It only has a train/test split, so we follow [][] and use the 2,000-vector test set as the queries and the 20,000 vector training set as both the training and test databse.
 \item \textbf{MNIST} [] --- 60,000 28x28-pixel greyscale images, flattened to 768-dimensional vectors. This dataset is sparse and has high correlations between various dimensions. Again following [] and [], we split it the same way as the LabelMe dataset.
@@ -17,43 +17,49 @@ Experiments on additional datasets are availble on the Bolt website [website].
 
 \subsection{Comparison Algorithms}
 
-Our comparison algorithms include MCQ methods that have high encoding speeds ($\ll 1$ms / vector on a CPU). If encoding speed is not a design consideration or is dominated by a need for maximal compression, we recommend using a method such as GRVQ [] or LSQ [] instead of Bolt\footnote{Although Bolt \textit{might} still be desirable for its high query speed even if encoding speed is not a consideration.}.
+Our comparison algorithms include MCQ methods that have high encoding speeds ($\ll 1$ms / vector on a CPU). If encoding speed is not a design consideration or is dominated by a need for maximal compression, methods such as GRVQ [] or LSQ [] are more appropriate than Bolt\footnote{Although Bolt \textit{might} still be desirable for its high query speed even if encoding speed is not a consideration.}.
 
-Since most research in this area has focused on improving accuracy for a given code length at the \textit{expense} of encoding time, only Product Quantization (PQ) [], Optimized Product Quantization (OPQ) [], and variations thereon such as [polysemous], [googleMips], [pairwiseQ] [LOPQ], [NOIMI] meet our inclusion criterion. Since [LOPQ], [NOIMI] and similar methods are coupled to an indexing structure, which is compatible with but orthogonal to our work, we do not compare to them. Moreover, the optimization of [googleMips] is essentially subsumed by that of [pairwise], which can itself by combined with OPQ by multiplying the rotation matrix by another matrix learned from the query distribution. As a result, the effective encoding and query speeds of each these methods are equal to those of OPQ. In short, by comparing to PQ and OPQ, we can effectively assess the performance of almost all fast-encoding MCQ algorithms, modulo the accuracy improvements afforded by different optimization approaches for OPQ.
+Since most research in this area has focused on improving accuracy for a given code length at the \textit{expense} of encoding time, Product Quantization (PQ) [], Optimized Product Quantization (OPQ) [], and variations of these such as [polysemous], [googleMips], [pairwiseQ], [LOPQ], [NOIMI] are the relevant comparisons of which we are aware. Since these variations employ data structures [LOPQ], [NOIMI], or training-time optimization methods [googleMips, pairwiseQ, polysemous] that are compatible with our approach, the direct alternatives to our work are PQ and OPQ themselves. We compare only to versions of these algorithms using 8 bits per codebook, as this is the setting used in virtually all related work; we do not compare to using 4 bits, as in Bolt, since this both reduces their accuracy and increases their computation time.
 
-We do not to compare to binary embedding methods as they are known to yield much lower accuracy for a given code length than MCQ methods [][][] and, as we show, are also slower in computing distances than Bolt. % This implies that there is no reason to prefer them to Bolt, unless one both required an even more extreme encoding speed than Bolt's ($\gg$ 2GB/s) and devised a binary embedding algorithm that could achieve this.
+% Since [LOPQ], [NOIMI] and similar methods are coupled to an indexing structure, which is compatible with but orthogonal to our work, we do not compare to them. Moreover, the optimization of [googleMips] is essentially subsumed by that of [pairwise], which can itself by combined with OPQ by multiplying the rotation matrix by another matrix learned from the query distribution. As a result, the effective encoding and query speeds of each these methods are equal to those of OPQ. In short, by comparing to PQ and OPQ, we can effectively assess the performance of almost all fast-encoding MCQ algorithms, modulo the accuracy improvements afforded by different optimization approaches for OPQ.
 
-We have done our best to optimize the implementations of the comparison algorithms to the greatest extent possible, and find that our timings are far superior to those described in previous works. For example, [] reports encoding roughly 190,000 128-dimensional vectors per second with PQ, while our implementation encodes over 24 million per second. Indeed, we believe that the sheer extent to which PQ and related methods can be sped up is an interesting result in itself, though we do not explore it further.
+We do not to compare to binary embedding methods in terms of accuracy as they are known to yield much lower accuracy for a given code length than MCQ methods [][][] and, as we show, are also slower in computing distances than Bolt. % This implies that there is no reason to prefer them to Bolt, unless one both required an even more extreme encoding speed than Bolt's ($\gg$ 2GB/s) and devised a binary embedding algorithm that could achieve this.
 
-TODO integrate pairQ mat + OPQ rotation mat for each Bolt subspace; then, just compare to OPQ with pairQ premultiply, since it's strictly better. Or maybe PQ, OPQ, PairQ using OPQ so we have 3 things instead of 2.
+We have done our best to optimize the implementations of the comparison algorithms to the greatest extent possible, and find that our timings are superior to those described in previous works. For example, [] reports encoding roughly 200,000 128-dimensional vectors per second with PQ, while our implementation encodes over 24 million per second. Indeed, we believe that the sheer extent to which PQ and related methods can be sped up is an interesting result in itself, though we do not explore it further.
+
+As a final comparison, we include a modified version of Bolt, \textit{Bolt No Quantize}, in our accuracy experiments. This version does not quantize the distance lookup tables. It is not a useful algorithm as it sacrifices Bolt's high speed, but it allows us to assess whether our quantization scheme reduces accuracy.
+
+% TODO integrate pairQ mat + OPQ rotation mat for each Bolt subspace; then, just compare to OPQ with pairQ premultiply, since it's strictly better. Or maybe PQ, OPQ, PairQ using OPQ so we have 3 things instead of 2.
 
 % \subsection{Comparison }
 
-\subsection{Greater Speed than Binary Embedding}
+% \subsection{Greater Speed than Binary Embedding}
 
-As mentioned in Section~\ref{sec:relatedWork}, the current fastest method of obtaining approximate distances over compressed vectors is to embed them into Hamming space and use the \texttt{popcount} instruction to quickly compute the Hamming distances between them. Indeed, the speed of this approach is much of the motivation for the class of binary embedding methods (e.g., [][][][]), as well as more recent attempts to integrate hamming distances into product quantization [polysemous].
+% % This subsection is going to get rolled into the query speed subsection. And the figure will go away, because it's now part of the query speed fig.
 
-In shown in Figure~\ref{fig:bolt_vs_popcount}, Bolt can compute approximate distances (of any kind expressible via ~\ref{eq:distFuncForm}) faster than popcount can compute Hamming distances. Moreover, because Bolt can compute Hamming distances exactly (since the possible distances between pairs of 4 bits can be stored exactly in a 16B lookup table), it is both faster and more flexible than using popcount. It also has the benefit that it can use encoding lengths that are not multiples of 8B without loss of efficiency.
+% As mentioned in Section~\ref{sec:relatedWork}, the current fastest method of obtaining approximate distances over compressed vectors is to embed them into Hamming space and use the \texttt{popcount} instruction to quickly compute the Hamming distances between them. Indeed, the speed of this approach is much of the motivation for the class of binary embedding methods (e.g., [][][][]), as well as more recent attempts to integrate Hamming distances into product quantization [polysemous].
 
-\begin{figure}[h]
-\begin{center}
-\label{fig:bolt_vs_popcount}
-% \includegraphics[width=\linewidth, trim={0 2cm 0 0},clip]{moose0}
-% \includegraphics[width=\linewidth, trim={0 1cm 0 0},clip]{moose0}
-% \includegraphics[width=\linewidth]{moose0}
-\includegraphics[width=\linewidth]{popcount_speed}
-% \vspace*{-1mm}
-\caption{Bolt can compute various distances, including Hamming distances, faster than binary embedding methods can compute Hamming distances (using the \texttt{popcount} instruction).}
-\end{center}
-\end{figure}
+% In shown in Figure~\ref{fig:bolt_vs_popcount}, Bolt can compute approximate distances (of any kind expressible via ~\ref{eq:distFuncForm}) faster than popcount can compute Hamming distances. Moreover, because Bolt can compute Hamming distances exactly (since the possible distances between pairs of 4 bits can be stored exactly in a 16B lookup table), it is both faster and more flexible than using popcount. It also has the benefit that it can use encoding lengths that are not multiples of 8B without loss of efficiency.
 
-% TODO Above figure should use 8, 16, 32B. And ideally version of Bolt that immediately upcasts to uint16s, which is the most robust to overflows but might not be faster than popcount.
+% \begin{figure}[h]
+% \begin{center}
+% \label{fig:bolt_vs_popcount}
+% % \includegraphics[width=\linewidth, trim={0 2cm 0 0},clip]{moose0}
+% % \includegraphics[width=\linewidth, trim={0 1cm 0 0},clip]{moose0}
+% % \includegraphics[width=\linewidth]{moose0}
+% \includegraphics[width=\linewidth]{popcount_speed}
+% % \vspace*{-1mm}
+% \caption{Bolt can compute various distances, including Hamming distances, faster than binary embedding methods can compute Hamming distances (using the \texttt{popcount} instruction).}
+% \end{center}
+% \end{figure}
+
+% % TODO Above figure should use 8, 16, 32B. And ideally version of Bolt that immediately upcasts to uint16s, which is the most robust to overflows but might not be faster than popcount.
 
 \subsection{Encoding Speed}
+% Bolt can encode both data and queries faster than any other Multi-Codebook Quantization (MCQ) method of which we are aware.
+Before a vector quantization method can compute approximate distances, it must first encode the data. We measured how many vectors each algorithm could encode per second as a function of the vectors' length. As shown in Figure~\ref{fig:encoding_speeds}.\textit{left}, Bolt can encode data vectors up to $10\times$ faster than PQ, the fastest comparison. Encoding $10^7$ 128-dimensional vectors of $4B$ floats per second (top left plot) translates to an encoding speed of $5.1$GB/s. For perspective, Bolt's encoding rate is sufficient to encode the entire Sift1M dataset of 1 million vectors in 100ms, and the Sift1B dataset of 1 billion vectors in 100s. This rate is also much higher than that of high-speed (but general-purpose) compression algorithms such as Snappy [], which reports an encoding speed of 250MB/s.
 
-Bolt can encode both data and queries faster than any other Multi-Codebook Quantization (MCQ) method of which we are aware. As shown in Figure~\ref{fig:encoding_speeds}.\textit{left}, Bolt can encode data vectors at up to 2GB/s, while the fastest comparison, PQ, reaches at most 200MB/s. For perspective, Bolt's encoding rate is sufficient to encode the entire Sift1M dataset of 1 million vectors in 250ms, and the Sift1B dataset of 1 billion vectors in 250s. This rate is also much higher than that of high-speed (but general-purpose) compression algorithms such as Snappy [], which reports an encoding speed of 250MB/s.
-
-Similarly, Bolt can compute the distance matrix constituting a query's encoding at up to 7 million queries/s, while PQ obtains only 500,000 queries/s Figure~\ref{fig:encoding_speeds}.\textit{right}. Both of these numbers are sufficiently high that encoding the query is unlikely to ever be a bottleneck in computing distances to it.
+Similarly, Bolt can compute the distance matrix constituting a query's encoding at up to 10 million queries/s (top right plot), while PQ obtains less than 1 million queries/s. Both of these numbers are sufficiently high that encoding the query is unlikely to ever be a bottleneck in computing distances to it.
 
 \begin{figure}[h]
 \begin{center}
@@ -65,7 +71,7 @@ Similarly, Bolt can compute the distance matrix constituting a query's encoding 
 \includegraphics[width=\linewidth]{encoding_speed}
 \vspace*{-1mm}
 % \caption{Bolt encodes data vectors significantly faster than existing algorithms.}
-\caption{Bolt encodes both data and query vectors significantly faster than existing algorithms.}
+\caption{Bolt encodes both data and query vectors significantly faster than similar algorithms.}
 \end{center}
 \end{figure}
 
@@ -76,19 +82,50 @@ Similarly, Bolt can compute the distance matrix constituting a query's encoding 
 
 Much of the appeal of MCQ methods is that they allow fast computation of approximate distances and similarites directly on compressed data. We assessed various algorithms' speed in computing Euclidean distances from a batch of queries to each vector in a compressed dataset. We omit profiling of other distances and similarities since they only alter the computation of queries' distance matrices and therefore have nearly identical speeds. In all experiments, the number of compressed data vectors $N$ is fixed at $100,000$ and their dimensionality is fixed at $256$.
 
+In contrast to other experiments, we compare Bolt not only to other MCQ methods, but also other methods of computing distances that might serve as reasonable alternatives to using MCQ at all. These methods include:
+\begin{itemize}
+    \item \textit{Binary Embedding}. As mentioned in Section~\ref{sec:relatedWork}, the current fastest method of obtaining approximate distances over compressed vectors is to embed them into Hamming space and use the \texttt{popcount} instruction to quickly compute the Hamming distances between them. Indeed, the speed of this approach is much of the motivation for the class of binary embedding methods (e.g., [][][][]), as well as more recent attempts to integrate Hamming distances into product quantization [polysemous].
+    \item \textit{Matrix Multiplies}. Given the norms of query and database vectors, Euclidean distances can be computed using matrix-vector multiplies. When queries arrive extremely quickly relative to the latency with which they must be answered, multiple queries can be batched into a matrix. Performing one matrix multiply is many times faster than performing individual matrix-vector multiplies. We compare to batch sizes of $1$, $256$, and $1024$.
+\end{itemize}
+
+Bolt computes Euclidean distances more than ten times faster than any other MCQ algorithm and significantly faster than binary embedding methods can compute Hamming distances (Figure~\ref{fig:query_speeds}). Its speedup over matrix multiplies depends on the batch size and number of bytes used in MCQ encoding. When it is not possible to batch queries (\textit{Matmul 1}), Bolt 8B is over $250\times$ faster, Bolt 16B is over $140\times$ faster, and Bolt 32B is over $60\times$ faster (see website for exact timings). When hundreds or thousands of queries can be batched, these numbers are reduced to roughly $13\times$, $7\times$, and $3\times$.
+
+% As mentioned in Section~\ref{sec:relatedWork}, the current fastest method of obtaining approximate distances over compressed vectors is to embed them into Hamming space and use the \texttt{popcount} instruction to quickly compute the Hamming distances between them. Indeed, the speed of this approach is much of the motivation for the class of binary embedding methods (e.g., [][][][]), as well as more recent attempts to integrate Hamming distances into product quantization [polysemous].
+
+% In shown in Figure~\ref{fig:bolt_vs_popcount}, Bolt can compute approximate distances (of any kind expressible via ~\ref{eq:distFuncForm}) faster than popcount can compute Hamming distances. Moreover, because Bolt can compute Hamming distances exactly (since the possible distances between pairs of 4 bits can be stored exactly in a 16B lookup table), it is both faster and more flexible than using popcount. It also has the benefit that it can use encoding lengths that are not multiples of 8B without loss of efficiency.
+
 \begin{figure}[h]
 \begin{center}
 \label{fig:query_speeds}
 % \includegraphics[width=\linewidth]{moose2}
-\includegraphics[width=\linewidth]{query_speed}
+% \includegraphics[width=\linewidth]{query_speed}
+\includegraphics[width=\linewidth]{query_speed_with_matmuls}
 % \vspace*{-1mm}
-\caption{Bolt can compute the distances/similarities between a query $\vec{q}$ and the vectors of a compressed database $H$ up to $5\times$ faster than other MCQ algorithms. It is also faster than batched distance computations on floats using matrix multiplies up to a batch size of TODO.}
+\caption{Bolt can compute the distances/similarities between a query $\vec{q}$ and the vectors of a compressed database $H$ over $10\times$ faster than other MCQ algorithms. It is also faster than binary embedding methods, which have direct hardware support, and matrix-vector multiplies using batches of 1, 256, or 1024 vectors.}
 \end{center}
 \end{figure}
 
-Matmul-$n$ refers to matrix multiplying the raw floating-point data and a batch of $n$ floating-point queries, which can be used to quickly obtain the $n$ Euclidean distances or dot products. Such batching is not possible unless queries arrive extremely frequently relative to the desired latency in answering them. However, batching matrix-vector multiplies into matrix-matrix multiplies is a ubiquitous speedup technique in machine learning, so we include it as a comparison. We omit it from other experiments since it entails no encoding and has perfect accuracy.
+Because matrix multiplies are so ubiquitous in data mining, machine learning, and many other fields, we compare Bolt to matrix multiplication in more detail. In Figure~\ref{fig:matmul_speed}, we profile the time that Bolt and a state-of-the-art BLAS implementation [Eigen] take to do matrix multiplies of various sizes. Bolt computes matrix multiplies by treating each row of the first matrix as a query, the second matrix as a database, and iteratively computing the inner products between each query and all database vectors. This nested-loop implementation is not optimal, but Bolt is still able to outperform BLAS.
 
-Comment about implications of Bolt speed vs matmul speed, depending on how this turns out.
+In Figure~\ref{fig:matmul_speed}\textit{.top}, we multiply two square matrices of varying sizes, which is the optimal scenario for most matrix multiply algorithms. For small matrices, the cost of encoding one matrix as the database is too high for Bolt to be faster. For larger matrices, this cost is amortized over many more queries, and Bolt becomes faster. When the database matrix is already encoded, Bolt is faster for almost all matrix sizes, even using 32B encodings. Note, though, that this comparison ceases to be fair for especially large matrices, as encoding, e.g., a $4096$ dimensions accurately would almost certainly require more than 32B. % (see subsequent sections for analysis of the relationship between encoding length and accuracy).
+
+In Figure~\ref{fig:matmul_speed}\textit{.bottom}, we multiply a $100,000 \times 256$ matrix by an $256 \times n$ matrix. Bolt uses the rows of the former matrix as the database and the columns of the latter as the queries. Again, Bolt is slower for small matrices when it must first encode the database, but always faster for larger ones or when it does not need to encode the database. Because only the number of queries is changing and not the dimensionality of each vector, longer encodings would not be necessary for the larger matrices.
+
+% Figure~\ref{fig:matmul_speed} shows how we're faster than matmuls, even when we have to encode the matrix from scratch.
+
+\begin{figure}[h]
+\begin{center}
+\label{fig:matmul_speed}
+% \includegraphics[width=\linewidth]{moose2}
+\includegraphics[width=\linewidth]{matmul_speed}
+% \vspace*{-1mm}
+\caption{Using a naive nested loop implementation, Bolt can compute (approximate) matrix products faster than optimized matrix multiply routines. Except for small matrices, Bolt is faster even when it must encode one of the matrices from scratch as a first step.}
+\end{center}
+\end{figure}
+
+% Matmul-$n$ refers to matrix multiplying the raw floating-point data and a batch of $n$ floating-point queries, which can be used to quickly obtain the $n$ Euclidean distances or dot products. Such batching is not possible unless queries arrive extremely frequently relative to the desired latency in answering them. However, batching matrix-vector multiplies into matrix-matrix multiplies is a ubiquitous speedup technique in machine learning, so we include it as a comparison. We omit it from other experiments since it entails no encoding and has perfect accuracy.
+
+% Comment about implications of Bolt speed vs matmul speed, depending on how this turns out.
 
 % In addition to reducing the space consumption of a database of vectors $\mathcal{X}$, MCQ methods also allow direct computation of distances and similarities matching the form of~\ref{eq:distFuncForm}.
 
@@ -98,7 +135,7 @@ Comment about implications of Bolt speed vs matmul speed, depending on how this 
 
 \subsection{Nearest Neighbor Accuracy}
 
-By far the most common assessment of MCQ and binary embedding algorithms' accuracy is their Recall@R. This is defined as the fraction of the queries $\vec{q}$ for which the true nearest neighbor in Euclidean space is among the top $R$ points with smallest approximate distances to $\vec{q}$. As shown in Figure~\ref{fig:nn_acc}, Bolt yields lower accuracy for a given encoding length than other methods designed for maximal compression. And hopefully some comment about how it's at least better than PQ.
+By far the most common assessment of MCQ algorithms' accuracy is their Recall@R. This is defined as the fraction of the queries $\vec{q}$ for which the true nearest neighbor in Euclidean space is among the top $R$ points with smallest approximate distances to $\vec{q}$. As shown in Figure~\ref{fig:nn_acc}, Bolt yields slightly lower accuracy for a given encoding length than other (much slower) MCQ methods. The nearly identical curves for Bolt and Bolt No Quantize suggest that our proposed quantization algorithm introduces little or no error.
 
 \begin{figure}[h]
 \begin{center}
@@ -106,13 +143,13 @@ By far the most common assessment of MCQ and binary embedding algorithms' accura
 % \includegraphics[width=\linewidth]{moose3}
 \includegraphics[width=\linewidth]{l2_recall}
 % \vspace*{-1mm}
-\caption{Compared to MCQ algorithms optimized for small encodings, Bolt is less accurate in retrieving the nearest neighbor for a given encoding length for a given encoding length. $<$ hopefully optimistic comment $>$.}
+\caption{Compared to other MCQ algorithms, Bolt is slightly less accurate in retrieving the nearest neighbor for a given encoding length.}
 \end{center}
 \end{figure}
 
-Datasets: Sift1M, LabelMe, Convnet1M, MNIST; displayed in 2x2 grid of subplots
-Within each plot, have 3 lines for each algo: dotted for 32B, solid for 16B, dashed for 8B.
-Revert to table if time crunched.
+% Datasets: Sift1M, LabelMe, Convnet1M, MNIST; displayed in 2x2 grid of subplots
+% Within each plot, have 3 lines for each algo: dotted for 32B, solid for 16B, dashed for 8B.
+% Revert to table if time crunched.
 
 
 % \begin{table}[h]
@@ -128,53 +165,60 @@ Revert to table if time crunched.
 % \end{tabularx}
 % \end{table}
 
-\subsection{Maximum Inner Product Search Accuracy}
+% \subsection{Maximum Inner Product Search Accuracy}
 
-Because dot products are perhaps even more common vector operations than Euclidian distance computations, we repeated the previous experiment for maximum inner product search (MIPS) instead of 1nn search (Figure~\ref{fig:mips_acc}).
+% Because dot products are perhaps even more common vector operations than Euclidian distance computations, we repeated the previous experiment for maximum inner product search (MIPS) instead of 1nn search (Figure~\ref{fig:mips_acc}).
 
-\begin{figure}[h]
-\begin{center}
-\label{fig:mips_acc}
-\includegraphics[width=\linewidth]{mips_recall}
-% \vspace*{-1mm}
-\caption{Compared to MCQ algorithms optimized for small encodings, Bolt is less accurate in retrieving the neighbor having maximum dot product with the query for a given encoding length. Again, $<$ hopefully optimistic comment $>$.}
-\end{center}
-\end{figure}
+% \begin{figure}[h]
+% \begin{center}
+% \label{fig:mips_acc}
+% \includegraphics[width=\linewidth]{mips_recall}
+% % \vspace*{-1mm}
+% \caption{Compared to MCQ algorithms optimized for small encodings, Bolt is less accurate in retrieving the neighbor having maximum dot product with the query for a given encoding length. Again, $<$ hopefully optimistic comment $>$.}
+% \end{center}
+% \end{figure}
 
 % Might not get to this because we need to modify Bolt to allow int8s in LUT instead of just uint8s.
 
 \subsection{Accuracy in Preserving Distances and Dot Products}
 
-The above experiments characterize how well algorithms preserve distances and similarities to exceptionally similar points, but not whether distances and similarities in general tend to be preserved. To characterize this, we computed the correlations between the true Euclidean distances and approximate Euclidean distances from Bolt and other MCQ algorithms on the LabelMe22k and MNIST datasets (see [website] for results on other datasets).
+The Recall@R experiment characterizes how well each algorithm preserves distances to exceptionally similar points, but not whether distances in general tend to be preserved. To assess this, we computed the correlations between the true dot products and approximate dot products for Bolt and the comparison algorithms. Results for Euclidean distances are similar, so we omit them. As Figure~\ref{fig:dotprod_distortion} illustrates, Bolt is again slightly less accurate than other MCQ methods. In absolute terms, however, it consistently exhibits correlations with the true dot products above $.9$, and often near $1.0$. This suggests that its approximations could reliably be used instead of exact computations when slight errors are permissible.
+
+For example, if one could tolerate a correlation of $.9$, one could use Bolt 8B instead of dense vectors of 4B floats and achieve both dramatic speedups and compression ratios of $64\times$ for SIFT1M and Convnet1M, $256\times$ for LabelMe, and $392\times$ for MNIST. If one required correlations of $.95$ or more, one could use Bolt 32B and achieve slightly smaller speedups and compression ratios of $16\times$, $64\times$, and $98\times$.
 
 \begin{figure}[h]
 \begin{center}
-\label{fig:corr_acc}
+\label{fig:dotprod_distortion}
 % \includegraphics[width=\linewidth]{moose5}
-\includegraphics[width=\linewidth]{l2_distortion}
+% \includegraphics[width=\linewidth]{l2_distortion}
+\includegraphics[width=\linewidth]{dotprod_distortion}
 % \vspace*{-1mm}
-\caption{Bolt Euclidean distances are highly correlated with true Euclidean distances, though slightly less so than the distances from other MCQ algorithms.}
+\caption{Bolt dot products are highly correlated with true dot products, though slightly less so than those from other MCQ algorithms.}
 \end{center}
 \end{figure}
+
+% \subsection{Discussion: When to use Bolt}
+
+% As this section has demonstrated Bolt can significantly accelerate distance and similarity computations while reducing space consumption. However, it
 
 % Maybe omit this because accuracy results make us look worse and it's not reported in any other MCQ paper.
 
 
-\subsection{Case Study: K-Means Clustering}
+% \subsection{Case Study: K-Means Clustering}
 
-In addition to accelerating standalone similarity searches, Bolt can be embedded within other algorithms to improve their speed. As an example, we show that using Bolt to compute the distances between centroids and data vectors can greatly accelerate k-means clustering of the full MNIST dataset with little or no loss in accuracy (Figure~\ref{fig:kmeans}). Accuracy is measured by mean squared Euclidean distance between vectors and their associated centroids. This distance is computed exactly, not with Bolt. Reported times are the for Bolt include initial encoding of the data.
+% In addition to accelerating standalone similarity searches, Bolt can be embedded within other algorithms to improve their speed. As an example, we show that using Bolt to compute the distances between centroids and data vectors can greatly accelerate k-means clustering of the full MNIST dataset with little or no loss in accuracy (Figure~\ref{fig:kmeans}). Accuracy is measured by mean squared Euclidean distance between vectors and their associated centroids. This distance is computed exactly, not with Bolt. Reported times are the for Bolt include initial encoding of the data.
 
-\begin{figure}[h]
-\begin{center}
-\label{fig:kmeans}
-% \includegraphics[width=\linewidth]{moose6}
-\includegraphics[width=\linewidth]{kmeans}
-% \vspace*{-1mm}
-\caption{Using Bolt to compute distances within K-means decreases its runtime greatly without increasing its mean squared error (MSE). Standard errors across 10 runs are shown shaded.}
-\end{center}
-\end{figure}
+% \begin{figure}[h]
+% \begin{center}
+% \label{fig:kmeans}
+% % \includegraphics[width=\linewidth]{moose6}
+% \includegraphics[width=\linewidth]{kmeans}
+% % \vspace*{-1mm}
+% \caption{Using Bolt to compute distances within K-means decreases its runtime greatly without increasing its mean squared error (MSE). Standard errors across 10 runs are shown shaded.}
+% \end{center}
+% \end{figure}
 
-Use K = 16, K = 256.
+% Use K = 16, K = 256.
 
 % \subsection{Case Study: Power Iteration}
 
