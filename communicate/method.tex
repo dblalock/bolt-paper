@@ -1,38 +1,41 @@
 
-As mentioned in the problem statement, our goal is to construct a distance function $\hat{d}$ and two encoding functions $g$ and $h$ such that $\hat{d}(g(\vec{q}), h(\vec{x})) \approx d(\vec{q}, \vec{x})$ for some ``true'' distance function $d$. To explain how we do this, we first begin with a review of Product Quantization [], and then describe how our method differs.
+As mentioned in the problem statement, our goal is to construct a distance function $\hat{d}$ and two encoding functions $g$ and $h$ such that $\hat{d}(g(\vec{q}), h(\vec{x})) \approx d(\vec{q}, \vec{x})$ for some ``true'' distance function $d$. To explain how we do this, we first begin with a review of Product Quantization \cite{pq}, and then describe how our method differs.
 
 \subsection{Background: Product Quantization}
 
-The basic idea of Product Quantization (PQ) is to run k-means on disjoint subspaces and approximate the full vector as the concatenation of the centroids to which each subspace is quantized. Formally, it approximates the function $d$ as follows.
+Perhaps the simplest form of vector quantization is the k-means algorithm, which quantizes a vector to its closest centroid among a fixed \textit{codebook} of possibilities. As an encoding function, it transforms a vector into a $\ceil{log_2(K)}$-bit \textit{code} indicating which centroid is closest, where $K$ is the codebook size (i.e., number of centroids). Using this encoding, the distance between a query and a database vector can be approximated as the distance between the query and its associated centroid.
+
+Product Quantization (PQ) is a generalization of k-means wherein the vector is split into disjoint subvectors and the full vector is encoded as the concatenation of the codes for the subvectors. Then, the full distance is approximated as the sum of the distances between the subvectors of $\vec{q}$ and the chosen centroids for each corresponding subvector of $\vec{x}$. Formally, PQ approximates the function $d$ as follows.
 
 Recall that, by assumption, $d$ can be written as:
 \begin{align*}
         d(\vec{q}, \vec{x}) = f(\sum_{j=1}^J \delta(q_j, x_j))
 \end{align*}
-where $f: \mathbb{R} \rightarrow \mathbb{R}$, $\delta: \mathbb{R}^J \times \mathbb{R}^J \rightarrow \mathbb{R}$. Now, suppose one has a partition $\mathcal{P} = \{p_1,\ldots,p_M \}$ of the indices $j$, such that $k \ne l \implies p_k \cap p_l = \emptyset$ and $\bigcup_m p_m = \{1,\ldots,J\}$. The argument to $f$ can then be written as:
+where $f: \mathbb{R} \rightarrow \mathbb{R}$, $\delta: \mathbb{R}^J \times \mathbb{R}^J \rightarrow \mathbb{R}$. Now, suppose one has a partition $\mathcal{P} = \{p_1,\ldots,p_M \}$ of the indices $j$, so that the subsets $p_j$ are both mutually exclusive and collectively exhaustive.%  $k \ne l \implies p_k \cap p_l = \emptyset$ and $\bigcup_m p_m = \{1,\ldots,J\}$.
+The argument to $f$ can then be written as:
 \begin{align}
         \sum_{m=1}^M \sum_{j \in p_m} \delta(q_j, x_j)
             = \sum_{m=1}^M d_m(\vec{q}_m, \vec{x}_m)
 \end{align}
-where $\vec{q}_m$ and $\vec{x}_m$ are the vectors formed by gathering the elements of $\vec{q}$ and $\vec{x}$ at the indices $j \in p_m$, and $d_m$ sums the $\delta$ functions applied to each dimension. Product quantization replaces each $\vec{x}_m$ with one vector $\vec{c}_{m}$ from a \textit{codebook} set $\mathcal{C}_m$ of possibilities. That is: % (\vec{q_m}, \vec{x}) = \sum_{j = 1}^|p_m \delta(q_j, x_j)$.
+where $\vec{q}_m$ and $\vec{x}_m$ are the vectors formed by gathering the elements of $\vec{q}$ and $\vec{x}$ at the indices $j \in p_m$, and $d_m$ sums the $\delta$ functions applied to each dimension. Product quantization replaces each $\vec{x}_m$ with one vector $\vec{c}_{im}$ from a \textit{codebook} set $\mathcal{C}_m$ of possibilities. That is: % (\vec{q_m}, \vec{x}) = \sum_{j = 1}^|p_m \delta(q_j, x_j)$.
 \begin{align} \label{eq:pqDistNoLut}
         \sum_{m=1}^M d_m(\vec{q}_m, \vec{x}_m) \approx \sum_{m=1}^M d_m(\vec{q}_m, \vec{c}_{m})
 \end{align}
 This allows one to store only the identity of the codebook vector chosen, instead of the elements of the original vector $\vec{x}_m$. More formally, let $\mathcal{\mat{C}} = \{\mathcal{C}_1,\ldots,\mathcal{C}_M\}$ be a set of $M$ codebooks where each codebook $\mathcal{C}_m $ is itself a set of $K$ vectors $\{\vec{c}_{1m},\ldots,\vec{c}_{Km}\}$; for ease of exposition, we will refer to the codebook vectors as \textit{centroids}. Given this set of codebooks, the PQ encoding function $h(\vec{x})$ is:
 \begin{align}
-    h(\vec{x}) = \langle i_1,\ldots,i_M \rangle,  i_m = \argmin_i d(\vec{c}_{im}, \vec{x_m})
+    h(\vec{x}) = \langle i_1,\ldots,i_M \rangle,  i_m = \argmin_i d(\vec{c}_{im}, \vec{x_m}), m \in {1,\ldots,M}
 \end{align}
-Using these codebooks also enables construction of a fast query encoding $g$ and distance approximation $\hat{d}$. Specifically, let the query encoding space $\mathcal{G}$ be $R^{M \times K}$ and define $\mat{D} = g(\vec{q})$ as: % $g: \mathbb{R}^J \rightarrow R^{M \times C}$ as:
+That is, $h(\vec{x})$ is a vector such that $h(\vec{x})_m$ is the index of the centroid within codebook $m$ to which $x_m$ is closest. Using these codebooks also enables construction of a fast query encoding $g$ and distance approximation $\hat{d}$. Specifically, let the query encoding space $\mathcal{G}$ be $R^{M \times K}$ and define $\mat{D} = g(\vec{q})$ as: % $g: \mathbb{R}^J \rightarrow R^{M \times C}$ as:
 \begin{align}
     \mat{D}_{im} \triangleq d_m(\vec{q}_m, \vec{c}_{im})
 \end{align}
 Then we can rewrite the approximate distance on the right hand side of ~\ref{eq:pqDistNoLut} as:
 \begin{align} \label{eq:pqDist}
-        \sum_{m=1}^M \mat{D}_{im}, \hspace{2mm} i = h(x)_m
+        \sum_{m=1}^M \mat{D}_{im}, \hspace{2mm} i = h(\vec{x})_m
 \end{align}
-In other words, the distance can be reduced to a sum of precomputed distances between $\vec{q}_m$ and the codebook vectors $\vec{c}_{im}$ used to approximate $\vec{x}$. Each column of $D$ represents the distances between a $\vec{q}_m$ and the $K$ centroids in codebook $\mathcal{C}_M$. Computation of the distance proceeds by iterating through the columns, looking up the distance in row $h(\vec{x})_m$, and adding it to a running total. By reintroducing $f$, one can now define:
+In other words, the distance can be reduced to a sum of precomputed distances between $\vec{q}_m$ and the codebook vectors $\vec{c}_{im}$ used to approximate $\vec{x}$. Each of the $M$ columns of $D$ represents the distances between a $\vec{q}_m$ and the $K$ centroids in codebook $\mathcal{C}_M$. Computation of the distance proceeds by iterating through the columns, looking up the distance in row $h(\vec{x})_m$, and adding it to a running total. By reintroducing $f$, one can now define:
 \begin{align} \label{eq:pq_dhat}
-    \hat{d}(g(\vec{q}), h(\vec{x})) \triangleq f(\sum_{m=1}^M \mat{D}_{im}, i = h(x)_m)
+    \hat{d}(g(\vec{q}), h(\vec{x})) \triangleq f(\sum_{m=1}^M \mat{D}_{im}, i = h(\vec{x})_m)
 \end{align}
 If $M \ll D$ and $C \ll |\mathcal{X}|$, then computation of $\hat{d}$ is much faster than computation of $d$ given the $g(\vec{q})$ matrix $\mat{D}$ and data encodings $\mathcal{H} = \{h(\vec{x}), \vec{x} \in \mathcal{X} \}$.
 
@@ -44,15 +47,15 @@ In certain cases, Product Quantization is nearly an optimal encoding scheme. Spe
 \item $\forall_m |\mat{\Sigma}_m| = |\mat{\Sigma}|^{1/m}$,
 % \item $Pr[\vec{x}] = \prod_m Pr[\vec{x}_m]$,
 \end{enumerate}
-PQ achieves the information-theoretic lower bound on code length for a given quantization error [OPQ]. In words, this means that PQ encoding is optimal if $\vec{x}$ is drawn from a multivariate Gaussian and the subspaces $p_m$ are independent and have the same variance.
+PQ achieves the information-theoretic lower bound on code length for a given quantization error [OPQ]. In words, this means that PQ encoding is optimal if $\vec{x}$ is drawn from a multivariate Gaussian and the subspaces $p_m$ are independent and have covariance matrices with equal determinants.
 
-In practice, however, most datasets are not Gaussian and their subspaces are neither independent nor homoscedastic. Consequently, many works have generalized PQ to capture relationships across subspaces or decrease the dependenies between them [][][][].
+In practice, however, most datasets are not Gaussian and their subspaces are not independent and do not necessarily share similar covariances. Consequently, many works have generalized PQ to capture relationships across subspaces or decrease the dependenies between them \cite{opq, cartesianKmeans, aq, otq, lsq}.
 
 In summary, PQ consists of three components:
 \begin{enumerate}
     \item Encoding every $\vec{x}$ in the database using $h(\vec{x})$. This transforms $\vec{x}$ to a set of $M$ 8-bit integers.
     \item Encoding a query $\vec{q}$ when it is received using $g(\vec{q})$. This transforms returns an $K \times M$ matrix $\mat{D}$ whose columns are the distances to each centroid in codebook $\mathcal{C}_m$.
-    \item Scanning the database. Once a query is computed, the approximated distance to each $\vec{x}$ is computed using~\ref{eq:pq_dhat} by looking up and summing the appropriate entries in each column of $\mat{D}$.
+    \item Scanning the database. Once a query is computed, the approximated distance to each $\vec{x}$ is computed using~(\ref{eq:pq_dhat}) by looking up and summing the appropriate entries in each column of $\mat{D}$.
 \end{enumerate}
 
 \subsection{Bolt}
@@ -95,7 +98,27 @@ We propose to set $b = F^{-1}(\alpha)$, $a = 255 / (F^{-1}(1 - \alpha) - b)$, wh
 
 To quantize multiple lookup tables, we learn a $b$ value for each table and set $a$ based on the CDF of the aggregated distances $Y$ across all tables. We cannot learn table-specific $a$ values because this would amount to the weighting distances from each differently. The $b$ values can be table-specific because they sum to one overall offset in the distance, which is known at the end of training time and can be corrected for.
 
+A discussion of the approximation guarantees offered by this approach, as well of the approximate distances and dot products computed by Bolt overall, can be found on Bolt's supporting website \footnote{https:github.com/dblalock/bolt}.
+
 % TODO math here
+
+% \subsection{Theoretical Guarantees}
+
+% Under certain assumptions, Bolt's errors can be bounded both exactly and probabalistically. Due to space constraints, we state the following without without proof, defering details to the supporting webiste\footnote{https:github.com/dblalock/bolt}.
+
+% \begin{theorem}
+% Let $\vec{x}$ be a vector and let $\Delta^2$ be the squared Euclidean distance between $\vec{x}$ and its reconstruction $\vec{\hat{x}}$, where $\vec{\hat{x}}$ is formed by concatenating the centroids $\{c_{im}}_{i=1}^M$ to which $\vec{x}$ is quantized. Then
+% \end{theorem}
+
+% \begin{proof}
+% Bar
+% \end{proof}
+
+
+% We state the following without proof, and invite the interested reader
+
+
+
 
 In summary, Bolt is an extension of product quantization with fast encoding speed stemming from small codebooks and fast distance computations stemming from adaptively quantized lookup tables and efficient use of hardware.
 
@@ -157,7 +180,7 @@ In summary, Bolt is an extension of product quantization with fast encoding spee
 
 %     -we then describe the functions $g(.)$, which computes sufficient statistics about the vector q
 
-%     -we finally describe the function $\hat{d}(.,.)$, which returns a distance based on $g(q)$ and $h(x)$.
+%     -we finally describe the function $\hat{d}(.,.)$, which returns a distance based on $g(q)$ and $h(\vec{x})$.
 
 % Quantization scheme
 %     -product quantization background

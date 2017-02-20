@@ -9,7 +9,7 @@ As datasets grow larger, so too do the costs of mining them. These costs include
 \end{align}
 where $\texttt{Cost}_{\texttt{read}}$ is the time cost of operations that read the data, and $\texttt{Cost}_{\texttt{write}}$ is the time cost of creating, updating, or deleting data.
 
-For datasets of vectors, in which many of the read operations are scalar reductions such as Euclidean distance and dot product computations, vector quantization methods enable significant savings in both space usage and $\texttt{Cost}_{\texttt{read}}$. By replacing each vector with a learned approximation, these methods both save space and enable fast approximate distance and similarity computations. With as little as 8B per vector, these techniques can often preserve distances and dot products with extremely high accuracy [][][].
+For datasets of vectors, in which many of the read operations are scalar reductions such as Euclidean distance and dot product computations, vector quantization methods enable significant savings in both space usage and $\texttt{Cost}_{\texttt{read}}$. By replacing each vector with a learned approximation, these methods both save space and enable fast approximate distance and similarity computations. With as little as 8B per vector, these techniques can often preserve distances and dot products with extremely high accuracy \cite{lsq,otq,opq,cq,stackedQuantizers}.
 
 % As we show, however, there is still
 
@@ -20,7 +20,7 @@ For datasets of vectors, in which many of the read operations are scalar reducti
 
 % When the dataset is fixed, vector quantization methods enable significant reductions in both of these costs. By replacing each vector with a learned approximation, these methods both reduce the space needed to store the vectors and enable fast approximate scalar reductions, such as dot products and Euclidean distances.
 
-However, computing the approximation for a given vector can be time-consuming, adding greatly to $\texttt{Cost}_{\texttt{write}}$. The state-of-the-art method of \cite{jegouBeyondSrp}, for example, requires up to \textit{4ms} to encode a single $128$-dimensional vector. This makes it practical only if there are few writes per second. Other techniques are faster, but as we show experimentally, there is significant room for improvement.
+However, computing the approximation for a given vector can be time-consuming, adding greatly to $\texttt{Cost}_{\texttt{write}}$. The state-of-the-art method of \cite{lsq}, for example, requires up to \textit{4ms} to encode a single $128$-dimensional vector. This makes it practical only if there are few writes per second. Other techniques are faster, but as we show experimentally, there is significant room for improvement.
 
 We describe a vector quantization algorithm, \textit{Bolt}, that greatly reduces both the time to encode vectors ($\texttt{Cost}_{\texttt{write}}$) and the time to compute scalar reductions over them ($\texttt{Cost}_{\texttt{read}}$). This not only reduces the overhead of quantization, but also increases its benefits, making it worthwhile for many more datasets. Our key ideas are to 1) learn an approximation for the lookup tables used to compute scalar reductions; and 2) use much smaller quantization codebooks than similar techniques. Together, these changes facilitate finding optimal vector encodings and allow scans over codes to be done in a computationally vectorized manner.
 
@@ -29,7 +29,7 @@ Our contributions consist of:
 \item A vector quantization algorithm that encodes vectors significantly faster than existing algorithms for a given level of compression.
 \item A fast means of computing approximate similarities and distances using quantized vectors. Possible similarities and distances include dot products, cosine similarities, and distances in $L_p$ spaces, such as the Euclidean distance.
 % \item Theoretical and empirical evidence that the lookup tables used by dozens of recent vector quantization algorithms can be approximated with little or no loss of accuracy.
-\item Theoretical analysis of both our approach and popular related approaches.
+% \item Theoretical analysis of both our approach and popular related approaches.
 \end{enumerate}
 
 
@@ -86,41 +86,12 @@ is minimized, where $T_g$ is the time to encode received queries $\vec{q}$ using
 
 There is a tradeoff between the value of the loss $\mathcal{L}$ and the time $T$, so multiple operating points are possible. In the extreme cases, $\mathcal{L}$ can be fixed at 0 by setting $g$ and $h$ to identity functions and setting $\hat{d} = d$. Similarly, $T$ can be set to $0$ by ignoring the data and estimating $d$ as a constant. The primary contribution of this work is therefore the introduction of $g$, $h$ and $\hat{d}$ functions that are significantly faster to compute than those of existing work for a wide range of operating points.
 
-% the loss:
-% \begin{align}
-%     \mathcal{L} = E_{\vec{q},\vec{x}}[(d(\vec{q}, \vec{x}) - \hat{d}(g(\vec{q}), h(\vec{x})))^2]
-%     % \mathcal{L}[g, h, \hat{d}] = E_{q,x}[(d(q, x) - \hat{d}(g(q), h(x)))^2]
-% \end{align}
-% is minimized. Moreover, each of these functions should be as fast to compute as possible.
-
-% Intuitively, the function $g$ encodes the query, $h$ encodes the database vectors, and $\hat{d}$ computes an approximate similarity or distance based on the encodings. In general, it is possible to drive the loss arbitrarily low by increasing the time and space usage of these functions. Indeed, the loss can be fixed at 0 by setting $g$ and $h$ to identity functions and setting $\hat{d} = d$. Consequently, our metric of interest is \textbf{computation time for a given loss}. The primary contribution of this work is the introduction of $g$, $h$ and $\hat{d}$ functions that are significantly faster than those of existing work for a given loss $\mathcal{L} > 0$.
-
-% \begin{center}
-% % \begin{tabu} to \linewidth [0]{ X[l] | X[c] | X[c] | X[c] | X[c]}
-% \begin{tabu} to \textwidth [0]{ X[l] | X[c] | X[c] | X[c] | X[c]}
-% % \caption{Performance of Vector Quantization Algorithms}
-% \hline
-%     & Data Encoding Speed & Query Encoding Speed & Search Speed & Compression \\
-% \hline
-%     Bolt (proposed) & Very High & Very High & Very High & Medium \\
-%     % Binary Embedding & High & High & High & Very Low \\
-%     PQ & High & High & High & Low \\
-%     OPQ & High & High & High & Medium \\
-%     RVQ & High & Medium & High & Medium \\
-%     GRVQ, LSQ, CQ, AQ, OTQ & Low, Very Low & Medium & High & High \\
-%     Raw Floats & N/A & N/A & Low & None \\
-% \hline
-% \end{tabu}
-% \end{center}
-
-
-
 
 \subsection{Assumptions}
 
-Like other work [][][][], we assume that there is an initial offline phase during which the functions $g$ and $h$ may be learned. This phase contains a training dataset for $\mathcal{X}$ but not necessarily $\vec{q}$. Following this offline phase, there is an online phase wherein we are given database vectors $\vec{x}$ that must be encoded and query vectors $\vec{q}$ for which we must compute the distances to all of the database vectors received so far. Once a query is received, these distances must be computed with as little latency as possible. The vectors of $\mat{X}$ may be given all at once, or one at a time; they may also be modified or deleted, necessitating re-encoding or removal. This is in contrast to most existing work, which assumes that $\vec{x}$ vectors are all added at once before any queries are received [][][][].
+Like other work \cite{pq,lsq,otq,opq,cq}, we assume that there is an initial offline phase during which the functions $g$ and $h$ may be learned. This phase contains a training dataset for $\mathcal{X}$ but not necessarily $\vec{q}$. Following this offline phase, there is an online phase wherein we are given database vectors $\vec{x}$ that must be encoded and query vectors $\vec{q}$ for which we must compute the distances to all of the database vectors received so far. Once a query is received, these distances must be computed with as little latency as possible. The vectors of $\mat{X}$ may be given all at once, or one at a time; they may also be modified or deleted, necessitating re-encoding or removal. This is in contrast to most existing work, which assumes that $\vec{x}$ vectors are all added at once before any queries are received \cite{pq,lsq,otq,opq,cq}, and therefore that encoding speed is less of a concern.
 
-In practice, one might require the distances between $\vec{q}$ and only some of the database vectors $\mathcal{X}$ (in particular, the $k$ closest vectors). This can be achieved using an indexing structure, such as an Inverted Multi-Index [][] or Locality-Sensitive Hashing hash tables [][], that allow inspection of only a fraction of $\mathcal{X}$. Such indexing is complementary to our work in that our approach could be used to accelerate the computation of distances to the subset of $\mathcal{X}$ that is inspected. Consequently, we assume that the task is to compute the distances to all vectors, noting that, in a production setting, ``all vectors'' for a given query might be a subset of a full database.
+In practice, one might require the distances between $\vec{q}$ and only some of the database vectors $\mathcal{X}$ (in particular, the $k$ closest vectors). This can be achieved using an indexing structure, such as an Inverted Multi-Index \cite{IMI, NOIMI} or Locality-Sensitive Hashing hash tables \cite{E2LSH, crosspolytopeLSH}, that allow inspection of only a fraction of $\mathcal{X}$. Such indexing is complementary to our work in that our approach could be used to accelerate the computation of distances to the subset of $\mathcal{X}$ that is inspected. Consequently, we assume that the task is to compute the distances to all vectors, noting that, in a production setting, ``all vectors'' for a given query might be a subset of a full database.
 
 %     -we consider only dot products and euclidean distances throughout this work since they are by far the most common, but note that our approach could in principle be generalized to any similarity or distance of the above form.\footnote{Practically speaking, functions with a large range of values for \delta(q_j, x_j), such as distances in Lp space with p > 2, are unlikely to be approximated well.}
 
