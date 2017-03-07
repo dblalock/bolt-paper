@@ -78,7 +78,7 @@ Bolt computes Euclidean distances more than ten times faster than any other MCQ 
 % \includegraphics[width=\linewidth]{query_speed}
 \includegraphics[width=\linewidth]{query_speed_with_matmuls}
 % \vspace*{-1mm}
-\caption{Bolt can compute the distances/similarities between a query $\vec{q}$ and the vectors of a compressed database $H$ over $10\times$ faster than other MCQ algorithms. It is also faster than binary embedding methods, which have direct hardware support, and matrix-vector multiplies using batches of 1, 256, or 1024 vectors.}
+\caption{Bolt can compute the distances/similarities between a query $\vec{q}$ and the vectors of a compressed database $H$ over $10\times$ faster than other MCQ algorithms. It is also faster than binary embedding methods, which use the hardware \texttt{popcount} instruction, and matrix-vector multiplies using batches of 1, 256, or 1024 vectors.}
 \label{fig:query_speeds}
 \end{center}
 \end{figure}
@@ -96,7 +96,7 @@ In Figure~\ref{fig:matmul_speed}\textit{.bottom}, we multiply a $100,000 \times 
 % \includegraphics[width=\linewidth]{moose2}
 \includegraphics[width=\linewidth]{matmul_speed}
 % \vspace*{-1mm}
-\caption{Using a naive nested loop implementation, Bolt can compute (approximate) matrix products faster than optimized matrix multiply routines. Except for small matrices, Bolt is faster even when it must encode one of the matrices from scratch as a first step.}
+\caption{Using a naive nested loop implementation, Bolt can compute (approximate) matrix products faster than optimized matrix multiply routines. Except for small matrices, Bolt is faster even when it must encode the matrices from scratch as a first step.}
 \label{fig:matmul_speed}
 \end{center}
 \end{figure}

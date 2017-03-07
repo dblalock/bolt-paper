@@ -1,0 +1,291 @@
+
+% \documentclass[sigconf]{acmart}  % starting in 2017
+% \documentclass[acmlarge]{acmart}  % starting in 2017
+% \documentclass[manuscript]{acmart}  % starting in 2017
+% \documentclass[conference]{IEEEtran}
+\documentclass[]{article}
+\input{setup.tex}
+
+\usepackage{mathtools}
+\usepackage{amsthm}           % theorems
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{definition}{Definition}[section]
+
+% \setcopyright{rightsretained}
+
+% %Conference
+% \acmConference[KDD 2017]{ACM SIGKDD}{August 2017}{Halifax, Nova Scotia Canada}
+% \acmYear{2017}
+% \copyrightyear{2017}
+
+\begin{document}
+
+\title{Bolt: Theoretical Analysis}
+
+\author{Davis W. Blalock, John V. Guttag}
+
+% \author{Davis W. Blalock}
+% \affiliation{%
+%   \institution{Computer Science and Artificial \\ Intelligence Laboratory}
+%   \institution{Massachusetts Institute of Technology}
+% }
+% \email{dblalock@mit.edu}
+
+% \author{John V. Guttag}
+% \affiliation{%
+%   \institution{Computer Science and Artificial \\ Intelligence Laboratory}
+%   \institution{Massachusetts Institute of Technology}
+% }
+% \email{guttag@mit.edu}
+
+% \date{} % don't show date
+\date{\Large February 18 2017}
+\maketitle
+
+% ================================================================
+\section{Quantization Error}
+% ================================================================
+
+\subsection{Definitions}
+
+Let $Q$ be the distribution of query subvectors $\vec{q}_m$ for lookup table $m$, $X$ be the distribution of database subvectors $\vec{x}_m$ for this table, and $Y$ be the scalar-valued distribution of distances within that table. I.e.:
+\begin{align}
+    p(Y = y) \triangleq \int_{Q, X} p(\vec{q}_m, \vec{x}_m)I\{d_m(\vec{q}_m, \vec{x}_m) = y\}
+\end{align}
+
+Recall that we seek to learn a quantization function $\beta_m: \mathbb{R} \rightarrow \{0,\ldots,255\}$ of the form:
+\begin{align}
+    \beta_m(y) = \max(0, \min(255, \floor*{ay - b}))
+\end{align}
+\noindent that minimizes the loss:
+\begin{align}
+    E_Y[(\hat{y} - y)^2]
+\end{align}
+where $\hat{y} \triangleq a(\beta_m(y) + b)$ is the \textit{reconstruction} of $y$.
+
+In the paper, we propose setting $b = F^{-1}(\alpha)$ and $a = 255 / (F^{-1}(1 - \alpha) - b)$ for some suitable $\alpha$. $F^{-1}$ is the inverse CDF of $Y$, estimated empirically on a training set. The value of $\alpha$ is optimized using a simple grid search.
+
+To analyze the performance of $\beta_m$ from a theoretical perspective, let us define the following:
+\begin{itemize}
+\itemindent3mm
+\itemsep1.5mm
+\item{Let $|\hat{y} - y|$ be the \textit{quantization error}. }
+\item{Let $B = 255$ be the number of quantization bins.}
+% \item{Let $y_{min} \triangleq \min_y(y)$ be the minimum value of $Y$ in the training dataset.}
+% \item{Let $y_{max} \triangleq \max_y(y)$ be the maximum value of $Y$ in the training dataset.}
+\item{Let $b_{min} \triangleq \sup_y \{\beta_m(y) = 0\} = F^{-1}(\alpha)$ be the smallest value that can be quantized without clipping.}
+\item{Let $b_{max} \triangleq \inf_y \{\beta_m(y) = B\} = F^{-1}(1 - \alpha)$ be the largest value that can be quantized without clipping.}
+\item{Let $\Delta \triangleq \frac{b_{max} - b_{min} }{ B }$ be the width of each quantization bin.}
+\end{itemize}
+
+Using these quantities, the quantization error for a given $y$ value can be decomposed into:
+\begin{align} \label{eq:decomposition}
+    |y - \hat{y}| =
+    \begin{cases}
+        b_{min} - y         & \text{if } y \le b_{min} \\
+        \Delta c(y)         & \text{if } b_{min} < y \le b_{max} \\
+        y - b_{max}         & \text{if } y > b_{max}
+        % (y - b_{min})^2           & \text{if } y \le b_{min} \\
+        % (y - \floor*{ay - b})^2   & \text{if } b_{min} < y \le b_{max} \\
+        % (y - b_{max})^2           & \text{if } y > b_{max}
+    \end{cases}
+\end{align}
+where $c(y) = (y - \hat{y}) / \Delta$ returns a value in $[0, 1)$ indicating where $\hat{y}$ lies within its quantization bin. These three cases represent $y$ being clipped at $b_{min}$, being rounded down to the nearest bin boundary, or being clipped at $b_{max}$, respectively.
+
+It will also be helpful to define the following properties.
+
+\begin{definition}
+% A random variable $X$ is $(\lambda, l, h)$-exponential, if and only if:
+A random variable $X$ is $(l, h)$-exponential if and only if:
+\begin{align}
+    % & \lambda > 0 \\
+    l < \hspace{1mm} & E[X] < h \\
+    % p(X < \gamma) < \hspace{1mm} & \lambda e^{-\lambda (E[X] - \gamma)}, \hspace{1mm} \gamma \le l \\
+    % p(X > \gamma) < \hspace{1mm} & \lambda e^{-\lambda (\gamma - E[X])}, \hspace{1mm} \gamma \ge h
+    p(X < \gamma) < \hspace{1mm} & \frac{1}{\sigma_X} e^{-(E[X] - \gamma) / \sigma_X}, \hspace{1mm} \gamma \le l \\
+    p(X > \gamma) < \hspace{1mm} & \frac{1}{\sigma_X} e^{-(\gamma - E[X]) / \sigma_X}, \hspace{1mm} \gamma \ge h
+\end{align}
+where $\sigma_Y$ is the standard deviation of $Y$.
+% and
+% \begin{align}
+%     p(X > h) < \lambda e^{-\lambda (h - E[X])}
+% \end{align}
+\end{definition}
+In words, $X$ is $(\lambda, l, h)$-exponential if its tails are bounded by exponential distributions. For appropriate $l$ and $h$, this definition includes distributions including the Laplace, Exponential, Gaussian, and all subgaussian distributions.
+
+We also defined a one-tailed correlary, useful for nonnegative distances.
+
+\begin{definition}
+% A random variable $X$ is $(\lambda, l, h)$-exponential, if and only if:
+A random variable $X$ is $(h)$-exponential if and only if:
+\begin{align}
+    p(X < 0) &= 0 \\
+    p(X > \gamma) < \hspace{1mm} & \frac{1}{\sigma_X} e^{-\gamma / \sigma_Y}, \hspace{1mm} \gamma \ge h
+\end{align}
+where $\sigma_Y$ is the standard deviation of $Y$.
+\end{definition}
+
+
+% ------------------------------------------------
+\subsection{Guarantees}
+% ------------------------------------------------
+
+% \noindent Using these definitions, we obtain the following guarantees.
+
+% ------------------------ alpha = 0 proof
+
+\begin{lemma} \label{thm:max_bin_err}
+% Let $b = 255$ be the number of quantization levels and let $y_{min} \triangleq \min_y(y)$ and $y_{max} \triangleq \max_y(y)$. Then $(\beta_m(y) - y)^2$ is at most $(\frac{ y_{max} - y_{min} }{ b })^2$.
+% Let $p(Y < y_{min}) = 0$ and $p(Y > y_{max}) = 0$. Then $E_Y[|\hat{y} - y|]$ is at most $\frac{ y_{max} - y_{min} }{ b }$.
+Let $p(Y < b_{min}) = 0$ and $p(Y > b_{max}) = 0$. Then $|\hat{y} - y| < \Delta$.
+\end{lemma}
+
+% \begin{proof} Suppose that $\alpha$ is fixed at $0$. In this case, $\Delta = (y_{max} - y_{min}) / B$. In the worst case, all of the probability density of $Y$ is concentrated at the maximum possible value that maps to a given bin; formally:
+\begin{proof}
+The error $|\hat{y} - y| > \eps$ can be decomposed according to (\ref{eq:decomposition}). By assumption, the first and last terms in this decomposition, wherein $Y$ clips, have probability 0. This leaves only:
+\begin{align}
+    |y - \hat{y}| = \Delta c(y)
+\end{align}
+where $0 \le c(y) < 1$. For any value of $c(y)$, $|y - \hat{y}| < \Delta$. Intuitively, this means that if the distribution isn't clipped, the worst quantization error is the width of a quantization bin.
+
+% In the worst case, all of the probability density of $Y$ is concentrated at the maximum possible value that maps to a given bin. I.e.:
+% \begin{align}
+%     p(y) > 0 \iff \hspace{1mm} (b_{min} + i \Delta - \epsilon) \le y < (b_{min} + i \Delta), \hspace{1mm} i \in \{0,\ldots,B-1 \}
+% \end{align}
+% % where $\epsilon \approx 0$ is a positive constant. Then the quantization error for values within a given bin is $\Delta$. Since $Y$ falls entirely within $[b_{min}, b_{max}]$, the expected loss across all values of $Y$ is also $\Delta^2$. Since the loss for the learned value of $\alpha$ can be no worse than that when $\alpha = 0$ (since selecting $\alpha = 0$ is an option), the loss for the learned $\alpha$ is at most $\Delta^2 = (\frac{ y_{max} - y_{min} }{ b })^2$.
+% where $\epsilon \approx 0$ is a positive constant. Then the quantization error for values within a given bin is $\Delta$. Since $Y$ falls entirely within $[b_{min}, b_{max}]$, the maximum quantization error for any value of $y$ is also $\Delta$.
+\end{proof}
+
+% ------------------------ exponential tails PAC bound
+
+
+% So the idea here is that we define "(l, h)-exponential", which means that below l and above h, distro is described by exponential decaying from mean u, and then we show that for distros with this property, we get a sum of two squared exponentials
+%   -
+
+\begin{theorem}[Two-tailed generalization bound] \label{thm:pac_quant}
+Let $Y$ be $(b_{min}, b_{max})$-exponential. Then:
+\begin{align} \label{eq:bound_two_tailed}
+    p(|y - \hat{y}| > \eps) <
+                            % \frac{1}{\sigma_Y} \left(
+                            %     e^{-(b_{max} + \eps - E[Y]) / \sigma_Y}
+                            %     + e^{-(E[Y] - b_{min} - \eps) / \sigma_Y}
+                            % \right)
+                            \frac{1}{\sigma_Y} \left(
+                                e^{-(b_{max}- E[Y]) / \sigma_Y}
+                                + e^{-(E[Y] - b_{min}) / \sigma_Y}
+                            \right)e^{-\eps / \sigma_Y}
+\end{align}
+for all $\eps > \Delta$.
+% The loss $E_Y[(\hat{y} - y)^2]$ is at most $\Delta^2$ when evaluated on the training set.
+\end{theorem}
+
+\begin{proof}
+% If $Y$ lies entirely within $[b_{min}, b_{max}]$, then $p(|y - \hat{y}| < \Delta) = 1$ by Lemma~\ref{thm:max_bin_err}. Consequently, the component of $Y$ that lies in this interval can contribute quantization error of at most $\Delta$. The remaining error comes from the components of $Y$ lying outside this interval. Using $\Delta$ as an upper bound on , and
+Using the decomposition in (\ref{eq:decomposition}), we have:
+\begin{align} \label{eq:decomp_proba}
+    % p(|y - \hat{y}| > \eps) &= p(|y - b_{min}| > \eps)p(y \le b_{min}) \\
+    %                         &+ p(|y - b_{max}| > \eps)p(y > b_{max}) \\
+    %                         &+ p(|y - \floor*{ay - b}| > \eps)p(b_{min} < y \le b_{max})
+    p(|y - \hat{y}| > \eps)
+                            &= p(c(y)\Delta > \eps)p(b_{min} < y \le b_{max}) \nonumber \\
+                            &+ p(b_{min} - y > \eps) \\
+                            &+ p(y - b_{max} > \eps) \nonumber
+\end{align}
+The first term corresponds to $y$ being truncated within a bin, and the latter two correspond to $y$ clipping. Since $0 \le c(y) < 1$ and $p(b_{min} < y \le b_{max}) \le 1$, the first term can be bounded as:
+\begin{align}
+    p(c(y)\Delta > \eps)p(b_{min} < y \le b_{max}) < I\{\eps < \Delta\} \label{eq:bound_bin}
+\end{align}
+where $I\{\cdot\}$ is the indicator function. The latter two terms can be bounded using the fact that $Y$ is $(b_{min}, b_{max})$-exponential:
+\begin{align}
+    p(b_{min} - y > \eps) &= p(y < b_{min} - \eps) < \frac{1}{\sigma_Y} e^{-(E[Y] - b_{min} - \eps) / \sigma_Y} \\
+    p(y - b_{max} > \eps) &= p(y > b_{max} + \eps) < \frac{1}{\sigma_Y} e^{-(b_{max} + \eps - E[Y]) / \sigma_Y} \label{eq:bound_bmax}
+% \end{align}
+% Similarly, for the second term:
+% \begin{align}
+\end{align}
+Combining (\ref{eq:bound_bin})-(\ref{eq:bound_bmax}), we have:
+\begin{align}
+    p(|y - \hat{y}| > \eps) < I\{\eps < \Delta\} +
+                            \frac{1}{\sigma_Y} \left(
+                                e^{-(b_{max} + \eps - E[Y]) / \sigma_Y}
+                                + e^{-(E[Y] - b_{min} - \eps) / \sigma_Y}
+                            \right)
+\end{align}
+When $\eps \ge \Delta$, the first term is zero and we obtain (\ref{eq:bound_two_tailed}).
+% \begin{align}
+%     p(|y - \hat{y}| > \eps) <
+%                             \frac{1}{\sigma_Y} \left(
+%                                 e^{(b_{max} + \eps - E[Y]) / \sigma_Y}
+%                                 + e^{(E[Y] - b_{min} - \eps) / \sigma_Y}
+%                             \right)
+% \end{align}
+\end{proof}
+
+% letting $\Delta \triangleq \frac{y_{max} - y_{min} }{ b }$ be the width of each bin,
+
+For ease of understanding, it is helpful to consider the case wherein $b_{min}$ and $b_{max}$ are symmetric about the mean. When this holds, the bound of Theorem~\ref{thm:pac_quant} simplifies to the more concise expression of Lemma~\ref{thm:pac_quant_z}. This shows that the error probability decays exponentially with the number of standard deviations $b_{min}$ and $b_{max}$ are from the mean, as well as the size of $\eps$ (normalized by the standard deviation).
+
+\begin{lemma}[Symmetric generalization bound] \label{thm:pac_quant_z}
+Let $z$ be any scalar such that $Y$ is $(E[y] - z \sigma_Y, E[y] + z \sigma_Y)$-exponential. Then:
+\begin{align}
+    % p(|y - \hat{y}| > \epsilon) < TODO
+    p(|y - \hat{y}| > \eps) < \frac{1}{\sigma_Y} 2e^{-(z + \eps / \sigma_Y)}
+\end{align}
+where $\eps > \Delta = 2z\sigma_Y / B$.
+% The loss $E_Y[(\hat{y} - y)^2]$ is at most $\Delta^2$ when evaluated on the training set.
+\end{lemma}
+
+\begin{proof}
+This follows immediately from Theorem~\ref{thm:pac_quant} using $b_{min} = E[y] - z \sigma_Y$, $b_{max} = E[y] + z \sigma_Y$. % Note that the constraint on $\eps$ corresponds to the bin width using these values of $b_{min}$ and $b_{max}$. % These values correspond to $\alpha = 0$. Since the learned value of $\alpha$ can be no worse than this (since selecting $\alpha = 0$ is an option), the loss for the learned $\alpha$ is at most TODO.
+\end{proof}
+
+The bound of \ref{thm:pac_quant} is effective when $Y$ is roughly symmetric (as is the case when quantizing dot products, and sometimes the case when quantizing $L_p$ distances), but less so when $Y$ is heavily skewed (as is often the case when quantizing $L_p$ distances). In the presence of severe skewness, $E[Y]$ is close to either $b_{min}$ or $b_{max}$, and so one of the two exponentials in parentheses approaches $1$. Theorem~\ref{thm:pac_quant_one_tail} describes a tighter bound for the case of right skew and a hard lower limit of $0$, since this is often distribution observed for $L_p$ distances. The corresponding bound for left skew and a hard upper limit is trivial so we omit it. Note that this theorem is useful only if $b_{min} \approx \Delta$, but this is commonly the case when the $L_p$ distances are highly skewed.
+
+\begin{lemma}[One-tailed generalization bound] \label{thm:pac_quant_one_tail}
+Let $Y$ be $(b_{min}, b_{max})$-exponential, with $p(Y < 0) = 0$. Then:
+\begin{align} \label{eq:bound_one_tailed}
+    p(|y - \hat{y}| > \eps) <
+        \frac{1}{\sigma_Y} e^{-(b_{max} + \eps - E[Y]) / \sigma_Y}
+\end{align}
+for all $\eps > \max(\Delta, b_{min})$.
+% The loss $E_Y[(\hat{y} - y)^2]$ is at most $\Delta^2$ when evaluated on the training set.
+\end{lemma}
+
+\begin{proof}
+Using (\ref{eq:decomp_proba}) with the fact that $\eps > b_{min}$, we have:
+\begin{align} \label{eq:decomp_proba}
+    p(|y - \hat{y}| > \eps)
+        % = p(c(y)\Delta > \eps)p(b_{min} < y \le b_{max}) + p(y - b_{max} > \eps)
+                            &= p(c(y)\Delta > \eps)p(b_{min} < y \le b_{max}) \\
+                            &+ p(y - b_{max} > \eps) \nonumber
+\end{align}
+Again applying the bounds from (\ref{eq:bound_bin}) and (\ref{eq:bound_bmax}), we obtain (\ref{eq:bound_one_tailed}).
+% \begin{align} \label{eq:decomp_proba}
+%     p(|y - \hat{y}| > \eps)
+%                             &= p(c(y)\Delta > \eps)p(b_{min} < y \le b_{max}) \nonumber \\
+%                             &+ p(y - b_{max} > \eps) \nonumber
+% \end{align}
+\end{proof}
+
+% \begin{lemma} \label{thm:pac_quant_z}
+% Let $\alpha$ be the scalar used to set $b_{min}$, $b_{max}$ and let $Y$ be $(b_{min}, b_{max})$-exponential. Then:
+% \begin{align}
+%     p(|y - \hat{y}| > \eps) <
+%                             \frac{1}{\sigma_Y} \left(
+%                                 e^{-(b_{max} + \eps - E[Y]) / \sigma_Y}
+%                                 + e^{-(E[Y] - b_{min} - \eps) / \sigma_Y}
+%                             \right)
+% \end{align}
+% for all $\eps > \Delta$.
+% \end{lemma}
+
+\section{Dot Product Error}
+In this section, we bound the error in Bolt's approximate dot products. We also introduce a useful closed-form approximation that helps to explain the high performance of product quantization-based algorithms.
+
+
+
+\section{Euclidean Distance Error}
+
+
+\end{document}
