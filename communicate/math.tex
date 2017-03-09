@@ -11,6 +11,19 @@
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}{Lemma}[section]
 \newtheorem{definition}{Definition}[section]
+\newtheorem{corollary}{Corrolary}[section]
+
+\DeclareMathOperator{\MSE}{MSE}
+
+% \newcommand\q\vec{q}
+% \newcommand\q\vec{q}
+% \newcommand\r\vec{r}
+% \newcommand\x\vec{x}
+% \newcommand\xhat\hat{\vec{x}}
+% \newcommand\y\vec{y}
+% \newcommand\yhat\hat{\vec{y}}
+% \newcommand\z\vec{z}
+% \newcommand\zhat\hat{\vec{z}}
 
 % \setcopyright{rightsretained}
 
@@ -240,7 +253,7 @@ where $\eps > \Delta = 2z\sigma_Y / B$.
 This follows immediately from Theorem~\ref{thm:pac_quant} using $b_{min} = E[y] - z \sigma_Y$, $b_{max} = E[y] + z \sigma_Y$. % Note that the constraint on $\eps$ corresponds to the bin width using these values of $b_{min}$ and $b_{max}$. % These values correspond to $\alpha = 0$. Since the learned value of $\alpha$ can be no worse than this (since selecting $\alpha = 0$ is an option), the loss for the learned $\alpha$ is at most TODO.
 \end{proof}
 
-The bound of \ref{thm:pac_quant} is effective when $Y$ is roughly symmetric (as is the case when quantizing dot products, and sometimes the case when quantizing $L_p$ distances), but less so when $Y$ is heavily skewed (as is often the case when quantizing $L_p$ distances). In the presence of severe skewness, $E[Y]$ is close to either $b_{min}$ or $b_{max}$, and so one of the two exponentials in parentheses approaches $1$. Theorem~\ref{thm:pac_quant_one_tail} describes a tighter bound for the case of right skew and a hard lower limit of $0$, since this is often distribution observed for $L_p$ distances. The corresponding bound for left skew and a hard upper limit is trivial so we omit it. Note that this theorem is useful only if $b_{min} \approx \Delta$, but this is commonly the case when the $L_p$ distances are highly skewed.
+The bound of \ref{thm:pac_quant} is effective when $Y$ is roughly symmetric (as is the case when quantizing dot products, and sometimes the case when quantizing $L_p$ distances), but less so when $Y$ is heavily skewed (as is often the case when quantizing $L_p$ distances). In the presence of severe skewness, $E[Y]$ is close to either $b_{min}$ or $b_{max}$, and so one of the two exponentials in parentheses approaches $1$. Theorem~\ref{thm:pac_quant_one_tail} describes a tighter bound for the case of right skew and a hard lower limit of $0$, since this is often the distribution observed for $L_p$ distances. The corresponding bound for left skew and a hard upper limit is trivial so we omit it. Note that this theorem is useful only if $b_{min} \approx \Delta$, but this is commonly the case when the $L_p$ distances are highly skewed.
 
 \begin{lemma}[One-tailed generalization bound] \label{thm:pac_quant_one_tail}
 Let $Y$ be $(b_{min}, b_{max})$-exponential, with $p(Y < 0) = 0$. Then:
@@ -280,12 +293,313 @@ Again applying the bounds from (\ref{eq:bound_bin}) and (\ref{eq:bound_bmax}), w
 % for all $\eps > \Delta$.
 % \end{lemma}
 
+% ================================================================
 \section{Dot Product Error}
-In this section, we bound the error in Bolt's approximate dot products. We also introduce a useful closed-form approximation that helps to explain the high performance of product quantization-based algorithms.
+% ================================================================
+In this section, we bound the error in Bolt's approximate dot products. We also introduce a useful closed-form approximation that helps to explain the high performance of product quantization-based algorithms in general.
+
+\subsection{Definitions and preliminaries}
+
+\begin{definition}[Codebook]
+A $(B, J)$-\textit{codebook} $C$ is an ordered collection of $2^B$ vectors $\vec{c} \in \mathbb{R}^J$. Each vector is referred to as a ``centroid'' or ``codeword.'' The notation $\vec{c}_i$ denotes the $i$th centroid in the codebook.
+\end{definition}
+
+\begin{definition}[Codelist]
+A $(K, B, J)$-codelist $\mathcal{C}$ is an ordered collection of $k$ $(B, J / K)$-codebooks. Because zero-padding is trivial and does not affect any relevant measure of accuracy, we assume that $J$ is a multiple of $K$. The notation $c_{ij}$ denotes the $i$th centroid in the $j$th codebook. A codelist can be thought of (and stored) as a rank-3 tensor whose columns are codebooks, treated as row-major 2D arrrays.
+\end{definition}
+
+\begin{definition}[Subvectors of a vector]
+Let $\vec{x} \in \R^J$ be a vector, let $K > 0$ be an integer, and let $L = J / K$. Then $\x^{(1)},\ldots,\x^{(K)}$ are the subvectors of $\vec{x}$, where $\x^{(k)} \in \mathbb{R}^L \triangleq x_{k\cdot L},\ldots,x_{k\cdot L + L - 1}$. As with codelists, $J$ is assumed to be a multiple of $K$.
+\end{definition}
+
+\begin{definition}[Encoding of a vector]
+Let $\vec{x} \in \R^J$ be a vector with subvectors $\x^{(1)},\ldots,\x^{(K)}$ and let $\mathcal{C}$ be a $(K, B, J)$-codelist. Then the encoding of $\vec{x}$ is the sequence of integers $a_1,\ldots,a_K$, $0 < a_k \le 2^B$ where $a_k \triangleq \argmin_i ||\x^{(k)} - c_{ik}||^2$.
+\end{definition}
+
+\begin{definition}[Reconstruction]
+Let $a_1,\ldots,a_K$, $0 < a_k \le 2^B$ be the encoding of some vector $\vec{x}$, and let $\mathcal{C}$ be a $(K, B, J)$-codelist. Then the concatenation of the vectors $c_{a_{1}1},c_{a_{2}2},\ldots,c_{a_{K}K}$ is the reconstruction of $\vec{x}$, denoted $\hat{\vec{x}}$.
+\end{definition}
+
+\begin{definition}[Residuals]
+Let $\hat{\vec{x}}$ be the reconstruction of $\vec{x}$. Then the residual vector $\vec{r} \triangleq \vec{x} - \hat{\vec{x}}$.
+\end{definition}
+
+Apart from these definitions, it is also necessary to establish several geometric properties of random (encoded) vectors in high-dimensional spaces.
+
+% \begin{lemma}[Area of a hypersphere]
+% The area of a hypersphere in $\R^J$ with radius $r$, denoted $A_J(r)$ is given by:
+% \begin{align}
+%     A_J(r) = \frac{ 2\pi^{J/2} }{ \Gamma({\frac{J}{2}}) } r^{J-1}
+% \end{align}
+% \end{lemma}
+
+% ------------------------ dot prod and ED biases
+
+\begin{lemma}[Dot product bias (\cite{pairQ})]
+Let $\hat{\vec{x}}$ be the reconstruction of $\vec{x}$ using codelist $\mathcal{C}$, and suppose that the centroids of all codebooks within $\mathcal{C}$ were learned using k-means. Then $E[\q^\top \x - \q^\top \xhat]$.
+\end{lemma}
+
+\begin{lemma}[Euclidean distance bias (\cite{pq, pairQ})]
+Let $a_1,\ldots,a_K$, $0 < a_k \le 2^B$ be the encoding of some vector $\vec{x}$ using codelist $\mathcal{C}$ and $\xhat$ be the reconstruction of $\x$. Further suppose that the centroids of all codebooks within $\mathcal{C}$ were learned using k-means. Then
+\begin{align}
+    E[\norm{\q - \x}^2 - \norm{\q - \xhat}^2] = \sum_{k=1}^K \MSE(a_k, k)
+\end{align}
+where $\MSE(a_k, k)$ is the expected squared Euclidean distance between centroid $\vec{c}_{a{_k}k}$ and the subvectors assigned to it by k-means. I.e.,
+\begin{align}
+    \MSE(a_k, k) \triangleq E_X[\norm{\vec{c}_{a{_k}k} - \tilde{\x}}^2 | \argmin_i \norm{\vec{c}_{ik} - \tilde{\x}}^2 = a_k ]
+\end{align}
+\end{lemma}
+
+\begin{lemma}[Area of a hyperspherical cap (Li. 2011) \cite{}] \label{thm:cap_area}
+Suppose that a hyperphere in $\R^J$ with radius $r$ is cut into two caps by a hyperplane, with the angle $\theta, 0 \le \theta \le \frac{\pi}{2}$ defining the radius of the smaller cap. Then the area of the smaller cap is given by
+\begin{align}
+    A_J(r) = \frac{1}{2} A^s_J(r) I_{\sin^2(\theta)} \left( \frac{J-1}{2}, \frac{1}{2} \right)
+\end{align}
+where $A^s_J(r)$ is the area of the hyperpsphere and $I_x(a, b)$ denotes the regularized incomplete beta function (i.e., the CDF of a $\Beta(a, b)$ distribution).
+\end{lemma}
+
+% ------------------------ angle between random vects, cdf
+
+\begin{lemma}[Minimum angle between random vectors] \label{thm:rand_angle}
+Let $\x, \y \in \R^J$ be vectors such that $\frac{\x^\top\y}{\norm{\x}\norm{\y}} \y$ is sampled uniformly from the surface of the unit hypersphere $S^{J-1}$, and let $\theta \triangleq \arccos(\frac{\x^\top\y}{\norm{\x} \cdot \norm{\y} })$ be the angle between $\x$ and $\y$. Then for $0 \le a \le \pie{2}$,
+\begin{align} \label{eq:rand_angle}
+    p(\abs{\theta} \ge a) = I_{\sin^2(a)} \left( \frac{J-1}{2}, \frac{1}{2} \right)
+\end{align}
+%\sim \Beta(\frac{J-1}{2}, \frac{1}{2})$, where $0 \le a \le 2\pi$ and $\cos(\theta) = \frac{\x^\top\y / \y}{\norm{\x} \cdot \norm{\y} }$.
+\end{lemma}
+
+\begin{proof} Since the angle between $\x$ and $\y$ is independent of their norms, assume without loss of generality that $\x$ and $\y$ have been scaled such that $\norm{x} = \norm{y} = 1$. %This implies that $\x^\top \y = \cos(\theta)$ is sampled uniformly from the unit hypersphere.
+For a given $\x$, the set of $\y$ vectors such that $\cos(\theta) \ge a, \theta \le \pie{2}$ is exactly the set of vectors comprising a hyperspherical cap of $S^{J-1}$ with radius defined by $a$.
+% The set of possible vectors $\y$ on the unit hypersphere such that $\cos(\theta) \ge a, \theta \le \pie{2}$ is exactly set of vectors comprising the hyperspherical cap with radius $a$.
+Because the projection onto $\x$ of $\y$ has probability mass uniformly distributed across $S^{J-1}$, the probability that $\y$ lies within this cap is equal to the area of the cap divided by the area of the hypersphere. Using Lemma~\ref{thm:cap_area}, this ratio is given by:
+\begin{align} \label{eq:beta_survival}
+    \frac{1}{2} I_{\sin^2(a)} \left( \frac{J-1}{2}, \frac{1}{2} \right)
+\end{align}
+By symmetry, this is also $p(\theta < -a)$. Summing the probabilities of these two events yields (\ref{eq:rand_angle}).
+
+% Noting that $I_x(a, b) = p(\beta < x), \beta \sim \Beta(a, b)$, we can differentiate to obtain
+%
+% NOTE: if we wanna throw in gaussian approximation, we need to use the pdf, not this cdf
+\end{proof}
+
+% ------------------------ angle between random vects, pdf
+
+% \begin{lemma}[Angle between random vectors]
+% Let $\x$, $\q$, and $\theta$ be defined as in Lemma~\ref{thm:rand_angle}. Then
+% \begin{align}
+%     \abs{\cos(\theta)} \sim \Beta(\frac{J-1}{2}, \frac{J-1}{2})
+% \end{align}
+% \end{lemma}
+
+% \begin{proof}
+% Using the identity $I_z(\alpha, \alpha) = I_{4z(1-z)}(\alpha, \frac{1}{2})$ \cite{DMLF_beta}, we can rewrite (\ref{eq:beta_survival}) as:
+% \begin{align}
+%     I_{\abs{\phi}}(\frac{J-1}{2}, \frac{J-1}{2})
+% \end{align}
+% where $\phi = \onehalf(1 - \cos(\theta))$. Observing that this defines the CDF of $\abs{ \frac{1}{2}(1 - \cos(\theta) }$ under a $\Beta(\frac{J-1}{2}, \frac{J-1}{2})$ distribution, we can differentiate to obtain:
+% \begin{align}
+%     \phi \sim \onehalf \Beta(\frac{J-1}{2}, \frac{J-1}{2})
+%     % \sin^2(\theta) \sim \frac{1}{2} \Beta(\frac{J-1}{2}, \frac{1}{2})
+%     % TODO use different beta bounds
+% \end{align}
+% and thus
+% \begin{align}
+%     \cos(\theta) \sim 1 - 2\Beta(\frac{J-1}{2}, \frac{J-1}{2})
+% \end{align}
+
+% \end{proof}
+
+% ------------------------ gaussian approx
+
+\begin{lemma}[Gaussian approximation to angle between random vectors]
+Let $\x$, $\q$, and $\theta$ be defined as in Lemma~\ref{thm:rand_angle}. Then
+\begin{align} \label{eq:gauss_approx}
+    % p(cos(\theta)) \sim \Normal(0, 4\sqrt(J))
+    p(cos(\theta) > a) \approx \erf \left( -cos(\theta)\sqrt{\frac{J}{2}} \right)
+\end{align}
+\end{lemma}
 
 
+\begin{proof}
+Using the identity $I_z(\alpha, \alpha) = I_{4z(1-z)}(\alpha, \frac{1}{2})$ \cite{DMLF_beta}, we can rewrite (\ref{eq:beta_survival}) as:
+\begin{align}
+    I_{\phi}(\frac{J-1}{2}, \frac{J-1}{2})
+\end{align}
+where $\phi = \onehalf(1 - \cos(\theta))$. Recall that a $\Beta(\alpha, \beta)$ distribution can be approximated by a normal distribution with:
+\begin{align} \label{eq:normal_approx}
+    \mu &= \frac{\alpha}{\alpha + \beta} \\
+    \sigma^2 &= \frac{\alpha \beta}{(\alpha + \beta)^2(1 + \alpha + \beta)}
+    % I_{\abs{\phi}}(\frac{J-1}{2}, \frac{J-1}{2}) \approx \erf \left( -cos(\theta)\sqrt{\frac{J}{2}} \right)
+\end{align}
+Using $\alpha = \beta = \frac{J-1}{2}$, this yeilds
+\begin{align}
+    \mu &= \onehalf \label{eq:mu} \\
+    \sigma^2 &= \frac{ \left( \frac{J-1}{2} \right)^2 }{
+        2 \left( \frac{J-1}{2} \right) \left( 1 + 2\frac{J-1}{2} \right)
+    }
+    = \frac{1}{4J}  \label{eq:sigma2}
+    % I_{\abs{\phi}}(\frac{J-1}{2}, \frac{J-1}{2}) \approx \erf(\frac{a - \mu}{\sigma\sqrt(2)})
+\end{align}
+Further recall that the CDF of a normal distribution with a given mean $\mu$ and variance $\sigma^2$ is given by
+\begin{align} \label{eq:erf_cdf}
+    \Phi(a) = \erf \left( \frac{a - \mu}{\sigma\sqrt{2}} \right)
+\end{align}
+Substituting (\ref{eq:mu}) and (\ref{eq:sigma2}) into (\ref{eq:erf_cdf}), we obtain
+\begin{align} \label{eq:erf_cdf}
+    I_{\phi}(\frac{J-1}{2}, \frac{J-1}{2}) \approx \erf((\phi - \onehalf)\sqrt{2J})
+\end{align}
+Finally, substituting $\onehalf(1 - \cos(\theta))$ for $\phi$ yields (\ref{eq:gauss_approx}).
+    % I_{\cos(\theta)}(\frac{J-1}{2}, \frac{J-1}{2}) \approx
+\end{proof}
 
+% \begin{corollary}[Gaussian PDF approximation] \label{thm:gauss_pdf}
+\begin{lemma}[Gaussian PDF approximation] \label{thm:gauss_pdf}
+Let $\x$, $\q$, and $\theta$ be defined as in Lemma~\ref{thm:rand_angle}. Then
+\begin{align} \label{eq:normal_approx_pdf}
+    cos(\theta) \sim \Normal(0, J^{-1})
+\end{align}
+\end{lemma}
+
+\begin{proof} Writing (\ref{eq:gauss_approx}) in the form of (\ref{eq:erf_cdf}) gives
+\begin{align}
+    \mu &= 0 \\
+    \sigma^2 &= \frac{1}{J}
+\end{align}
+Because (\ref{eq:gauss_approx}) is the CDF of a Gaussian random variable with this $\mu$ and $\sigma^2$, the PDF is given by $\Normal(0, J^{-1})$.
+\end{proof}
+
+% Observing that this defines the CDF of $\abs{ \frac{1}{2}(1 - \cos(\theta) }$ under a $\Beta(\frac{J-1}{2}, \frac{J-1}{2})$ distribution, we can differentiate to obtain:
+% \begin{align}
+%     \phi \sim \onehalf \Beta(\frac{J-1}{2}, \frac{J-1}{2})
+% \end{align}
+% and thus
+% \begin{align}
+%     \cos(\theta) \sim 1 - 2\Beta(\frac{J-1}{2}, \frac{J-1}{2})
+% \end{align}
+
+% ------------------------------------------------
+\subsection{Guarantees}% and Analytic Approximation}
+% ------------------------------------------------
+
+We now prove several bounds on the errors caused by product quantization. We begin with no distributional assumptions, and then prove increasingly tight bounds as more assumptions are added.
+
+We begin with Lemma~\ref{thm:worst_dotprod}, which is not probabalistic.
+
+% ------------------------ dot worst case
+
+\begin{lemma}[Worst-case dot product error] \label{thm:worst_dotprod}
+Let $\hat{\vec{x}}$ be the reconstruction of $\x$ and let $\q \in \R^J$ be a vector. Then $\abs{\q^\top \x - \q^\top \xhat} < \norm{q} \cdot \norm{r}$.
+\end{lemma}
+
+\begin{proof} \label{thm:dot_unif}
+This follows immediately from application of the Cauchy-Schwarz inequality.
+\begin{align}
+    % \q^\top \x = \q^\top (\xhat + \r) = \q^\top \xhat + \q^\top \r \\
+    \abs{\q^\top \x - \q^\top \xhat} = \abs{\q^\top \x - \q^\top (\x - \r)} = \abs{\q^\top \r} \le \norm{q} \cdot \norm{r}
+\end{align}
+\end{proof}
+
+% ------------------------ dot unif
+
+If we are willing to make the extremely pessimistic assumption that the cosine of the angle between $\q$ and $\r$ is uniformly distributed, a tighter bound (and indeed, an exact expression for the error probability) is possible (Theorem~\ref{thm:dot_unif}). This assumption is pessimistic because angles close to $0$, which yield smaller errors, are much more probable in high dimensions. % In fact, this assumption is even more pessimistic than assuming all $\theta$ are equiprobable, as it concentrates more mass on $\theta$ closer to $\pm 1$.%; the former corresponds to a $\theta \sim Beta(1, 1)$, while the latter corrsponds to $\theta \sim Beta(\frac{1}{2}, \frac{1}{2})$. Actually, no, first is cos(theta) ~ Beta(.5, .5), second is cos(theta) ~ Beta(1, 1)
+
+\begin{theorem}[Pessimistic dot product error]
+Let $\theta$ denote the angle between $\r$ and some vector $\q$, and suppose that $\cos(\theta) \sim Unif(-1, 1)$. Then
+\begin{align}
+    p(\abs{\q^\top \x - \q^\top \xhat} > \eps) = \max(0, 1 - \frac{\eps}{\norm{\q} \cdot \norm{\r}})
+\end{align}
+\end{theorem}
+
+\begin{proof}
+Simple algebra shows that
+\begin{align} \label{eq:qTr}
+    \q^\top \x - \q^\top \xhat = \q^\top(\xhat + \r) - \q^\top \xhat = \q^\top \r = \norm{\q} \cdot \norm{\r} \cos(\theta)
+\end{align}
+Since $\cos(\theta) \sim Unif(-1, 1)$, we have that $\abs{\cos(\theta)} \sim Unif(0, 1)$, and therefore
+\begin{align}
+    p(\abs{\q^\top \x - \q^\top \xhat} > \eps) &= p(\abs{\norm{\q} \cdot \norm{\r} \cos(\theta)} > \eps ) \\
+    &= p \left( \abs{\cos(\theta)} > \frac{\eps}{\norm{\q} \cdot \norm{\r} } \right) \\
+    &= \max \left( 0, 1 - \frac{\eps}{\norm{\q} \cdot \norm{\r}} \right)
+\end{align}
+\end{proof}
+
+% ------------------------ dot unif in subvects
+
+The assumption that the cosine similarity of vectors is uniform can be replaced with the slightly more optimistic assumption that the errors in quantizing each subvector are independent (Theorem~\ref{thm:dot_indep}).
+
+\begin{theorem}[Dot product error with independent subspaces] \label{thm:dot_indep}
+% Let $\x^{(1)},\ldots,\x^{(K)}$ be the subvectors of $\x$, let $\xhat^{(1)},\ldots,\xhat^{(K)}$ be the subvectors of $\xhat$, and let $\r^{(1)},\ldots,\r^{(K)}$ be the $K$ residual vectors, where $\r^{(k)} \triangleq \x^{(k)} - \xhat^{(k)}$. Then $p(\abs{\q^\top \x - \q^\top \xhat} \ge \eps) \le 2\exp(\frac{-2\eps^2}{\sum_{k=1}^K \norm{ \r^{(k)} }^2 })$.
+Let $\x^{(1)},\ldots,\x^{(K)}$ be the subvectors of $\x$, let $\xhat^{(1)},\ldots,\xhat^{(K)}$ be the subvectors of $\xhat$, and let $\q^{(1)},\ldots,\q^{(K)}$ be the subvectors of an arbitrary vector $\q \in R^J$. Further let $\r^{(k)} \triangleq \x^{(k)} - \xhat^{(k)}$, and assume that the values of $\norm{ \r^{(k)} }$ are independent for all $k$. Then: % $\norm{\q^{(k)}} \cdot \norm{ \r^{(k)} }$ are independent for all $k$. Then:
+\begin{align} \label{eq:dot_indep}
+    p(\abs{\q^\top \x - \q^\top \xhat} \ge \eps) \le 2\exp \left( \frac{-\eps^2}{
+        2 \sum_{k=1}^K (\norm{\q^{(k)}} \cdot \norm{ \r^{(k)} }))^2
+    }\right)
+        % \sum_{k=1}^K (\norm{\q^{(k)}} \cdot \norm{\x^{(k)} - \xhat^{(k)} }))^2
+\end{align}
+\end{theorem}
+
+\begin{proof}
+The quantity $\q^\top \x - \q^\top \xhat$ can be expressed as the sum
+\begin{align}
+    % \q^\top \x - \q^\top \xhat = \sum_{k=1}^K \q^{(k)\top} (\x^{(k)} - \xhat^{(k)})
+    \sum_{k=1}^K \q^{(k)\top} (\x^{(k)} - \xhat^{(k)}) = \sum_{k=1}^K \q^{(k)\top} \r^{(k)}
+\end{align}
+Each element of this sum can be viewed as an independent random variable $v_k$. By Lemma~\ref{thm:worst_dotprod}, $-\norm{\q^{(k)}} \cdot \norm{\r^{(k)}} < v_k < \norm{\q^{(k)}} \cdot \norm{\r^{(k)}}$. The inequality (\ref{eq:dot_indep}) then follows from Hoeffding's inequality.
+\end{proof}
+
+This bound assumes the worst-case distribution of errors for each subvector. If we instead assume that the errors are random as defined in Lemma~\ref{thm:rand_angle}, it is possible to obtain not only a bound, but a closed-form expression for the probability of a given error.
+
+\begin{theorem}[Dot product error approximation] \label{thm:dot_approx}
+Let $\x^{(1)},\ldots,\x^{(K)}$, $\xhat^{(1)},\ldots,\xhat^{(K)}$, $\q^{(1)},\ldots,\q^{(K)}$, $\norm{ \r^{(1)} },\ldots,\norm{ \r^{(K)} }$ be defined as in Theorem~\ref{thm:dot_indep}. Suppose that each $(\q^{(k)}, \r^{(k)})$ satisfy the conditions of Lemma~\ref{thm:rand_angle} and the quantities $\q^{(k)\top} \r^{(k)}$ and $\norm{ \q^{(k)} } \cdot \norm{ \r^{(k)} }$ are independent for all $k$. Then
+\begin{align} \label{eq:dot_approx}
+    p(\q^\top \x - \q^\top \xhat) \approx \Normal(0, \sigma^2)
+\end{align}
+% where $\sigma^2 \triangleq \frac{1}{J} \sum_{k=1}^K \norm{\q^{(k)} } \cdot \norm{\r^{(k)} }$.
+where $\sigma^2 \triangleq J^{-1} \sum_{k=1}^K \norm{\q^{(k)} } \cdot \norm{\r^{(k)} }$.
+\end{theorem}
+
+\begin{proof}
+Applying Lemma~\ref{thm:gauss_pdf} to a given $(\q^{(k)}, \r^{(k)})$, we have that:
+\begin{align}
+    cos(\theta_k) \sim \Normal(0, L^{-1})
+\end{align}
+where $\theta_k \triangleq \frac{ \q^{(k)^\top}\r^{(k)} }{ \norm{\q^{(k)}} \cdot \norm{\r^{(k)}} }$. Recalling from (\ref{eq:qTr}) that $\q^\top \x - \q^\top \xhat = \norm{\q} \cdot \norm{\r} \cos(\theta)$, this implies that
+\begin{align}
+    % \q^{(k)^\top} \x^{(k)} - \q^\top \xhat \sim \Normal (foo, bar)
+    \q^{(k)^\top} \x^{(k)} - \q^\top \xhat \sim \Normal(0, \sigma_k^2)
+\end{align}
+where $\sigma_k^2 = \frac{ \norm{\q^{(k)}} \cdot \norm{\r^{(k)}} }{ L }$.
+Because the errors from each subspace are independent, one can sum the variances from each subspace and divide by $K$ to obtain (\ref{eq:dot_approx}). Observe that we have simplified $(KL)^{-1}$ to $J^1$.
+\end{proof}
+
+This approximation is optimistic if the codebooks are trained from k-means using the Euclidean distance, since the residuals' directions are unlikely to be uniformly distributed on the unit hypersphere. However, if the centroids are trained under the Mahalanobis distance as in \cite{googleMips, pairQ}, then this approximation may be pessimistic. This is because the latter approach tends to concentrate $cos(\theta)$ around $0$ (by construction), which yields even smaller variances in each subspace.
+
+It is also interesting to note that this error expression is independent of $K$. One might expect that having more independent estimators would be preferable, but the tendency of larger subvectors to concentrate $\cos(\theta)$ near $0$ exactly cancels the resulting variance reduction, making the error depend only on the vector dimensionality $J$. % Because the square of the error itself is likely to be proportional to $J$,
+
+% ================================================================
 \section{Euclidean Distance Error}
+% ================================================================
 
+The guarantees in this section closely parallel those of the previous section, so we state them without comment.
+
+\begin{theorem}
+Let $\xhat$ be the reconstruction of $\x$ and let $\q \in \R^J$ be a vector. Then $\abs{\norm{\q - \x} - \norm{\q - \xhat} } < \norm{\r}$.
+\end{theorem}
+
+\begin{proof}
+This follows immediately from application of the triangle inequality. % Simple algebra shows that
+\begin{align}
+   \norm{\q - \x} - \norm{\r} \le \norm{\q - \xhat} = \norm{\q - \x + \r} \le \norm{\q - \x} + \norm{\r}
+\end{align}
+and therefore
+\begin{align}
+    \abs{\norm{\q - \x} - \norm{\q - \xhat} } \le \norm{\r}
+\end{align}
+\end{proof}
+
+% ================================================================ Bib
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{doc}
 
 \end{document}
