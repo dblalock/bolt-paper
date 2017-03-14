@@ -79,7 +79,7 @@ Recall that we seek to learn a quantization function $\beta_m: \mathbb{R} \right
 \begin{align}
     E_Y[(\hat{y} - y)^2]
 \end{align}
-where $\hat{y} \triangleq a(\beta_m(y) + b)$ is the \textit{reconstruction} of $y$.
+where $\hat{y} \triangleq (\beta_m(y) + b)/a$ is the \textit{reconstruction} of $y$.
 
 In the paper, we propose setting $b = F^{-1}(\alpha)$ and $a = 255 / (F^{-1}(1 - \alpha) - b)$ for some suitable $\alpha$. $F^{-1}$ is the inverse CDF of $Y$, estimated empirically on a training set. The value of $\alpha$ is optimized using a simple grid search.
 
@@ -88,7 +88,7 @@ To analyze the performance of $\beta_m$ from a theoretical perspective, let us d
 \itemindent3mm
 \itemsep1.5mm
 \item{Let $|\hat{y} - y|$ be the \textit{quantization error}. }
-\item{Let $B = 255$ be the number of quantization bins.}
+\item{Let $B = 256$ be the number of quantization bins.}
 % \item{Let $y_{min} \triangleq \min_y(y)$ be the minimum value of $Y$ in the training dataset.}
 % \item{Let $y_{max} \triangleq \max_y(y)$ be the maximum value of $Y$ in the training dataset.}
 % \item{Let $b_{min} \triangleq \sup_y \{\beta_m(y) = 0\} = F^{-1}(\alpha)$ be the smallest value that can be quantized without clipping.}
@@ -494,7 +494,7 @@ We begin with Lemma~\ref{thm:worst_dotprod}, which is not probabalistic.
 % ------------------------ dot worst case
 
 \begin{lemma}[Worst-case dot product error] \label{thm:worst_dotprod}
-Let $\hat{\vec{x}}$ be the reconstruction of $\x$ and let $\q \in \R^J$ be a vector. Then $\abs{\q^\top \x - \q^\top \xhat} < \norm{q} \cdot \norm{r}$.
+Let $\hat{\vec{x}}$ be the reconstruction of $\x$ and let $\q \in \R^J$ be a vector. Then $\abs{\q^\top \x - \q^\top \xhat} < \norm{\q} \cdot \norm{\r}$.
 \end{lemma}
 
 \begin{proof} \label{thm:dot_unif}
