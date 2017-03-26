@@ -70,8 +70,7 @@ Let $Q$ be the distribution of query subvectors $\vec{q}_m$ for lookup table $m$
 \begin{align}
     p(Y = y) \triangleq \int_{Q, X} p(\vec{q}_m, \vec{x}_m)I\{d_m(\vec{q}_m, \vec{x}_m) = y\}
 \end{align}
-
-Recall that we seek to learn a quantization function $\beta_m: \mathbb{R} \rightarrow \{0,\ldots,255\}$ of the form:
+where $I\{\cdot\}$ is the indicator function. Recall that we seek to learn a quantization function $\beta_m: \mathbb{R} \rightarrow \{0,\ldots,255\}$ of the form:
 \begin{align}
     \beta_m(y) = \max(0, \min(255, \floor*{ay - b}))
 \end{align}
@@ -88,7 +87,7 @@ To analyze the performance of $\beta_m$ from a theoretical perspective, let us d
 \itemindent3mm
 \itemsep1.5mm
 \item{Let $|\hat{y} - y|$ be the \textit{quantization error}. }
-\item{Let $B = 256$ be the number of quantization bins.}
+\item{Let $B$ be the number of quantization bins. In practice, $B = 256$.}
 % \item{Let $y_{min} \triangleq \min_y(y)$ be the minimum value of $Y$ in the training dataset.}
 % \item{Let $y_{max} \triangleq \max_y(y)$ be the maximum value of $Y$ in the training dataset.}
 % \item{Let $b_{min} \triangleq \sup_y \{\beta_m(y) = 0\} = F^{-1}(\alpha)$ be the smallest value that can be quantized without clipping.}
@@ -131,7 +130,7 @@ where $\sigma_X$ is the standard deviation of $X$.
 %     p(X > h) < \lambda e^{-\lambda (h - E[X])}
 % \end{align}
 \end{definition}
-In words, $X$ is $(l, h)$-exponential if its tails are bounded by exponential distributions. For appropriate $l$ and $h$, this definition includes distributions including the Laplace, Exponential, Gaussian, and all subgaussian distributions.
+In words, $X$ is $(l, h)$-exponential if its tails are bounded by exponential distributions. For appropriate $l$ and $h$, Laplace, Exponential, Gaussian, and all subgaussian distributions are $(l, h)$-exponential.
 
 % We also defined a one-tailed correlary, useful for nonnegative distances.
 
@@ -215,7 +214,7 @@ The first term corresponds to $y$ being truncated within a bin, and the latter t
 \begin{align}
     p(c(y)\Delta > \eps)p(b_{min} < y \le b_{max}) < I\{\eps < \Delta\} \label{eq:bound_bin}
 \end{align}
-where $I\{\cdot\}$ is the indicator function. The latter two terms can be bounded using the fact that $Y$ is $(b_{min}, b_{max})$-exponential:
+The latter two terms can be bounded using the assumption that $Y$ is $(b_{min}, b_{max})$-exponential:
 \begin{align}
     p(b_{min} - y > \eps) &= p(y < b_{min} - \eps) < \frac{1}{\sigma_Y} e^{-(E[Y] - b_{min} - \eps) / \sigma_Y} \\
     p(y - b_{max} > \eps) &= p(y > b_{max} + \eps) < \frac{1}{\sigma_Y} e^{-(b_{max} + \eps - E[Y]) / \sigma_Y} \label{eq:bound_bmax}
@@ -259,7 +258,7 @@ where $\eps > \Delta = 2z\sigma_Y / B$.
 This follows immediately from Theorem~\ref{thm:pac_quant} using $b_{min} = E[y] - z \sigma_Y$, $b_{max} = E[y] + z \sigma_Y$. % Note that the constraint on $\eps$ corresponds to the bin width using these values of $b_{min}$ and $b_{max}$. % These values correspond to $\alpha = 0$. Since the learned value of $\alpha$ can be no worse than this (since selecting $\alpha = 0$ is an option), the loss for the learned $\alpha$ is at most TODO.
 \end{proof}
 
-The bound of \ref{thm:pac_quant} is effective when $Y$ is roughly symmetric (as is the case when quantizing dot products, and sometimes the case when quantizing $L_p$ distances), but less so when $Y$ is heavily skewed (as is often the case when quantizing $L_p$ distances). In the presence of severe skewness, $E[Y]$ is close to either $b_{min}$ or $b_{max}$, and so one of the two exponentials in parentheses approaches $1$. Theorem~\ref{thm:pac_quant_one_tail} describes a tighter bound for the case of right skew and a hard lower limit of $0$, since this is often the distribution observed for $L_p$ distances. The corresponding bound for left skew and a hard upper limit is trivial so we omit it. Note that this theorem is useful only if $b_{min} \approx \Delta$, but this is commonly the case when the $L_p$ distances are highly skewed.
+The bound of \ref{thm:pac_quant} is effective when $Y$ is roughly symmetric, but less so when $Y$ is heavily skewed. Such skewness is sometimes present when estimating $L_p$ distances. In the presence of severe skewness, $E[Y]$ is close to either $b_{min}$ or $b_{max}$, and so one of the two exponentials in parentheses approaches $1$. Theorem~\ref{thm:pac_quant_one_tail} describes a tighter bound for the case of right skew and a hard lower limit of $0$, since this is often the distribution observed for $L_p$ distances. The corresponding bound for left skew and a hard upper limit is similar so we omit it. Note that this theorem is useful only if $b_{min} \approx \Delta$, but this is commonly the case when the $L_p$ distances are highly skewed.
 
 \begin{lemma}[One-tailed generalization bound] \label{thm:pac_quant_one_tail}
 Let $Y$ be $(b_{min}, b_{max})$-exponential, with $p(Y < 0) = 0$. Then:
@@ -307,27 +306,30 @@ In this section, we bound the error in Bolt's approximate dot products. We also 
 \subsection{Definitions and preliminaries}
 
 \begin{definition}[Codebook]
-A $(B, J)$-\textit{codebook} $C$ is an ordered collection of $2^B$ vectors $\vec{c} \in \mathbb{R}^J$. Each vector is referred to as a ``centroid'' or ``codeword.'' The notation $\vec{c}_i$ denotes the $i$th centroid in the codebook.
+A $(K, J)$-\textit{codebook} $\mathcal{C}$ is an ordered collection of $K$ vectors $\{\c_1,\ldots,\c_K\} \in \mathbb{R}^J$. Each vector is referred to as a ``centroid'' or ``codeword.'' The notation $\vec{c}_i$ denotes the $i$th centroid in the codebook.
 \end{definition}
 
 \begin{definition}[Codelist]
-A $(K, B, J)$-codelist $\mathcal{C}$ is an ordered collection of $k$ $(B, J / K)$-codebooks. Because zero-padding is trivial and does not affect any relevant measure of accuracy, we assume that $J$ is a multiple of $K$. The notation $\vec{c}_{ij}$ denotes the $i$th centroid in the $j$th codebook. A codelist can be thought of (and stored) as a rank-3 tensor whose columns are codebooks, treated as row-major 2D arrrays.
+A $(K, M, J)$-codelist $\mat{C}$ is an ordered collection of $M$ $(K, J / M)$-codebooks. Because zero-padding is trivial and does not affect any relevant measure of accuracy, we assume that $J$ is a multiple of $M$. The notation $\vec{c}_i^{(m)}$ denotes the $i$th centroid in the $m$th codebook. A codelist can be thought of (and stored) as a rank-3 tensor whose columns are codebooks, treated as row-major 2D arrrays.
 \end{definition}
 
 \begin{definition}[Subvectors of a vector]
-Let $\vec{x} \in \R^J$ be a vector, let $K > 0$ be an integer, and let $L = J / K$. Then $\x^{(1)},\ldots,\x^{(K)}$ are the subvectors of $\vec{x}$, where $\x^{(k)} \in \mathbb{R}^L \triangleq x_{(k-1)L + 1},\ldots,x_{L}$. As with codelists, $J$ is assumed to be a multiple of $K$.
+Let $\x \in \R^J$ be a vector, let $M > 0$ be an integer, and let $L = J / M$. Then $\x^{(1)},\ldots,\x^{(M)}$ are the subvectors of $\vec{x}$, where $\x^{(m)} \in \mathbb{R}^L \triangleq x_{(k-1)L + 1},\ldots,x_{L}$. As with codelists, $J$ is assumed to be a multiple of $M$.
 \end{definition}
 
 \begin{definition}[Encoding of a vector]
-Let $\vec{x} \in \R^J$ be a vector with subvectors $\x^{(1)},\ldots,\x^{(K)}$ and let $\mathcal{C}$ be a $(K, B, J)$-codelist. Then the encoding of $\vec{x}$ is the sequence of integers $a_1,\ldots,a_K$, $0 < a_k \le 2^B$ where $a_k \triangleq \argmin_i ||\x^{(k)} - \vec{c}_{ik}||^2$.
+Let $\x \in \R^J$ be a vector with subvectors $\x^{(1)},\ldots,\x^{(M)}$ and let $\mat{C}$ be a $(K, M, J)$-codelist. Then the encoding of $\x$ is the sequence of integers $a_1,\ldots,a_M$, $0 < a_m \le M$ where
+\begin{align}
+    a_m \triangleq \argmin_i ||\x^{(m)} - \vec{c}_{i}^{(m)}||^2
+\end{align}
 \end{definition}
 
 \begin{definition}[Reconstruction]
-Let $a_1,\ldots,a_K$, $0 < a_k \le 2^B$ be the encoding of some vector $\vec{x}$, and let $\mathcal{C}$ be a $(K, B, J)$-codelist. Then the concatenation of the vectors $c_{a_{1}1},c_{a_{2}2},\ldots,c_{a_{K}K}$ is the reconstruction of $\vec{x}$, denoted $\hat{\vec{x}}$.
+Let $a_1,\ldots,a_M$, $0 < a_m \le M$ be the encoding of some vector $\x$, and let $\mat{C}$ be a $(K, M, J)$-codelist. Then the concatenation of the vectors $\vec{c}_{a_1}^{(1)},\vec{c}_{a_2}^{(2)},\ldots,\vec{c}_{a_M}^{(M)}$ is the reconstruction of $\x$, denoted $\xhat$.
 \end{definition}
 
 \begin{definition}[Residuals]
-Let $\hat{\vec{x}}$ be the reconstruction of $\vec{x}$. Then $\vec{r} \triangleq \vec{x} - \hat{\vec{x}}$ is the residual vector for $\x$.
+Let $\xhat$ be the reconstruction of $\x$. Then $\vec{r} \triangleq \x - \xhat$ is the residual vector for $\x$.
 \end{definition}
 
 Apart from these definitions, it is also necessary to establish several geometric properties of random (encoded) vectors in high-dimensional spaces.
@@ -341,19 +343,19 @@ Apart from these definitions, it is also necessary to establish several geometri
 
 % ------------------------ dot prod and ED biases
 
-\begin{lemma}[Dot product bias (\cite{pairQ})]
-Let $\hat{\vec{x}}$ be the reconstruction of $\vec{x}$ using codelist $\mathcal{C}$, and suppose that the centroids of all codebooks within $\mathcal{C}$ were learned using k-means. Then $E[\q^\top \x - \q^\top \xhat] = 0$.
+\begin{lemma}[Dot product bias \cite{pairQ}]
+Let $\xhat$ be the reconstruction of $\x$ using codelist $\mat{C}$, and suppose that the centroids of all codebooks within $\mat{C}$ were learned using k-means. Then $E[\q^\top \x - \q^\top \xhat] = 0$.
 \end{lemma}
 
-\begin{lemma}[Euclidean distance bias (\cite{pq, pairQ})] \label{thm:l2_bias}
-Let $a_1,\ldots,a_K$, $0 < a_k \le 2^B$ be the encoding of some vector $\vec{x}$ using codelist $\mathcal{C}$ and $\xhat$ be the reconstruction of $\x$. Further suppose that the centroids of all codebooks within $\mathcal{C}$ were learned using k-means. Then:
+\begin{lemma}[Euclidean distance bias \cite{pq, pairQ}] \label{thm:l2_bias}
+Let $a_1,\ldots,a_M$, $0 < a_m \le M$ be the encoding of some vector $\x$ using codelist $\mat{C}$ and $\xhat$ be the reconstruction of $\x$. Further suppose that the centroids of all codebooks within $\mat{C}$ were learned using k-means. Then:
 \begin{align}
-    E[\norm{\q - \x}^2 - \norm{\q - \xhat}^2] = \sum_{k=1}^K \MSE(a_k, k)
+    E[\norm{\q - \x}^2 - \norm{\q - \xhat}^2] = \sum_{m=1}^M \MSE(a_m, m)
 \end{align}
-where $\MSE(a_k, k)$ is the expected squared Euclidean distance between centroid $\vec{c}_{a{_k}k}$ and the subvectors assigned to it by k-means. I.e.,
+where $\MSE(a_m, m)$ is the expected squared Euclidean distance between centroid $\vec{c}_{a_m}^{(m)}$ and the subvectors assigned to it by k-means. I.e.,
 \begin{align}
-    % \MSE(a_k, k) \triangleq E_X[\norm{\vec{c}_{a{_k}k} - \x^{(k)} }^2 \hspace{1mm} | \hspace{1mm} \argmin_i \norm{\vec{c}_{ik} - \x^{(k)} }^2 = a_k ]
-    \MSE(a_k, k) \triangleq E_X[\norm{\vec{c}_{a{_k}k} - \x^{(k)} }^2], \hspace{1mm} a_k = \argmin_i \norm{\vec{c}_{ik} - \x^{(k)} }^2
+    % \MSE(a_m, k) \triangleq E_X[\norm{\vec{c}_{a{_k}k} - \x^{(m)} }^2 \hspace{1mm} | \hspace{1mm} \argmin_i \norm{\vec{c}_{ik} - \x^{(m)} }^2 = a_m ]
+    \MSE(a_m, m) \triangleq E_X[\norm{\vec{c}_{a_m}^{(m)} - \x^{(m)} }^2], \hspace{1mm} a_m = \argmin_i \norm{\vec{c}_{i}^{(m)} - \x^{(m)} }^2
 \end{align}
 \end{lemma}
 
@@ -362,7 +364,7 @@ Suppose that a hyperphere in $\R^J$ with radius $r$ is cut into two caps by a hy
 \begin{align}
     A_J(r) = \frac{1}{2} A^s_J(r) I_{\sin^2(\theta)} \left( \frac{J-1}{2}, \frac{1}{2} \right)
 \end{align}
-where $A^s_J(r)$ is the area of the hyperpsphere and $I_x(a, b)$ denotes the regularized incomplete beta function (i.e., the CDF of a $\Beta(a, b)$ distribution).
+where $A^s_J(r)$ is the area of the hyperpsphere and $I_x(\alpha, \beta)$ denotes the regularized incomplete beta function (i.e., the CDF of a $\Beta(\alpha, \beta)$ distribution).
 \end{lemma}
 
 % ------------------------ angle between random vects, cdf
@@ -375,7 +377,7 @@ Let $\x, \y \in \R^J$ be vectors such that $\frac{\x^\top\y}{\norm{\x}\norm{\y}}
 %\sim \Beta(\frac{J-1}{2}, \frac{1}{2})$, where $0 \le a \le 2\pi$ and $\cos(\theta) = \frac{\x^\top\y / \y}{\norm{\x} \cdot \norm{\y} }$.
 \end{lemma}
 
-\begin{proof} Since the angle between $\x$ and $\y$ is independent of their norms, assume without loss of generality that $\x$ and $\y$ have been scaled such that $\norm{x} = \norm{y} = 1$. %This implies that $\x^\top \y = \cos(\theta)$ is sampled uniformly from the unit hypersphere.
+\begin{proof} Since the angle between $\x$ and $\y$ is independent of their norms, assume without loss of generality that $\x$ and $\y$ have been scaled such that $\norm{\x} = \norm{\y} = 1$. %This implies that $\x^\top \y = \cos(\theta)$ is sampled uniformly from the unit hypersphere.
 For a given $\x$, the set of $\y$ vectors such that $\cos(\theta) \ge a, \theta \le \pie{2}$ is exactly the set of vectors comprising a hyperspherical cap of $S^{J-1}$ with radius defined by $a$.
 % The set of possible vectors $\y$ on the unit hypersphere such that $\cos(\theta) \ge a, \theta \le \pie{2}$ is exactly set of vectors comprising the hyperspherical cap with radius $a$.
 Because the projection onto $\x$ of $\y$ has probability mass uniformly distributed across $S^{J-1}$, the probability that $\y$ lies within this cap is equal to the area of the cap divided by the area of the hypersphere. Using Lemma~\ref{thm:cap_area}, this ratio is given by:
@@ -489,19 +491,19 @@ Because (\ref{eq:gauss_approx}) is the CDF of a Gaussian random variable with th
 
 We now prove several bounds on the errors caused by product quantization using an arbitrary number of subvectors. We begin with no distributional assumptions, and then prove increasingly tight bounds as more assumptions are added.
 
-We begin with Lemma~\ref{thm:worst_dotprod}, which is not probabalistic.
+% We begin with Lemma~\ref{thm:worst_dotprod}, which is not probabalistic.
 
 % ------------------------ dot worst case
 
 \begin{lemma}[Worst-case dot product error] \label{thm:worst_dotprod}
-Let $\hat{\vec{x}}$ be the reconstruction of $\x$ and let $\q \in \R^J$ be a vector. Then $\abs{\q^\top \x - \q^\top \xhat} < \norm{\q} \cdot \norm{\r}$.
+Let $\hat{\vec{x}}$ be the reconstruction of $\x$ and let $\q \in \R^J$ be a vector. Then $\abs{\q^\top \x - \q^\top \xhat} < \norm{\q} \cdot \norm{\r}$, where $\r$ is the residual vector $\x - \xhat$.
 \end{lemma}
 
 \begin{proof} \label{thm:dot_unif}
 This follows immediately from application of the Cauchy-Schwarz inequality.
 \begin{align}
     % \q^\top \x = \q^\top (\xhat + \r) = \q^\top \xhat + \q^\top \r \\
-    \abs{\q^\top \x - \q^\top \xhat} = \abs{\q^\top \x - \q^\top (\x - \r)} = \abs{\q^\top \r} \le \norm{q} \cdot \norm{r}
+    \abs{\q^\top \x - \q^\top \xhat} = \abs{\q^\top \x - \q^\top (\x - \r)} = \abs{\q^\top \r} \le \norm{\q} \cdot \norm{\r}
 \end{align}
 \end{proof}
 
@@ -509,7 +511,7 @@ This follows immediately from application of the Cauchy-Schwarz inequality.
 
 If we are willing to make the extremely pessimistic assumption that the cosine of the angle between $\q$ and $\r$ is uniformly distributed, a tighter bound (and indeed, an exact expression for the error probability) is possible (Theorem~\ref{thm:dot_unif}). This assumption is pessimistic because angles close to $0$, which yield smaller errors, are much more probable in high dimensions. % In fact, this assumption is even more pessimistic than assuming all $\theta$ are equiprobable, as it concentrates more mass on $\theta$ closer to $\pm 1$.%; the former corresponds to a $\theta \sim Beta(1, 1)$, while the latter corrsponds to $\theta \sim Beta(\frac{1}{2}, \frac{1}{2})$. Actually, no, first is cos(theta) ~ Beta(.5, .5), second is cos(theta) ~ Beta(1, 1)
 
-\begin{theorem}[Pessimistic dot product error]
+\begin{theorem}[Pessimistic dot product error] \label{thm:dot_unif}
 Let $\theta$ denote the angle between $\r$ and some vector $\q$, and suppose that $\cos(\theta) \sim Unif(-1, 1)$. Then
 \begin{align}
     p(\abs{\q^\top \x - \q^\top \xhat} > \eps) = \max(0, 1 - \frac{\eps}{\norm{\q} \cdot \norm{\r}})
@@ -534,23 +536,23 @@ Since $\cos(\theta) \sim Unif(-1, 1)$, we have that $\abs{\cos(\theta)} \sim Uni
 The assumption that the cosine similarity of vectors is uniform can be replaced with the slightly more optimistic assumption that the errors in quantizing each subvector are independent, yielding Theorem~\ref{thm:dot_indep}.
 
 \begin{theorem}[Dot product error with independent subspaces] \label{thm:dot_indep}
-% Let $\x^{(1)},\ldots,\x^{(K)}$ be the subvectors of $\x$, let $\xhat^{(1)},\ldots,\xhat^{(K)}$ be the subvectors of $\xhat$, and let $\r^{(1)},\ldots,\r^{(K)}$ be the $K$ residual vectors, where $\r^{(k)} \triangleq \x^{(k)} - \xhat^{(k)}$. Then $p(\abs{\q^\top \x - \q^\top \xhat} \ge \eps) \le 2\exp(\frac{-2\eps^2}{\sum_{k=1}^K \norm{ \r^{(k)} }^2 })$.
-Let $\x^{(1)},\ldots,\x^{(K)}$ be the subvectors of $\x$, let $\xhat^{(1)},\ldots,\xhat^{(K)}$ be the subvectors of $\xhat$, and let $\q^{(1)},\ldots,\q^{(K)}$ be the subvectors of an arbitrary vector $\q \in R^J$. Further let $\r^{(k)} \triangleq \x^{(k)} - \xhat^{(k)}$, and assume that the values of $\norm{ \r^{(k)} }$ are independent for all $k$. Then: % $\norm{\q^{(k)}} \cdot \norm{ \r^{(k)} }$ are independent for all $k$. Then:
+% Let $\x^{(1)},\ldots,\x^{(M)}$ be the subvectors of $\x$, let $\xhat^{(1)},\ldots,\xhat^{(M)}$ be the subvectors of $\xhat$, and let $\r^{(1)},\ldots,\r^{(M)}$ be the $M$ residual vectors, where $\r^{(m)} \triangleq \x^{(m)} - \xhat^{(m)}$. Then $p(\abs{\q^\top \x - \q^\top \xhat} \ge \eps) \le 2\exp(\frac{-2\eps^2}{\sum_{m=1}^M \norm{ \r^{(m)} }^2 })$.
+Let $\x^{(1)},\ldots,\x^{(M)}$ be the subvectors of $\x$, let $\xhat^{(1)},\ldots,\xhat^{(M)}$ be the subvectors of $\xhat$, and let $\q^{(1)},\ldots,\q^{(M)}$ be the subvectors of an arbitrary vector $\q \in R^J$. Further let $\r^{(m)} \triangleq \x^{(m)} - \xhat^{(m)}$, and assume that the values of $\norm{ \r^{(m)} }$ are independent for all $k$. Then % $\norm{\q^{(m)}} \cdot \norm{ \r^{(m)} }$ are independent for all $k$. Then:
 \begin{align} \label{eq:dot_indep}
     p(\abs{\q^\top \x - \q^\top \xhat} \ge \eps) \le 2\exp \left( \frac{-\eps^2}{
-        4 \sum_{k=1}^K (\norm{\q^{(k)}} \cdot \norm{ \r^{(k)} }))^2
+        2 \sum_{m=1}^M (\norm{\q^{(m)}} \cdot \norm{ \r^{(m)} }))^2
     }\right)
-        % \sum_{k=1}^K (\norm{\q^{(k)}} \cdot \norm{\x^{(k)} - \xhat^{(k)} }))^2
+        % \sum_{m=1}^M (\norm{\q^{(m)}} \cdot \norm{\x^{(m)} - \xhat^{(m)} }))^2
 \end{align}
 \end{theorem}
 
 \begin{proof}
 The quantity $\q^\top \x - \q^\top \xhat$ can be expressed as the sum
 \begin{align}
-    % \q^\top \x - \q^\top \xhat = \sum_{k=1}^K \q^{(k)\top} (\x^{(k)} - \xhat^{(k)})
-    \sum_{k=1}^K \q^{(k)\top} (\x^{(k)} - \xhat^{(k)}) = \sum_{k=1}^K \q^{(k)\top} \r^{(k)}
+    % \q^\top \x - \q^\top \xhat = \sum_{m=1}^M \q^{(m)\top} (\x^{(m)} - \xhat^{(m)})
+    \sum_{m=1}^M \q^{(m)\top} (\x^{(m)} - \xhat^{(m)}) = \sum_{m=1}^M \q^{(m)\top} \r^{(m)}
 \end{align}
-Each element of this sum can be viewed as an independent random variable $v_k$. By Lemma~\ref{thm:worst_dotprod}, $-\norm{\q^{(k)}} \cdot \norm{\r^{(k)}} < v_k < \norm{\q^{(k)}} \cdot \norm{\r^{(k)}}$. The inequality (\ref{eq:dot_indep}) then follows from Hoeffding's inequality.
+Each element of this sum can be viewed as an independent random variable $v_k$. By Lemma~\ref{thm:worst_dotprod}, $-\norm{\q^{(m)}} \cdot \norm{\r^{(m)}} < v_k < \norm{\q^{(m)}} \cdot \norm{\r^{(m)}}$. The inequality (\ref{eq:dot_indep}) then follows from Hoeffding's inequality.
 \end{proof}
 
 This bound assumes the worst-case distribution of errors for each subvector. If we instead assume that the errors are random as defined in Lemma~\ref{thm:rand_angle}, it is possible to obtain not only a bound, but a closed-form expression for the probability of a given error.
@@ -558,31 +560,31 @@ This bound assumes the worst-case distribution of errors for each subvector. If 
 % ------------------------ dot prod approx
 
 \begin{theorem}[Dot product error approximation] \label{thm:dot_approx}
-Let $\x^{(1)},\ldots,\x^{(K)}$, \\ $\xhat^{(1)},\ldots,\xhat^{(K)}$, $\q^{(1)},\ldots,\q^{(K)}$, $\r^{(1)},\ldots,\r^{(K)}$ be defined as in Theorem~\ref{thm:dot_indep}. Suppose that each $(\q^{(k)}, \r^{(k)})$ satisfy the conditions of Lemma~\ref{thm:rand_angle} and the values of $\q^{(k)\top} \r^{(k)}$ are independent across all $k$. % quantities $\q^{(k)\top} \r^{(k)}$ and $\norm{ \q^{(k)} } \cdot \norm{ \r^{(k)} }$ are independent across all $k$. Then
+Let $\x^{(1)},\ldots,\x^{(M)}$, \\ $\xhat^{(1)},\ldots,\xhat^{(M)}$, $\q^{(1)},\ldots,\q^{(M)}$, $\r^{(1)},\ldots,\r^{(M)}$ be defined as in Theorem~\ref{thm:dot_indep}. Suppose that each $(\q^{(m)}, \r^{(m)})$ satisfy the conditions of Lemma~\ref{thm:rand_angle} and the values of $\q^{(m)\top} \r^{(m)}$ are independent across all $k$. Then % quantities $\q^{(m)\top} \r^{(m)}$ and $\norm{ \q^{(m)} } \cdot \norm{ \r^{(m)} }$ are independent across all $k$. Then
 \begin{align} \label{eq:dot_approx}
     p(\q^\top \x - \q^\top \xhat) \approx \Normal(0, \sigma^2)
 \end{align}
-% where $\sigma^2 \triangleq \frac{1}{J} \sum_{k=1}^K \norm{\q^{(k)} } \cdot \norm{\r^{(k)} }$.
-where $\sigma^2 \triangleq J^{-1} \sum_{k=1}^K \norm{\q^{(k)} } \cdot \norm{\r^{(k)} }$.
+% where $\sigma^2 \triangleq \frac{1}{J} \sum_{m=1}^M \norm{\q^{(m)} } \cdot \norm{\r^{(m)} }$.
+where $\sigma^2 \triangleq \frac{1}{L} \sum_{m=1}^M \norm{\q^{(m)} }^2 \cdot \norm{\r^{(m)} }^2$.
 \end{theorem}
 
 \begin{proof}
-Applying Lemma~\ref{thm:gauss_pdf} to a given $(\q^{(k)}, \r^{(k)})$, we have the approximation:
+Applying Lemma~\ref{thm:gauss_pdf} to a given $(\q^{(m)}, \r^{(m)})$, we have the approximation:
 \begin{align}
-    cos(\theta_k) \sim \Normal(0, L^{-1})
+    cos(\theta_m) \sim \Normal(0, L^{-1})
 \end{align}
-where $\theta_k \triangleq \frac{ \q^{(k)^\top}\r^{(k)} }{ \norm{\q^{(k)}} \cdot \norm{\r^{(k)}} }$. Recalling from (\ref{eq:qTr}) that $\q^\top \x - \q^\top \xhat = \norm{\q} \cdot \norm{\r} \cos(\theta)$, this implies that
+where $\theta_m \triangleq \frac{ \q^{(m)^\top}\r^{(m)} }{ \norm{\q^{(m)}} \cdot \norm{\r^{(m)}} }$. Recalling from (\ref{eq:qTr}) that $\q^\top \x - \q^\top \xhat = \norm{\q} \cdot \norm{\r} \cos(\theta)$, this implies that
 \begin{align}
-    % \q^{(k)^\top} \x^{(k)} - \q^\top \xhat \sim \Normal (foo, bar)
-    \q^{(k)^\top} \x^{(k)} - \q^\top \xhat \sim \Normal(0, \sigma_k^2)
+    % \q^{(m)^\top} \x^{(m)} - \q^\top \xhat \sim \Normal (foo, bar)
+    \q^{(m)^\top} \x^{(m)} - \q^{(m)^\top} \xhat^{(m)} \sim \Normal(0, \sigma_m^2)
 \end{align}
-where $\sigma_k^2 = \frac{ \norm{\q^{(k)}} \cdot \norm{\r^{(k)}} }{ L }$.
-Because the errors from each subspace are independent, one can sum their variances and divide by $K$ to obtain (\ref{eq:dot_approx}). Observe that we have simplified $(KL)^{-1}$ to $J^{-1}$.
+where $\sigma_m^2 = \frac{ \norm{\q^{(m)}}^2 \cdot \norm{\r^{(m)}}^2 }{ L }$.
+Because the errors from each subspace are independent, one can sum their variances to obtain (\ref{eq:dot_approx}). %Observe that we have simplified $(KL)^{-1}$ to $J^{-1}$.
 \end{proof}
 
 This approximation is optimistic if the codebooks are trained from k-means using the Euclidean distance, since the residuals' directions are unlikely to be uniformly distributed on the unit hypersphere. However, if the centroids are trained under the Mahalanobis distance as in \cite{googleMips, pairQ}, then this approximation may be pessimistic. This is because the latter approach tends to concentrate $cos(\theta)$ around $0$ (by construction), which yields even smaller variances in each subspace.
 
-It is also interesting to note that this error expression is independent of $K$. One might expect that having more independent estimators would be preferable, but the tendency of larger subvectors to concentrate $\cos(\theta)$ near $0$ exactly cancels the resulting variance reduction, making the error depend only on the vector dimensionality $J$ and residuals within each subspace. % Because the square of the error itself is likely to be proportional to $J$,
+% It is also interesting to note that this error expression is independent of $M$. One might expect that having more independent estimators would be preferable, but the tendency of larger subvectors to concentrate $\cos(\theta)$ near $0$ exactly cancels the resulting variance reduction, making the error depend only on the vector dimensionality $J$ and residuals within each subspace. % Because the square of the error itself is likely to be proportional to $J$,
 
 % ================================================================
 \section{Euclidean Distance Error}
@@ -613,7 +615,7 @@ and therefore
 Let $\theta$ denote the angle between $\r$ and some vector $\q$, and suppose that $\cos(\theta) \sim Unif(-1, 1)$. Then
 \begin{align} \label{eq:l2_unif}
     % p(\abs{ \norm{\q - \x}^2 - \norm{\q - \xhat}^2 } > \eps) = \max(0, 1 - \frac{\eps}{ \norm{\r}^2 })
-    p(\abs{ \norm{\q - \x}^2 - \norm{\q - \xhat}^2 } > \eps) = \max \left( 0, 1 - \frac{\norm{\r}^2 - \eps }{ 2\norm{\r}\norm{\q - \x} } \right)
+    p(\abs{ \norm{\q - \x}^2 - \norm{\q - \xhat}^2 } > \eps) = \max \left( 0, \frac{\norm{\r}^2 - \eps }{ 2\norm{\r}\norm{\q - \x} } - 1 \right)
 \end{align}
 \end{theorem}
 
@@ -631,8 +633,8 @@ This implies that
 \begin{align}
     % p(\abs{ \norm{\q - \x}^2 - \norm{\q - \xhat}^2 } > \eps) &= p(\norm{\r}^2 > \eps + 2\norm{\r}\norm{\q - \x}\cos(\theta) ) \nolabel \\
     p(\norm{\q - \x}^2 - \norm{\q - \xhat}^2 > \eps) &= p(\norm{\r}^2 - 2\norm{\r}\norm{\q - \xhat}\cos(\theta) > \eps) \nonumber \\
-    &= p(\frac{\norm{\r}^2 - \eps }{ 2\norm{\r}\norm{\q - \xhat} } > \cos(\theta)) \nonumber \\
-    &= \onehalf \max \left( 0, 1 - \frac{\norm{\r}^2 - \eps }{ 2\norm{\r}\norm{\q - \xhat} } \right)
+    &= p \left( \frac{\norm{\r}^2 - \eps }{ 2\norm{\r}\norm{\q - \xhat} } > \cos(\theta) \right) \nonumber \\
+    &= \onehalf \max \left( 0, \frac{\norm{\r}^2 - \eps }{ 2\norm{\r}\norm{\q - \xhat} } - 1 \right)
 \end{align}
 Equation (\ref{eq:l2_unif}) follows by symmetry.
 
@@ -641,11 +643,11 @@ Equation (\ref{eq:l2_unif}) follows by symmetry.
 % ------------------------ l2 indep subvects
 
 \begin{theorem}[$L_2$ error with independent subspaces] \label{thm:l2_indep}
-Let $\x^{(1)},\ldots,\x^{(K)}$ be the subvectors of $\x$, let $\xhat^{(1)},\ldots,\xhat^{(K)}$ be the subvectors of $\xhat$, and let $\q^{(1)},\ldots,\q^{(K)}$ be the subvectors of an arbitrary vector $\q \in R^J$. Further let $\r^{(k)} \triangleq \x^{(k)} - \xhat^{(k)}$, and assume that the values of $\norm{\q^{(k)} - \x^{(k)} }^2 - \norm{\q^{(k)} - \xhat^{(k)} }^2$ are independent for all $k$. % $\norm{ \r^{(k)} }$ are independent for all $k$. Then:
+Let $\x^{(1)},\ldots,\x^{(M)}$ be the subvectors of $\x$, let $\xhat^{(1)},\ldots,\xhat^{(M)}$ be the subvectors of $\xhat$, and let $\q^{(1)},\ldots,\q^{(M)}$ be the subvectors of an arbitrary vector $\q \in R^J$. Further let $\r^{(m)} \triangleq \x^{(m)} - \xhat^{(m)}$, and assume that the values of $\norm{\q^{(m)} - \x^{(m)} }^2 - \norm{\q^{(m)} - \xhat^{(m)} }^2$ are independent for all $k$. % $\norm{ \r^{(m)} }$ are independent for all $k$. Then:
 \begin{align} \label{eq:l2_indep}
     p(\abs{ \norm{\q - \x}^2 - \norm{\q - \xhat}^2 } > \eps) \le
         2\exp \left( \frac{-\eps^2}{
-            4 \sum_{k=1}^K \norm{\r^{(k)}}^4
+            2 \sum_{m=1}^M \norm{\r^{(m)}}^4
         }\right)
 \end{align}
 \end{theorem}
@@ -653,36 +655,36 @@ Let $\x^{(1)},\ldots,\x^{(K)}$ be the subvectors of $\x$, let $\xhat^{(1)},\ldot
 \begin{proof}
 The quantity $\norm{\q - \x}^2 - \norm{\q - \xhat}^2$ can be expressed as the sum
 \begin{align}
-    \sum_{k=1}^K \norm{\q^{(k)} - \x^{(k)} }^2 - \norm{\q^{(k)} - \xhat^{(k)} }^2
+    \sum_{m=1}^M \norm{\q^{(m)} - \x^{(m)} }^2 - \norm{\q^{(m)} - \xhat^{(m)} }^2
 \end{align}
-By assumption, each element of this sum can be viewed as an independent random variable $v_k$. By Lemma~\ref{thm:worst_l2}, $-\norm{\r^{(k)}}^2 \le v_k \le \norm{\r^{(k)}}^2$. Assuming that one adds in the bias correction described in Lemma~\ref{thm:l2_bias}, one can apply Hoeffding's inequality to obtain (\ref{eq:dot_indep}).
+By assumption, each element of this sum can be viewed as an independent random variable $v_k$. By Lemma~\ref{thm:worst_l2}, $-\norm{\r^{(m)}}^2 \le v_k \le \norm{\r^{(m)}}^2$. Assuming that one adds in the bias correction described in Lemma~\ref{thm:l2_bias}, one can apply Hoeffding's inequality to obtain (\ref{eq:dot_indep}).
 \end{proof}
 
 % ------------------------ l2 approx
 
 \begin{theorem}[$L_2$ error approximation] \label{thm:l2_approx}
-Let $\x^{(1)},\ldots,\x^{(K)}$, $\xhat^{(1)},\ldots,\xhat^{(K)}$, \\ $\q^{(1)},\ldots,\q^{(K)}$, $\r^{(1)},\ldots,\r^{(K)}$ be defined as in Theorem~\ref{thm:l2_indep}. Suppose that each pair $(\q^{(k)} - \xhat^{(k)}, \r^{(k)})$ satisfy the conditions of Lemma~\ref{thm:rand_angle} and the values of $(\q^{(k)} - \xhat^{(k)})^\top \r^{(k)}$ are independent across all $k$.
+Let $\x^{(1)},\ldots,\x^{(M)}$, $\xhat^{(1)},\ldots,\xhat^{(M)}$, \\ $\q^{(1)},\ldots,\q^{(M)}$, $\r^{(1)},\ldots,\r^{(M)}$ be defined as in Theorem~\ref{thm:l2_indep}. Suppose that each pair $(\q^{(m)} - \xhat^{(m)}, \r^{(m)})$ satisfy the conditions of Lemma~\ref{thm:rand_angle} and the values of $(\q^{(m)} - \xhat^{(m)})^\top \r^{(m)}$ are independent across all $k$.
 \begin{align} \label{eq:l2_approx}
     p(\norm{\q - \x}^2 - \norm{\q - \xhat}^2) \approx \Normal(\norm{r}^2, \sigma^2)
 \end{align}
-% where $\sigma^2 \triangleq \frac{1}{J} \sum_{k=1}^K \norm{\q^{(k)} } \cdot \norm{\r^{(k)} }$.
-where $\sigma^2 \triangleq 4 \norm{\r}^2\norm{\q - \x}^2 J^{-1}$.
+% where $\sigma^2 \triangleq \frac{1}{J} \sum_{m=1}^M \norm{\q^{(m)} } \cdot \norm{\r^{(m)} }$.
+where $\sigma^2 \triangleq 4 \norm{\r}^2\norm{\q - \x}^2 L^{-1}$.
 \end{theorem}
 
 \begin{proof}
-Applying Lemma~\ref{thm:gauss_pdf} to a given $(\q^{(k)}, \r^{(k)})$, we have the approximation:
+Applying Lemma~\ref{thm:gauss_pdf} to a given $(\q^{(m)}, \r^{(m)})$, we have the approximation:
 \begin{align} \label{eq:subspace_theta}
-    cos(\theta_k) \sim \Normal(0, L^{-1})
+    cos(\theta_m) \sim \Normal(0, L^{-1})
 \end{align}
-where $\theta_k \triangleq \frac{ \q^{(k)^\top}\r^{(k)} }{ \norm{\q^{(k)}} \cdot \norm{\r^{(k)}} }$. Further recall from (\ref{eq:l2_diff_cos}) that
+where $\theta_m \triangleq \frac{ \q^{(m)^\top}\r^{(m)} }{ \norm{\q^{(m)}} \cdot \norm{\r^{(m)}} }$. Further recall from (\ref{eq:l2_diff_cos}) that
 \begin{align} \label{eq:asdf}
-    \norm{\q^{(k)} - \x^{(k)}}^2 - \norm{\q^{(k)} - \xhat^{(k)}}^2 = \norm{\r^{(k)}}^2 - 2\norm{\r^{(k)}}\norm{\q^{(k)} - \xhat^{(k)}}\cos(\theta_k)
+    \norm{\q^{(m)} - \x^{(m)}}^2 - \norm{\q^{(m)} - \xhat^{(m)}}^2 = \norm{\r^{(m)}}^2 - 2\norm{\r^{(m)}}\norm{\q^{(m)} - \xhat^{(m)}}\cos(\theta_m)
 \end{align}
 Combining (\ref{eq:asdf}) and (\ref{eq:subspace_theta}) yields
 \begin{align}
-    \norm{\q^{(k)} - \x^{(k)}}^2 - \norm{\q^{(k)} - \xhat^{(k)}}^2 \sim \mathcal{N}(\norm{\r^{(k)}}^2, \sigma_k^2)
+    \norm{\q^{(m)} - \x^{(m)}}^2 - \norm{\q^{(m)} - \xhat^{(m)}}^2 \sim \mathcal{N}(\norm{\r^{(m)}}^2, \sigma_m^2)
 \end{align}
-where $\sigma_k^2 \triangleq 4 \norm{\r^{(k)}}^2\norm{\q^{(k)} - \xhat^{(k)}}^2 L^{-1}$. Because the errors from each subspace are independent, one can sum their variances and divide by $K$ to obtain (\ref{eq:l2_approx}).
+where $\sigma_m^2 \triangleq 4 \norm{\r^{(m)}}^2\norm{\q^{(m)} - \xhat^{(m)}}^2 L^{-1}$. Because the errors from each subspace are independent, one can sum their variances to obtain (\ref{eq:l2_approx}).
 
 \end{proof}
 
