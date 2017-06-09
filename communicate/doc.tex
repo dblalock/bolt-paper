@@ -9,10 +9,11 @@
 \setcopyright{rightsretained}
 
 %Conference
-\acmConference[KDD 2017]{ACM SIGKDD}{August 2017}{Halifax, Nova Scotia Canada}
-\acmYear{2017}
 \copyrightyear{2017}
-% \acmPrice{15.00}
+\acmYear{2017}
+\setcopyright{acmlicensed}
+\acmConference{KDD '17}{August 13-17, 2017}{Halifax, NS, Canada}\acmPrice{15.00}\acmDOI{10.1145/3097983.3098195}
+\acmISBN{978-1-4503-4887-4/17/08}
 
 % ================================================================
 \title{Bolt: Accelerated Data Mining with Fast Vector Compression}
@@ -56,9 +57,9 @@
 
 % Storing such vectors accounts for most of the space usage of many algorithms, and operating on them accounts for most of the compute time. % Recently, vector quantization methods have shown great promise in reducing these costs. These methods compress raw floating-point vectors into a compact representation that can be used to quickly approximate scalar reductions such as Euclidean distances and dot products. However, the overhead associated with accurately compressing the vectors using these schemes makes them less practical for changing collections. % Moreover, as we show experimentally, the speedup they afford in carrying out reductions is often not significant.
 
-Vectors of data are at the heart of machine learning and data mining. Recently, vector quantization methods have shown great promise in reducing both the time and space costs of operating on vectors. We introduce a vector quantization algorithm that can compress vectors up to $12\times$ faster than existing techniques while also accelerating approximate vector operations such as distance and dot product computations by over $10\times$. Because it can encode over two megabytes of vectors per millisecond (2 GB/s), it makes vector quantization cheap enough to employ in many more circumstances. As an example, using our technique to compute approximate dot products in a nested loop can multiply matrices faster than a state-of-the-art BLAS implementation, even when our algorithm must first compress the matrices.
+Vectors of data are at the heart of machine learning and data mining. Recently, vector quantization methods have shown great promise in reducing both the time and space costs of operating on vectors. We introduce a vector quantization algorithm that can compress vectors over $12\times$ faster than existing techniques while also accelerating approximate vector operations such as distance and dot product computations by up to $10\times$. Because it can encode over 2GB of vectors per second, it makes vector quantization cheap enough to employ in many more circumstances. For example, using our technique to compute approximate dot products in a nested loop can multiply matrices faster than a state-of-the-art BLAS implementation, even when our algorithm must first compress the matrices.
 
-In addition to showing the above speedups, we show experimentally that our approach can be used to accelerate nearest neighbor search and maximum inner product search by up to $140\times$ compared to floating point operations and $10\times$ compared to other vector quantization methods. Our approximate Euclidean distance and dot product computations are not only faster than those of related algorithms with slower encodings, but also faster than Hamming distance computations, which have direct hardware support on the tested platforms. We also assess the errors of our algorithm's approximate distances and dot products, and find that it is competitive with existing, slower vector quantization algorithms. % Finally, we offer theoretical guarantees regarding the performance of our algorithm.
+In addition to showing the above speedups, we demonstrate that our approach can accelerate nearest neighbor search and maximum inner product search by up to $140\times$ compared to floating point operations and $10\times$ compared to other vector quantization methods. Our approximate Euclidean distance and dot product computations are not only faster than those of related algorithms with slower encodings, but also faster than Hamming distance computations, which have direct hardware support on the tested platforms. We also assess the errors of our algorithm's approximate distances and dot products, and find that it is competitive with existing, slower vector quantization algorithms. % Finally, we offer theoretical guarantees regarding the performance of our algorithm.
 
 % Our approach is to quantize one of the vectors and replace the original computation with lookups in a compact table of sufficient statistics about the other.
 
@@ -72,15 +73,16 @@ In addition to showing the above speedups, we show experimentally that our appro
 
 \begin{CCSXML}
 <ccs2012>
-<concept>
-<concept_id>10002950.10003648</concept_id>
-<concept_desc>Mathematics of computing~Probability and statistics</concept_desc>
-<concept_significance>500</concept_significance>
-</concept>
+% <concept>
+% <concept_id>10002950.10003648</concept_id>
+% <concept_desc>Mathematics of computing~Probability and statistics</concept_desc>
+% <concept_significance>500</concept_significance>
+% </concept>
 <concept>
 <concept_id>10002950.10003648.10003671</concept_id>
 <concept_desc>Mathematics of computing~Probabilistic algorithms</concept_desc>
-<concept_significance>300</concept_significance>
+% <concept_significance>300</concept_significance>
+<concept_significance>500</concept_significance>
 </concept>
 <concept>
 <concept_id>10002950.10003648.10003688.10003696</concept_id>
@@ -99,12 +101,12 @@ In addition to showing the above speedups, we show experimentally that our appro
 % \ccsdesc[300]{Information Retrieval}
 % \ccsdesc[100]{Engineering Challenges}
 
-\ccsdesc[500]{Mathematics of computing~Probability and statistics}
-\ccsdesc[300]{Mathematics of computing~Probabilistic algorithms}
+% \ccsdesc[500]{Mathematics of computing~Probability and statistics}
+\ccsdesc[500]{Mathematics of computing~Probabilistic algorithms}
 \ccsdesc[300]{Mathematics of computing~Dimensionality reduction}
 \ccsdesc[100]{Mathematics of computing~Mathematical software}
 
-\keywords{Vector Quantization, Scalability, Nearest Neighbor Search}
+\keywords{Vector Quantization, Scalability, Compression, Nearest Neighbor Search}
 
 \maketitle
 
@@ -140,27 +142,21 @@ In addition to showing the above speedups, we show experimentally that our appro
 \input{results.tex}
 
 % ================================================================
-\section{Conclusion} \label{sec:conclusion}
+\vspace{-1mm}
+\section{Summary} \label{sec:conclusion}
 % ================================================================
 
 % We have described Bolt, a vector quantization algorithm that rapidly compresses large collections of vectors and enables computation of approximate Euclidean distances and dot products directly on the lossily-compressed representations. Bolt both compresses data and computes these distances/products significantly faster than similar existing algorithms. Its approximate computations are up to $20\times$ faster than the exact computations on the original floating-point numbers but up to $99\%$+ correlated with the true values. Moreover, Bolt can achieve up to $15\times$ compression at this level of accuracy. Furthermore, because Bolt compression is fast enough to be nearly free, it can be used on rapidly-changing data with little or no overhead. This also means Bolt can easily be embedded in other algorithms, such as k-means, to dramatically speed them up without deteriorating the quality of the results.
 
 % It is our hope that Bolt will be used in many production systems to greatly reduce storage and computation costs for large, real-valued datasets.
 
-We described Bolt, a vector quantization algorithm that rapidly compresses large collections of vectors and enables fast computation of approximate Euclidean distances and dot products directly on the compressed representations. Bolt both compresses data and computes distances and dot products more than $10\times$ faster than existing algorithms, making it advantageous both in read-heavy and write-heavy scenarios. Its approximate computations can be over $140\times$ faster than the exact computations on the original floating-point numbers, while maintaining correlations with the true values of over $.95$. Moreover, at this level of correlation, Bolt can achieve $10$-$200\times$ compression or more. These attributes make Bolt ideal as a subroutine in algorithms that are amenable to approximate computations, such as nearest neighbor search or maximum inner product search. % Because Bolt compression is extremely fast, it is ideal for rapidly-changing data and can cheaply be embedded as a subroutine in other algorithms that afford approximate computations, such as nearest neighbor or maximum inner product search.
+We describe Bolt, a vector quantization algorithm that rapidly compresses large collections of vectors and enables fast computation of approximate Euclidean distances and dot products directly on the compressed representations. Bolt both compresses data and computes distances and dot products up to $10\times$ faster than existing algorithms, making it advantageous both in read-heavy and write-heavy scenarios. Its approximate computations can be over $140\times$ faster than the exact computations on the original floating-point numbers, while maintaining correlations with the true values of over $.95$. Moreover, at this level of correlation, Bolt can achieve $10$-$200\times$ compression or more. These attributes make Bolt ideal as a subroutine in algorithms that are amenable to approximate computations, such as nearest neighbor search or maximum inner product search. % Because Bolt compression is extremely fast, it is ideal for rapidly-changing data and can cheaply be embedded as a subroutine in other algorithms that afford approximate computations, such as nearest neighbor or maximum inner product search.
 
 It is our hope that Bolt will be used in many production systems to greatly reduce storage and computation costs for large, real-valued datasets.
 
 
-% just say can achieve X compression while maintaining corr of .85
-
-% We described Bolt, a vector quantization algorithm that rapidly compresses large collections of vectors and enables fast computation of approximate Euclidean distances and dot products directly on the compressed representations. Bolt both compresses data and computes distances and products significantly faster than existing algorithms. Its approximate computations are up to 20× faster than the exact computations on the original floating-point numbers, and in our experiments highly correlated with the true values. Moreover, Bolt can achieve up to 15× compression while maintaining this level of accuracy. Because Bolt compression is extremely fast it is ideal for  <<nearly free seems a stretch>> rapidly-changing data.
-
-% Bolt can easily be embedded in other algorithms, such as k-means clustering, to dramatically improve their performance.  It is our hope that Bolt will be used in many production systems to greatly reduce storage and computation costs for large, real-valued datasets.
-
-% Bolt can easily be embedded in other algorithms, such as k-means clustering, to dramatically improve their performance.  It is our hope that Bolt will be used in many production systems to greatly reduce storage and computation costs for large, real-valued datasets.
-
 % ================================================================
+\vspace{-1mm}
 % References
 % ================================================================
 

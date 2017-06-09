@@ -9,7 +9,7 @@ As datasets grow larger, so too do the costs of mining them. These costs include
 \end{align}
 where $\texttt{Cost}_{\texttt{read}}$ is the time cost of operations that read the data, and $\texttt{Cost}_{\texttt{write}}$ is the time cost of creating, updating, or deleting data.
 
-For datasets of vectors, in which many of the read operations are scalar reductions such as Euclidean distance and dot product computations, vector quantization methods enable significant savings in both space usage and $\texttt{Cost}_{\texttt{read}}$. By replacing each vector with a learned approximation, these methods both save space and enable fast approximate distance and similarity computations. With as little as 8B per vector, these techniques can often preserve distances and dot products with extremely high accuracy \cite{lsq,otq,opq,cq,stackedQuantizers}.
+For datasets of vectors, for which many of the read operations are scalar reductions such as Euclidean distance and dot product computations, vector quantization methods enable significant savings in both space usage and $\texttt{Cost}_{\texttt{read}}$. By replacing each vector with a learned approximation, these methods both save space and enable fast approximate distance and similarity computations. With as little as 8B per vector, these techniques can often preserve distances and dot products with extremely high accuracy \cite{lsq,otq,opq,cq,stackedQuantizers}.
 
 % As we show, however, there is still
 
@@ -57,7 +57,7 @@ Our contributions consist of:
 
 \subsection{Problem Statement}
 
-Formally, the problem our algorithm addresses is the following.
+% Formally, the problem our algorithm addresses is the following.
 
 Let $\vec{q} \in \mathbb{R}^J$ be a \textit{query} vector and let $\mathcal{X} = \{\vec{x}_1,\ldots,\vec{x}_N\}, \vec{x}_i \in \mathbb{R}^J$ be a collection of \textit{database} vectors. Further let $d: \mathbb{R}^J \times \mathbb{R}^J \rightarrow \mathbb{R}$ be a distance or similarity function that can be written as:
 \begin{align} \label{eq:distFuncForm}
@@ -69,7 +69,7 @@ Let $\vec{q} \in \mathbb{R}^J$ be a \textit{query} vector and let $\mathcal{X} =
 % TODO this technically doesn't include how additive methods do ED;
 %   wait, nvm, we're fine cuz they use the d_hat equation, not this one
 
-where $f: \mathbb{R} \rightarrow \mathbb{R}$, $\delta: \mathbb{R}^J \times \mathbb{R}^J \rightarrow \mathbb{R}$. This includes both distances in $L_p$ spaces and dot products as special cases. In the former case, $\delta(q_j, x_j) = |q_j - x_j|^p$ and $f(r) = r^{(1/p)}$; in the latter case, $\delta(q_j, x_j) = q_j x_j$ and $f(r) = r$. For brevity, we will henceforth refer to $d$ as a distance function and its output as a distance, though our remarks apply to all functions of the above form unless noted otherwise.
+where $f: \mathbb{R} \rightarrow \mathbb{R}$, $\delta: \mathbb{R} \times \mathbb{R} \rightarrow \mathbb{R}$. This includes both distances in $L_p$ spaces and dot products as special cases. In the former case, $\delta(q_j, x_j) = |q_j - x_j|^p$ and $f(r) = r^{(1/p)}$; in the latter case, $\delta(q_j, x_j) = q_j x_j$ and $f(r) = r$. For brevity, we will henceforth refer to $d$ as a distance function and its output as a distance, though our remarks apply to all functions of the above form unless otherwise noted.
 
 Our task is to construct three functions $g: \mathbb{R}^J \rightarrow \mathcal{G}$, $h: \mathbb{R}^J \rightarrow \mathcal{H}$, and $\hat{d}: \mathcal{G} \times \mathcal{H} \rightarrow \mathbb{R}$ such that for a given approximation loss $\mathcal{L}$,
 \begin{align}
@@ -80,7 +80,7 @@ the computation time $T$,
 \begin{align}
     T = T_g + T_h + T_d
 \end{align}
-is minimized, where $T_g$ is the time to encode received queries $\vec{q}$ using $g$,\footnote{We cast the creation of query-specific lookup tables as encoding $\vec{q}$ rather than creating a new $\hat{d}$ (the typical interpretation in recent literature).} $T_h$ the time to encode $\mathcal{X}$ using $h$, and $T_d$ the time to compute the approximate distances between the encoded queries and encoded database vectors. The relative contributions of each of these terms depends on how frequently $\mathcal{X}$ changes, so many of our experiments characterize each separately. % Because related work typically optimizes $T_g$ and $T_d$ at the expense of $T_h$, our differentiating assumption is that $T_h$ cannot be neglected. % This assumption is invalid when $\mathcal{X}$
+is minimized, where $T_g$ is the time to encode received queries $\vec{q}$ using $g$,\footnote{We cast the creation of query-specific lookup tables as encoding $\vec{q}$ rather than creating a new $\hat{d}$ (the typical interpretation in recent literature).} $T_h$ is the time to encode the database $\mathcal{X}$ using $h$, and $T_d$ is the time to compute the approximate distances between the encoded queries and encoded database vectors. The relative contributions of each of these terms depends on how frequently $\mathcal{X}$ changes, so many of our experiments characterize each separately. % Because related work typically optimizes $T_g$ and $T_d$ at the expense of $T_h$, our differentiating assumption is that $T_h$ cannot be neglected. % This assumption is invalid when $\mathcal{X}$
 
 % \footnote{We describe the creation of lookup tables for each query as encoding of the query, not creation of a query-specific $\hat{d}$ (the typical interpretation in recent literature).}
 
@@ -88,12 +88,18 @@ is minimized, where $T_g$ is the time to encode received queries $\vec{q}$ using
 
 There is a tradeoff between the value of the loss $\mathcal{L}$ and the time $T$, so multiple operating points are possible. In the extreme cases, $\mathcal{L}$ can be fixed at 0 by setting $g$ and $h$ to identity functions and setting $\hat{d} = d$. Similarly, $T$ can be set to $0$ by ignoring the data and estimating $d$ as a constant. The primary contribution of this work is therefore the introduction of $g$, $h$ and $\hat{d}$ functions that are significantly faster to compute than those of existing work for a wide range of operating points.
 
-
 \subsection{Assumptions}
 
-Like other work \cite{pq,lsq,otq,opq,cq}, we assume that there is an initial offline phase during which the functions $g$ and $h$ may be learned. This phase contains a training dataset for $\mathcal{X}$ but not necessarily $\vec{q}$. Following this offline phase, there is an online phase wherein we are given database vectors $\vec{x}$ that must be encoded and query vectors $\vec{q}$ for which we must compute the distances to all of the database vectors received so far. Once a query is received, these distances must be computed with as little latency as possible. The vectors of $\mat{X}$ may be given all at once, or one at a time; they may also be modified or deleted, necessitating re-encoding or removal. This is in contrast to most existing work, which assumes that $\vec{x}$ vectors are all added at once before any queries are received \cite{pq,lsq,otq,opq,cq}, and therefore that encoding speed is less of a concern.
+Like other vector quantization work \cite{pq,lsq,otq,opq,cq}, we assume that there is an initial offline phase during which the functions $g$ and $h$ may be learned. This phase contains a training dataset for $\mathcal{X}$ and $\vec{q}$. Following this offline phase, there is an online phase wherein we are given database vectors $\vec{x}$ that must be encoded and query vectors $\vec{q}$ for which we must compute the distances to all of the database vectors received so far. Once a query is received, these distances must be computed with as little latency as possible. The vectors of $\mat{X}$ may be given all at once, or one at a time; they may also be modified or deleted, necessitating re-encoding or removal. This is in contrast to most existing work, which assumes that $\vec{x}$ vectors are all added at once before any queries are received \cite{pq,lsq,otq,opq,cq}, and therefore that encoding speed is less of a concern.
 
 In practice, one might require the distances between $\vec{q}$ and only some of the database vectors $\mathcal{X}$ (in particular, the $k$ closest vectors). This can be achieved using an indexing structure, such as an Inverted Multi-Index \cite{IMI, NOIMI} or Locality-Sensitive Hashing hash tables \cite{E2LSH, crosspolytopeLSH}, that allow inspection of only a fraction of $\mathcal{X}$. Such indexing is complementary to our work in that our approach could be used to accelerate the computation of distances to the subset of $\mathcal{X}$ that is inspected. Consequently, we assume that the task is to compute the distances to all vectors, noting that, in a production setting, ``all vectors'' for a given query might be a subset of a full database.
+
+Finally, we assume that both $\mathcal{X}$ and $\vec{q}$ are relatively dense. Bolt can be applied to sparse data, but does not leverage the sparsity. Consequently, it is advisable to embed sparse vectors into a dense, lower-dimensional space before using Bolt.
+
+% it would be slower than sparse operations. % Bolt's level of speedup over dense operations suggests $\sim$5\% sparsity or less would make sparse operations preferable to Bolt, though the exact number depends on the dataset, quality of approximation required, and implementation details.
+
+% \vspace{-5mm}
+\vspace{-2mm}
 
 %     -we consider only dot products and euclidean distances throughout this work since they are by far the most common, but note that our approach could in principle be generalized to any similarity or distance of the above form.\footnote{Practically speaking, functions with a large range of values for \delta(q_j, x_j), such as distances in Lp space with p > 2, are unlikely to be approximated well.}
 
