@@ -1,0 +1,153 @@
+%!TEX output_directory = aux
+
+\documentclass{article}  % sysml
+
+\usepackage{booktabs}
+\usepackage{hyperref}
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+% \usepackage[accepted]{sysml2019}
+\usepackage{sysml2019}
+
+% \newcommand{\npapers}{\text{83 }}
+% \newcommand{\rawnpapers}{83}
+
+% \usepackage{flafter}  %
+
+% \usepackage[sorting=ynt]{biblatex}
+% \usepackage[sorting=ynt]{natbib}
+% \usepackage[sort]{natbib}
+% \DeclareSortingScheme{noneyear}{
+%  \sort{\citeorder}
+%  \sort{\field{year}}
+% }
+
+% \usepackage[sorting=ynt]{natbib}
+
+\input{setup.tex}
+
+% optional custom title for header
+\sysmltitlerunning{Multiplying Matrices Without Multiplying}
+
+\begin{document}
+
+\twocolumn[
+% ================================================================
+% \title{Have We Actually Learned Anything about \\ Pruning Neural Networks?}
+\sysmltitle{Multiplying Matrices Without Multiplying}
+% \title{Have We Actually Learned Anything about Pruning Neural Networks?}
+% ================================================================
+
+% \sysmltitlerunning{Submission and Formatting Instructions for SysML 2019}
+% \begin{document}
+% \twocolumn[
+% \sysmltitle{Submission and Formatting Instructions for SysML 2019}
+
+% \author{Davis W. Blalock}
+% \affiliation{
+%   \institution{Computer Science and Artificial \\ Intelligence Laboratory}
+%   \institution{Massachusetts Institute of Technology}
+% }
+% \email{dblalock@mit.edu}
+
+% \author{Jose Javier Gonzalez Ortiz}
+% \affiliation{
+%   \institution{Computer Science and Artificial \\ Intelligence Laboratory}
+%   \institution{Massachusetts Institute of Technology}
+% }
+% \email{jjgo@mit.edu}
+
+% \author{John V. Guttag}
+% \affiliation{
+%   \institution{Computer Science and Artificial \\ Intelligence Laboratory}
+%   \institution{Massachusetts Institute of Technology}
+% }
+% \email{guttag@mit.edu}
+
+\begin{sysmlauthorlist}
+\sysmlauthor{Davis Blalock}{mit}
+\sysmlauthor{Jose Javier Gonzalez Ortiz?}{mit}
+\sysmlauthor{John Guttag}{mit}
+\end{sysmlauthorlist}
+
+\sysmlaffiliation{csail}{MIT CSAIL, Cambridge, MA, USA}
+\sysmlcorrespondingauthor{Davis Blalock}{dblalock@mit.edu}
+
+% apparently these only show up in pdf metadata, not document
+\sysmlkeywords{Approximate Algorithms, Matrix Multiplication}
+
+\vskip 0.3in
+
+% ------------------------------------------------
+\begin{abstract}
+% ------------------------------------------------
+
+Multiplying matrices is among the most fundamental and most computationally demanding tasks in machine learning and scientific computing. Consequently, the task of efficiently approximating matrix products has received a great deal of attention in recent years. We describe an approximation method that obtains a significantly better efficiency vs. quality tradeoff than existing methods across a wide range of problems, metrics, and datasets. Furthermore, in the special case that one matrix is known ahead of time, our method computes matrix products with no multiplication operations, a property that may be of interest to hardware designers.
+
+
+\end{abstract}
+]  % end of manual twocolumn for sysml
+
+% \maketitle
+
+% ================================================================
+\section{Introduction} \label{sec:intro}
+% ================================================================
+
+\input{intro.tex}
+
+%================================================================
+\section{Related Work}
+%================================================================
+
+\input{relatedWork.tex}
+
+%================================================================
+\section{Method}
+%================================================================
+
+\input{method.tex}
+
+%================================================================
+\section{Theoretical Analysis}
+%================================================================
+
+\input{theory.tex}
+
+%================================================================
+\section{Experiments}
+%================================================================
+
+\input{results.tex}
+
+% %================================================================
+% \section{Open Questions and Future Directions}
+% %================================================================
+
+% \input{questions.tex}
+
+
+%================================================================
+\section{Conclusion}
+%================================================================
+
+We sure did multiply those matrices.
+
+% sysml says to include acknowledgements in initial submission
+% %================================================================
+% \section{Acknowledgements}
+% %================================================================
+
+% We thank Luigi Celona for providing the data used in \cite{luigi}.
+% %``Benchmark Analysis of Representative Deep Neural Network Architectures.'' []
+
+% ================================================================
+% References
+% ================================================================
+
+% \IEEEtriggeratref{27} % trigger column break to make cols even
+% \bibliographystyle{ACM-Reference-Format}
+% \bibliographystyle{abbrev}
+\bibliographystyle{sysml2019}
+\bibliography{prune,architectures,misc,understandDnn,classic,datasets,compress,science,metapapers}
+
+\end{document}

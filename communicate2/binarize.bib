@@ -1,0 +1,56 @@
+
+@article{probBinary,
+	title = {Probabilistic {Binary} {Neural} {Networks}},
+	url = {http://arxiv.org/abs/1809.03368},
+	abstract = {Low bit-width weights and activations are an effective way of combating the increasing need for both memory and compute power of Deep Neural Networks. In this work, we present a probabilistic training method for Neural Network with both binary weights and activations, called BLRNet. By embracing stochasticity during training, we circumvent the need to approximate the gradient of non-differentiable functions such as sign(·), while still obtaining a fully Binary Neural Network at test time. Moreover, it allows for anytime ensemble predictions for improved performance and uncertainty estimates by sampling from the weight distribution. Since all operations in a layer of the BLRNet operate on random variables, we introduce stochastic versions of Batch Normalization and max pooling, which transfer well to a deterministic network at test time. We evaluate the BLRNet on multiple standardized benchmarks.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1809.03368 [cs, stat]},
+	author = {Peters, Jorn W. T. and Welling, Max},
+	month = sep,
+	year = {2018},
+	note = {arXiv: 1809.03368},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning},
+	file = {Peters and Welling - 2018 - Probabilistic Binary Neural Networks.pdf:~/Zotero/storage/8IX5V3PV/Peters and Welling - 2018 - Probabilistic Binary Neural Networks.pdf:application/pdf}
+}
+
+@article{accBinary,
+	title = {Towards {Accurate} {Binary} {Convolutional} {Neural} {Network}},
+	abstract = {We introduce a novel scheme to train binary convolutional neural networks (CNNs) – CNNs with weights and activations constrained to \{-1,+1\} at run-time. It has been known that using binary weights and activations drastically reduce memory size and accesses, and can replace arithmetic operations with more efﬁcient bitwise operations, leading to much faster test-time inference and lower power consumption. However, previous works on binarizing CNNs usually result in severe prediction accuracy degradation. In this paper, we address this issue with two major innovations: (1) approximating full-precision weights with the linear combination of multiple binary weight bases; (2) employing multiple binary activations to alleviate information loss. The implementation of the resulting binary CNN, denoted as ABC-Net, is shown to achieve much closer performance to its full-precision counterpart, and even reach the comparable prediction accuracy on ImageNet and forest trail datasets, given adequate binary weight bases and activations.},
+	language = {en},
+	author = {Lin, Xiaofan and Zhao, Cong and Pan, Wei},
+	pages = {9},
+	year = {2017},
+	file = {Lin et al. - Towards Accurate Binary Convolutional Neural Netwo.pdf:~/Zotero/storage/7QR3UJNA/Lin et al. - Towards Accurate Binary Convolutional Neural Netwo.pdf:application/pdf}
+}
+
+@article{_xnorNet,
+	title = {{XNOR}-{Net}: {ImageNet} {Classification} {Using} {Binary} {Convolutional} {Neural} {Networks}},
+	shorttitle = {{XNOR}-{Net}},
+	url = {http://arxiv.org/abs/1603.05279},
+	abstract = {We propose two efﬁcient approximations to standard convolutional neural networks: Binary-Weight-Networks and XNOR-Networks. In Binary-WeightNetworks, the ﬁlters are approximated with binary values resulting in 32⇥ memory saving. In XNOR-Networks, both the ﬁlters and the input to convolutional layers are binary. XNOR-Networks approximate convolutions using primarily binary operations. This results in 58⇥ faster convolutional operations (in terms of number of the high precision operations) and 32⇥ memory savings. XNOR-Nets offer the possibility of running state-of-the-art networks on CPUs (rather than GPUs) in real-time. Our binary networks are simple, accurate, efﬁcient, and work on challenging visual tasks. We evaluate our approach on the ImageNet classiﬁcation task. The classiﬁcation accuracy with a Binary-Weight-Network version of AlexNet is the same as the full-precision AlexNet. We compare our method with recent network binarization methods, BinaryConnect and BinaryNets, and outperform these methods by large margins on ImageNet, more than 16\% in top-1 accuracy. Our code is available at: http://allenai.org/plato/xnornet.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1603.05279 [cs]},
+	author = {Rastegari, Mohammad and Ordonez, Vicente and Redmon, Joseph and Farhadi, Ali},
+	month = mar,
+	year = {2016},
+	note = {arXiv: 1603.05279},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {Rastegari et al. - 2016 - XNOR-Net ImageNet Classification Using Binary Con.pdf:~/Zotero/storage/F5RPCTPB/Rastegari et al. - 2016 - XNOR-Net ImageNet Classification Using Binary Con.pdf:application/pdf}
+}
+
+@article{lossAwareBinary,
+	title = {Loss-aware {Binarization} of {Deep} {Networks}},
+	url = {http://arxiv.org/abs/1611.01600},
+	abstract = {Deep neural network models, though very powerful and highly successful, are computationally expensive in terms of space and time. Recently, there have been a number of attempts on binarizing the network weights and activations. This greatly reduces the network size, and replaces the underlying multiplications to additions or even XNOR bit operations. However, existing binarization schemes are based on simple matrix approximation and ignore the effect of binarization on the loss. In this paper, we propose a proximal Newton algorithm with diagonal Hessian approximation that directly minimizes the loss w.r.t. the binarized weights. The underlying proximal step has an efﬁcient closed-form solution, and the second-order information can be efﬁciently obtained from the second moments already computed by the Adam optimizer. Experiments on both feedforward and recurrent networks show that the proposed loss-aware binarization algorithm outperforms existing binarization schemes, and is also more robust for wide and deep networks.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1611.01600 [cs]},
+	author = {Hou, Lu and Yao, Quanming and Kwok, James T.},
+	month = nov,
+	year = {2016},
+	note = {arXiv: 1611.01600},
+	keywords = {Computer Science - Machine Learning, Computer Science - Neural and Evolutionary Computing},
+	file = {Hou et al. - 2016 - Loss-aware Binarization of Deep Networks.pdf:~/Zotero/storage/K7QABFX8/Hou et al. - 2016 - Loss-aware Binarization of Deep Networks.pdf:application/pdf}
+}

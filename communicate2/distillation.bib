@@ -1,0 +1,147 @@
+
+@article{lit,
+	title = {{LIT}: {Block}-wise {Intermediate} {Representation} {Training} for {Model} {Compression}},
+	shorttitle = {{LIT}},
+	url = {http://arxiv.org/abs/1810.01937},
+	abstract = {Knowledge distillation (KD) is a popular method for reducing the computational overhead of deep network inference, in which the output of a teacher model is used to train a smaller, faster student model. Hint training (i.e., FitNets) extends KD by regressing a student model’s intermediate representation to a teacher model’s intermediate representation. In this work, we introduce bLock-wise Intermediate representation Training (LIT), a novel model compression technique that extends the use of intermediate representations in deep network compression, outperforming KD and hint training. LIT has two key ideas: 1) LIT trains a student of the same width (but shallower depth) as the teacher by directly comparing the intermediate representations, and 2) LIT uses the intermediate representation from the previous block in the teacher model as an input to the current student block during training, avoiding unstable intermediate representations in the student network. We show that LIT provides substantial reductions in network depth without loss in accuracy — for example, LIT can compress a ResNeXt-110 to a ResNeXt-20 (5.5×) on CIFAR10 and a VDCNN-29 to a VDCNN-9 (3.2×) on Amazon Reviews without loss in accuracy, outperforming KD and hint training in network size for a given accuracy. We also show that applying LIT to identical student/teacher architectures increases the accuracy of the student model above the teacher model, outperforming the recently-proposed Born Again Networks procedure on ResNet, ResNeXt, and VDCNN. Finally, we show that LIT can effectively compress GAN generators, which are not supported in the KD framework because GANs output pixels as opposed to probabilities.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1810.01937 [cs, stat]},
+	author = {Koratana, Animesh and Kang, Daniel and Bailis, Peter and Zaharia, Matei},
+	month = oct,
+	year = {2018},
+	note = {arXiv: 1810.01937},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning, Computer Science - Artificial Intelligence},
+	file = {Koratana et al. - 2018 - LIT Block-wise Intermediate Representation Traini.pdf:/Users/davis/Zotero/storage/TSKP2H3W/Koratana et al. - 2018 - LIT Block-wise Intermediate Representation Traini.pdf:application/pdf}
+}
+
+@article{adversarialDistill,
+	title = {Adversarial {Network} {Compression}},
+	url = {http://arxiv.org/abs/1803.10750},
+	abstract = {Neural network compression has recently received much attention due to the computational requirements of modern deep models. In this work, our objective is to transfer knowledge from a deep and accurate model to a smaller one. Our contributions are threefold: (i) we propose an adversarial network compression approach to train the small student network to mimic the large teacher, without the need for labels during training; (ii) we introduce a regularization scheme to prevent a trivially-strong discriminator without reducing the network capacity and (iii) our approach generalizes on diﬀerent teacher-student models.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1803.10750 [cs]},
+	author = {Belagiannis, Vasileios and Farshad, Azade and Galasso, Fabio},
+	month = mar,
+	year = {2018},
+	note = {arXiv: 1803.10750},
+	keywords = {Computer Science - Machine Learning, Computer Science - Computer Vision and Pattern Recognition},
+	file = {Belagiannis et al. - 2018 - Adversarial Network Compression.pdf:/Users/davis/Zotero/storage/B25E8T7Z/Belagiannis et al. - 2018 - Adversarial Network Compression.pdf:application/pdf}
+}
+
+@article{googleOnlineDistill,
+	title = {Large scale distributed neural network training through online distillation},
+	url = {http://arxiv.org/abs/1804.03235},
+	abstract = {Techniques such as ensembling and distillation promise model quality improvements when paired with almost any base model. However, due to increased testtime cost (for ensembles) and increased complexity of the training pipeline (for distillation), these techniques are challenging to use in industrial settings. In this paper we explore a variant of distillation which is relatively straightforward to use as it does not require a complicated multi-stage setup or many new hyperparameters. Our ﬁrst claim is that online distillation enables us to use extra parallelism to ﬁt very large datasets about twice as fast. Crucially, we can still speed up training even after we have already reached the point at which additional parallelism provides no beneﬁt for synchronous or asynchronous stochastic gradient descent. Two neural networks trained on disjoint subsets of the data can share knowledge by encouraging each model to agree with the predictions the other model would have made. These predictions can come from a stale version of the other model so they can be safely computed using weights that only rarely get transmitted. Our second claim is that online distillation is a cost-effective way to make the exact predictions of a model dramatically more reproducible. We support our claims using experiments on the Criteo Display Ad Challenge dataset, ImageNet, and the largest to-date dataset used for neural language modeling, containing 6 × 1011 tokens and based on the Common Crawl repository of web data.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1804.03235 [cs, stat]},
+	author = {Anil, Rohan and Pereyra, Gabriel and Passos, Alexandre and Ormandi, Robert and Dahl, George E. and Hinton, Geoffrey E.},
+	month = apr,
+	year = {2018},
+	note = {arXiv: 1804.03235},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning, Computer Science - Artificial Intelligence},
+	file = {Anil et al. - 2018 - Large scale distributed neural network training th.pdf:/Users/davis/Zotero/storage/49Y4IX34/Anil et al. - 2018 - Large scale distributed neural network training th.pdf:application/pdf}
+}
+
+@article{oneDistill,
+	title = {Knowledge {Distillation} by {On}-the-{Fly} {Native} {Ensemble}},
+	url = {http://arxiv.org/abs/1806.04606},
+	abstract = {Knowledge distillation is effective to train small and generalisable network models for meeting the low-memory and fast running requirements. Existing ofﬂine distillation methods rely on a strong pre-trained teacher, which enables favourable knowledge discovery and transfer but requires a complex two-phase training procedure. Online counterparts address this limitation at the price of lacking a highcapacity teacher. In this work, we present an On-the-ﬂy Native Ensemble (ONE) learning strategy for one-stage online distillation. Speciﬁcally, ONE trains only a single multi-branch network while simultaneously establishing a strong teacher onthe-ﬂy to enhance the learning of target network. Extensive evaluations show that ONE improves the generalisation performance a variety of deep neural networks more signiﬁcantly than alternative methods on four image classiﬁcation dataset: CIFAR10, CIFAR100, SVHN, and ImageNet, whilst having the computational efﬁciency advantages.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1806.04606 [cs]},
+	author = {Lan, Xu and Zhu, Xiatian and Gong, Shaogang},
+	month = jun,
+	year = {2018},
+	note = {arXiv: 1806.04606},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {Lan et al. - 2018 - Knowledge Distillation by On-the-Fly Native Ensemb.pdf:/Users/davis/Zotero/storage/XIN4APZ3/Lan et al. - 2018 - Knowledge Distillation by On-the-Fly Native Ensemb.pdf:application/pdf}
+}
+
+@article{tolerantTeachers,
+	title = {Knowledge {Distillation} in {Generations}: {More} {Tolerant} {Teachers} {Educate} {Better} {Students}},
+	shorttitle = {Knowledge {Distillation} in {Generations}},
+	url = {http://arxiv.org/abs/1805.05551},
+	abstract = {We focus on the problem of training a deep neural network in generations. The ﬂowchart is that, in order to optimize the target network (student), another network (teacher) with the same architecture is ﬁrst trained, and used to provide part of supervision signals in the next stage. While this strategy leads to a higher accuracy, many aspects (e.g., why teacher-student optimization helps) still need further explorations.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1805.05551 [cs]},
+	author = {Yang, Chenglin and Xie, Lingxi and Qiao, Siyuan and Yuille, Alan},
+	month = may,
+	year = {2018},
+	note = {arXiv: 1805.05551},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {Yang et al. - 2018 - Knowledge Distillation in Generations More Tolera.pdf:/Users/davis/Zotero/storage/VQ9DVLYT/Yang et al. - 2018 - Knowledge Distillation in Generations More Tolera.pdf:application/pdf}
+}
+
+@article{noisyTeachers,
+	title = {Deep {Model} {Compression}: {Distilling} {Knowledge} from {Noisy} {Teachers}},
+	shorttitle = {Deep {Model} {Compression}},
+	url = {http://arxiv.org/abs/1610.09650},
+	abstract = {The remarkable successes of deep learning models across various applications have resulted in the design of deeper networks that can solve complex problems. However, the increasing depth of such models also results in a higher storage and runtime complexity, which restricts the deployability of such very deep models on mobile and portable devices, which have limited storage and battery capacity. While many methods have been proposed for deep model compression in recent years, almost all of them have focused on reducing storage complexity. In this work, we extend the teacher-student framework for deep model compression, since it has the potential to address runtime and train time complexity too. We propose a simple methodology to include a noise-based regularizer while training the student from the teacher, which provides a healthy improvement in the performance of the student network. Our experiments on the CIFAR-10, SVHN and MNIST datasets show promising improvement, with the best performance on the CIFAR-10 dataset. We also conduct a comprehensive empirical evaluation of the proposed method under related settings on the CIFAR-10 dataset to show the promise of the proposed approach.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1610.09650 [cs]},
+	author = {Sau, Bharat Bhusan and Balasubramanian, Vineeth N.},
+	month = oct,
+	year = {2016},
+	note = {arXiv: 1610.09650},
+	keywords = {Computer Science - Machine Learning},
+	file = {Sau and Balasubramanian - 2016 - Deep Model Compression Distilling Knowledge from .pdf:/Users/davis/Zotero/storage/CGV5BGPE/Sau and Balasubramanian - 2016 - Deep Model Compression Distilling Knowledge from .pdf:application/pdf}
+}
+
+@article{fitNets,
+	title = {{FitNets}: {Hints} for {Thin} {Deep} {Nets}},
+	shorttitle = {{FitNets}},
+	url = {http://arxiv.org/abs/1412.6550},
+	abstract = {While depth tends to improve network performances, it also makes gradient-based training more difﬁcult since deeper networks tend to be more non-linear. The recently proposed knowledge distillation approach is aimed at obtaining small and fast-to-execute models, and it has shown that a student network could imitate the soft output of a larger teacher network or ensemble of networks. In this paper, we extend this idea to allow the training of a student that is deeper and thinner than the teacher, using not only the outputs but also the intermediate representations learned by the teacher as hints to improve the training process and ﬁnal performance of the student. Because the student intermediate hidden layer will generally be smaller than the teacher’s intermediate hidden layer, additional parameters are introduced to map the student hidden layer to the prediction of the teacher hidden layer. This allows one to train deeper students that can generalize better or run faster, a trade-off that is controlled by the chosen student capacity. For example, on CIFAR-10, a deep student network with almost 10.4 times less parameters outperforms a larger, state-of-the-art teacher network.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1412.6550 [cs]},
+	author = {Romero, Adriana and Ballas, Nicolas and Kahou, Samira Ebrahimi and Chassang, Antoine and Gatta, Carlo and Bengio, Yoshua},
+	month = dec,
+	year = {2014},
+	note = {arXiv: 1412.6550},
+	keywords = {Computer Science - Machine Learning, Computer Science - Neural and Evolutionary Computing},
+	file = {Romero et al. - 2014 - FitNets Hints for Thin Deep Nets.pdf:/Users/davis/Zotero/storage/WD33SUWX/Romero et al. - 2014 - FitNets Hints for Thin Deep Nets.pdf:application/pdf}
+}
+
+@article{hintonDistillOrig,
+	title = {Distilling the {Knowledge} in a {Neural} {Network}},
+	url = {http://arxiv.org/abs/1503.02531},
+	abstract = {A very simple way to improve the performance of almost any machine learning algorithm is to train many different models on the same data and then to average their predictions [3]. Unfortunately, making predictions using a whole ensemble of models is cumbersome and may be too computationally expensive to allow deployment to a large number of users, especially if the individual models are large neural nets. Caruana and his collaborators [1] have shown that it is possible to compress the knowledge in an ensemble into a single model which is much easier to deploy and we develop this approach further using a different compression technique. We achieve some surprising results on MNIST and we show that we can signiﬁcantly improve the acoustic model of a heavily used commercial system by distilling the knowledge in an ensemble of models into a single model. We also introduce a new type of ensemble composed of one or more full models and many specialist models which learn to distinguish ﬁne-grained classes that the full models confuse. Unlike a mixture of experts, these specialist models can be trained rapidly and in parallel.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1503.02531 [cs, stat]},
+	author = {Hinton, Geoffrey and Vinyals, Oriol and Dean, Jeff},
+	month = mar,
+	year = {2015},
+	note = {arXiv: 1503.02531},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning, Computer Science - Neural and Evolutionary Computing},
+	file = {Hinton et al. - 2015 - Distilling the Knowledge in a Neural Network.pdf:/Users/davis/Zotero/storage/EEZGGS9A/Hinton et al. - 2015 - Distilling the Knowledge in a Neural Network.pdf:application/pdf}
+}
+
+@article{bornAgainNets,
+	title = {Born {Again} {Neural} {Networks}},
+	url = {http://arxiv.org/abs/1805.04770},
+	abstract = {Knowledge Distillation (KD) consists of transferring “knowledge” from one machine learning model (the teacher) to another (the student). Commonly, the teacher is a high-capacity model with formidable performance, while the student is more compact. By transferring knowledge, one hopes to beneﬁt from the student’s compactness, without sacriﬁcing too much performance. We study KD from a new perspective: rather than compressing models, we train students parameterized identically to their teachers. Surprisingly, these Born-Again Networks (BANs), outperform their teachers signiﬁcantly, both on computer vision and language modeling tasks. Our experiments with BANs based on DenseNets demonstrate state-of-the-art performance on the CIFAR-10 (3.5\%) and CIFAR-100 (15.5\%) datasets, by validation error. Additional experiments explore two distillation objectives: (i) Conﬁdence-Weighted by Teacher Max (CWTM) and (ii) Dark Knowledge with Permuted Predictions (DKPP). Both methods elucidate the essential components of KD, demonstrating the effect of the teacher outputs on both predicted and nonpredicted classes.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1805.04770 [cs, stat]},
+	author = {Furlanello, Tommaso and Lipton, Zachary C. and Tschannen, Michael and Itti, Laurent and Anandkumar, Anima},
+	month = may,
+	year = {2018},
+	note = {arXiv: 1805.04770},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning, Computer Science - Artificial Intelligence},
+	file = {Furlanello et al. - 2018 - Born Again Neural Networks.pdf:/Users/davis/Zotero/storage/DETDLHTD/Furlanello et al. - 2018 - Born Again Neural Networks.pdf:application/pdf}
+}
+@inproceedings{distillOrig,
+  title={Model compression},
+  author={Buciluǎ, Cristian and Caruana, Rich and Niculescu-Mizil, Alexandru},
+  booktitle={Proceedings of the 12th ACM SIGKDD international conference on Knowledge discovery and data mining},
+  pages={535--541},
+  year={2006},
+  organization={ACM}
+}

@@ -1,0 +1,195 @@
+
+@article{objDetect200fps,
+	title = {Object detection at 200 {Frames} {Per} {Second}},
+	url = {http://arxiv.org/abs/1805.06361},
+	abstract = {In this paper, we propose an efﬁcient and fast object detector which can process hundreds of frames per second. To achieve this goal we investigate three main aspects of the object detection framework: network architecture, loss function and training data (labeled and unlabeled). In order to obtain compact network architecture, we introduce various improvements, based on recent work, to develop an architecture which is computationally light-weight and achieves a reasonable performance. To further improve the performance, while keeping the complexity same, we utilize distillation loss function. Using distillation loss we transfer the knowledge of a more accurate teacher network to proposed light-weight student network. We propose various innovations to make distillation efﬁcient for the proposed one stage detector pipeline: objectness scaled distillation loss, feature map non-maximal suppression and a single uniﬁed distillation loss function for detection. Finally, building upon the distillation loss, we explore how much can we push the performance by utilizing the unlabeled data. We train our model with unlabeled data using the soft labels of the teacher network. Our ﬁnal network consists of 10x fewer parameters than the VGG based object detection network and it achieves a speed of more than 200 FPS and proposed changes improve the detection accuracy by 14 mAP over the baseline on Pascal dataset.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1805.06361 [cs]},
+	author = {Mehta, Rakesh and Ozturk, Cemalettin},
+	month = may,
+	year = {2018},
+	note = {arXiv: 1805.06361},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {Mehta and Ozturk - 2018 - Object detection at 200 Frames Per Second.pdf:/Users/davis/Zotero/storage/UTAH75MZ/Mehta and Ozturk - 2018 - Object detection at 200 Frames Per Second.pdf:application/pdf}
+}
+
+@article{sparsingDnn,
+	title = {Sparsing {Deep} {Neural} {Network} {Using} {Semi}-{Discrete} {Matrix} {Decomposition}},
+	issn = {2169-3536},
+	url = {https://ieeexplore.ieee.org/document/8478113/},
+	doi = {10.1109/ACCESS.2018.2872560},
+	abstract = {Deep learning has gained a lot of successes in various areas, including computer vision, natural language process, and robot control. Convolution neural network(CNN) is the most commonly used model in deep neural networks. Despite their effectiveness on feature abstraction, CNNs need powerful computation even in the inference stage, which becomes a major obstacle in their deployment in embedded and mobile devices. In order to solve this problem, we 1) propose to make decomposition on convolution layers and full connected layers in convolutional neural networks with naïve semi-discrete matrix decomposition(SDD), which achieves the low-rank decomposition and parameters sparse at the same time; and 2) we propose a layer-merging scheme which merges two out of all the three result matrices, which can avoid the explode of the intermediate data come with the naïve semi-discrete matrix decomposition. 3） we propose a progressive training strategy to speed up the converging. We implement this optimized method in image classification and object detection networks. Under the loss of network accuracy by 1\%, we achieve significant running time and model size reduction. The full-connected layer of the LeNet network achieves 7x speedup in the inference stage. In the Faster-Rcnn, the weight parameters are reduced by the factor of 5.85x, and it can have a speedup by the factor of 1.75x.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {IEEE Access},
+	author = {Fu, Xianya and Zuo, Peixuan and Zhai, Jia and Wang, Rui and Yang, Hailong and Qian, Depei},
+	year = {2018},
+	pages = {1--1},
+	file = {Fu et al. - 2018 - Sparsing Deep Neural Network Using Semi-Discrete M.pdf:/Users/davis/Zotero/storage/AKZRDH6H/Fu et al. - 2018 - Sparsing Deep Neural Network Using Semi-Discrete M.pdf:application/pdf}
+}
+
+@article{qrnn,
+	title = {Quasi-{Recurrent} {Neural} {Networks}},
+	url = {http://arxiv.org/abs/1611.01576},
+	abstract = {Recurrent neural networks are a powerful tool for modeling sequential data, but the dependence of each timestep’s computation on the previous timestep’s output limits parallelism and makes RNNs unwieldy for very long sequences. We introduce quasi-recurrent neural networks (QRNNs), an approach to neural sequence modeling that alternates convolutional layers, which apply in parallel across timesteps, and a minimalist recurrent pooling function that applies in parallel across channels. Despite lacking trainable recurrent layers, stacked QRNNs have better predictive accuracy than stacked LSTMs of the same hidden size. Due to their increased parallelism, they are up to 16 times faster at train and test time. Experiments on language modeling, sentiment classiﬁcation, and character-level neural machine translation demonstrate these advantages and underline the viability of QRNNs as a basic building block for a variety of sequence tasks.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1611.01576 [cs]},
+	author = {Bradbury, James and Merity, Stephen and Xiong, Caiming and Socher, Richard},
+	month = nov,
+	year = {2016},
+	note = {arXiv: 1611.01576},
+	keywords = {Computer Science - Machine Learning, Computer Science - Computation and Language, Computer Science - Neural and Evolutionary Computing, Computer Science - Artificial Intelligence},
+	file = {Bradbury et al. - 2016 - Quasi-Recurrent Neural Networks.pdf:/Users/davis/Zotero/storage/WSM7XDIC/Bradbury et al. - 2016 - Quasi-Recurrent Neural Networks.pdf:application/pdf}
+}
+
+@article{sru,
+  title={Training rnns as fast as cnns},
+  author={Lei, Tao and Zhang, Yu and Artzi, Yoav},
+  journal={arXiv preprint arXiv:1709.02755},
+  year={2017}
+}
+@article{gru,
+  title={Learning phrase representations using RNN encoder-decoder for statistical machine translation},
+  author={Cho, Kyunghyun and Van Merri{\"e}nboer, Bart and Gulcehre, Caglar and Bahdanau, Dzmitry and Bougares, Fethi and Schwenk, Holger and Bengio, Yoshua},
+  journal={arXiv preprint arXiv:1406.1078},
+  year={2014}
+}
+
+@article{snipr,
+	title = {{SNIPER}: {Efficient} {Multi}-{Scale} {Training}},
+	shorttitle = {{SNIPER}},
+	url = {http://arxiv.org/abs/1805.09300},
+	abstract = {We present SNIPER, an algorithm for performing efﬁcient multi-scale training in instance level visual recognition tasks. Instead of processing every pixel in an image pyramid, SNIPER processes context regions around ground-truth instances (referred to as chips) at the appropriate scale. For background sampling, these context-regions are generated using proposals extracted from a region proposal network trained with a short learning schedule. Hence, the number of chips generated per image during training adaptively changes based on the scene complexity. SNIPER only processes 30\% more pixels compared to the commonly used single scale training at 800x1333 pixels on the COCO dataset. But, it also observes samples from extreme resolutions of the image pyramid, like 1400x2000 pixels. As SNIPER operates on resampled low resolution chips (512x512 pixels), it can have a batch size as large as 20 on a single GPU even with a ResNet-101 backbone. Therefore it can beneﬁt from batch-normalization during training without the need for synchronizing batch-normalization statistics across GPUs. SNIPER brings training of instance level recognition tasks like object detection closer to the protocol for image classiﬁcation and suggests that the commonly accepted guideline that it is important to train on high resolution images for instance level visual recognition tasks might not be correct. Our implementation based on Faster-RCNN with a ResNet-101 backbone obtains an mAP of 47.6\% on the COCO dataset for bounding box detection and can process 5 images per second during inference with a single GPU. The code is available at https://github.com/MahyarNajibi/SNIPER.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1805.09300 [cs]},
+	author = {Singh, Bharat and Najibi, Mahyar and Davis, Larry S.},
+	month = may,
+	year = {2018},
+	note = {arXiv: 1805.09300},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {Singh et al. - 2018 - SNIPER Efficient Multi-Scale Training.pdf:/Users/davis/Zotero/storage/CEW2UHU3/Singh et al. - 2018 - SNIPER Efficient Multi-Scale Training.pdf:application/pdf}
+}
+
+@article{fcn,
+	title = {R-{FCN}-3000 at 30fps: {Decoupling} {Detection} and {Classification}},
+	shorttitle = {R-{FCN}-3000 at 30fps},
+	url = {http://arxiv.org/abs/1712.01802},
+	abstract = {We present R-FCN-3000, a large-scale real-time object detector in which objectness detection and classiﬁcation are decoupled. To obtain the detection score for an RoI, we multiply the objectness score with the ﬁne-grained classiﬁcation score. Our approach is a modiﬁcation of the R-FCN architecture in which position-sensitive ﬁlters are shared across different object classes for performing localization. For ﬁne-grained classiﬁcation, these position-sensitive ﬁlters are not needed. R-FCN-3000 obtains an mAP of 34.9\% on the ImageNet detection dataset and outperforms YOLO9000 by 18\% while processing 30 images per second. We also show that the objectness learned by R-FCN-3000 generalizes to novel classes and the performance increases with the number of training object classes - supporting the hypothesis that it is possible to learn a universal objectness detector. Code will be made available.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1712.01802 [cs]},
+	author = {Singh, Bharat and Li, Hengduo and Sharma, Abhishek and Davis, Larry S.},
+	month = dec,
+	year = {2017},
+	note = {arXiv: 1712.01802},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {Singh et al. - 2017 - R-FCN-3000 at 30fps Decoupling Detection and Clas.pdf:/Users/davis/Zotero/storage/884XG3KQ/Singh et al. - 2017 - R-FCN-3000 at 30fps Decoupling Detection and Clas.pdf:application/pdf}
+}
+
+@article{headlessFace,
+	title = {{SSH}: {Single} {Stage} {Headless} {Face} {Detector}},
+	shorttitle = {{SSH}},
+	url = {http://arxiv.org/abs/1708.03979},
+	abstract = {We introduce the Single Stage Headless (SSH) face detector. Unlike two stage proposal-classiﬁcation detectors, SSH detects faces in a single stage directly from the early convolutional layers in a classiﬁcation network. SSH is headless. That is, it is able to achieve state-of-the-art results while removing the “head” of its underlying classiﬁcation network – i.e. all fully connected layers in the VGG-16 which contains a large number of parameters. Additionally, instead of relying on an image pyramid to detect faces with various scales, SSH is scale-invariant by design. We simultaneously detect faces with different scales in a single forward pass of the network, but from different layers. These properties make SSH fast and light-weight. Surprisingly, with a headless VGG-16, SSH beats the ResNet-101based state-of-the-art on the WIDER dataset. Even though, unlike the current state-of-the-art, SSH does not use an image pyramid and is 5X faster. Moreover, if an image pyramid is deployed, our light-weight network achieves stateof-the-art on all subsets of the WIDER dataset, improving the AP by 2.5\%. SSH also reaches state-of-the-art results on the FDDB and Pascal-Faces datasets while using a small input size, leading to a runtime of 50 ms/image on a GPU. The code is available at https://github.com/ mahyarnajibi/SSH .},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1708.03979 [cs]},
+	author = {Najibi, Mahyar and Samangouei, Pouya and Chellappa, Rama and Davis, Larry},
+	month = aug,
+	year = {2017},
+	note = {arXiv: 1708.03979},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {Najibi et al. - 2017 - SSH Single Stage Headless Face Detector.pdf:/Users/davis/Zotero/storage/QXEGG2S6/Najibi et al. - 2017 - SSH Single Stage Headless Face Detector.pdf:application/pdf}
+}
+
+@article{shuffleNet,
+	title = {{ShuffleNet}: {An} {Extremely} {Efficient} {Convolutional} {Neural} {Network} for {Mobile} {Devices}},
+	shorttitle = {{ShuffleNet}},
+	url = {http://arxiv.org/abs/1707.01083},
+	abstract = {We introduce an extremely computation-efﬁcient CNN architecture named ShufﬂeNet, which is designed specially for mobile devices with very limited computing power (e.g., 10-150 MFLOPs). The new architecture utilizes two new operations, pointwise group convolution and channel shufﬂe, to greatly reduce computation cost while maintaining accuracy. Experiments on ImageNet classiﬁcation and MS COCO object detection demonstrate the superior performance of ShufﬂeNet over other structures, e.g. lower top-1 error (absolute 7.8\%) than recent MobileNet [12] on ImageNet classiﬁcation task, under the computation budget of 40 MFLOPs. On an ARM-based mobile device, ShufﬂeNet achieves ∼13× actual speedup over AlexNet while maintaining comparable accuracy.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1707.01083 [cs]},
+	author = {Zhang, Xiangyu and Zhou, Xinyu and Lin, Mengxiao and Sun, Jian},
+	month = jul,
+	year = {2017},
+	note = {arXiv: 1707.01083},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {Zhang et al. - 2017 - ShuffleNet An Extremely Efficient Convolutional N.pdf:/Users/davis/Zotero/storage/C3N7W63J/Zhang et al. - 2017 - ShuffleNet An Extremely Efficient Convolutional N.pdf:application/pdf}
+}
+
+@article{effNet,
+	title = {{EffNet}: {An} {Efficient} {Structure} for {Convolutional} {Neural} {Networks}},
+	shorttitle = {{EffNet}},
+	url = {http://arxiv.org/abs/1801.06434},
+	abstract = {With the ever increasing application of Convolutional Neural Networks to costumer products the need emerges for models which can efﬁciently run on embedded, mobile hardware. Slimmer models have therefore become a hot research topic with multiple different approaches which vary from binary networks to revised convolution layers. We offer our contribution to the latter and propose a novel convolution block which signiﬁcantly reduces the computational burden while surpassing the current state-of-the-art. Our model, dubbed EffNet, is optimised for models which are slim to begin with and is created to tackle issues in existing models such as MobileNet and ShufﬂeNet.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1801.06434 [cs]},
+	author = {Freeman, Ido and Roese-Koerner, Lutz and Kummert, Anton},
+	month = jan,
+	year = {2018},
+	note = {arXiv: 1801.06434},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition, Computer Science - Neural and Evolutionary Computing},
+	file = {Freeman et al. - 2018 - EffNet An Efficient Structure for Convolutional N.pdf:/Users/davis/Zotero/storage/EN637HPT/Freeman et al. - 2018 - EffNet An Efficient Structure for Convolutional N.pdf:application/pdf}
+}
+
+@article{_squeezeNet,
+	title = {{SqueezeNet}: {AlexNet}-level accuracy with 50x fewer parameters and {\textless}0.5MB model size},
+	shorttitle = {{SqueezeNet}},
+	url = {http://arxiv.org/abs/1602.07360},
+	abstract = {Recent research on deep convolutional neural networks (CNNs) has focused primarily on improving accuracy. For a given accuracy level, it is typically possible to identify multiple CNN architectures that achieve that accuracy level. With equivalent accuracy, smaller CNN architectures offer at least three advantages: (1) Smaller CNNs require less communication across servers during distributed training. (2) Smaller CNNs require less bandwidth to export a new model from the cloud to an autonomous car. (3) Smaller CNNs are more feasible to deploy on FPGAs and other hardware with limited memory. To provide all of these advantages, we propose a small CNN architecture called SqueezeNet. SqueezeNet achieves AlexNet-level accuracy on ImageNet with 50x fewer parameters. Additionally, with model compression techniques, we are able to compress SqueezeNet to less than 0.5MB (510⇥ smaller than AlexNet).},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1602.07360 [cs]},
+	author = {Iandola, Forrest N. and Han, Song and Moskewicz, Matthew W. and Ashraf, Khalid and Dally, William J. and Keutzer, Kurt},
+	month = feb,
+	year = {2016},
+	note = {arXiv: 1602.07360},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition, Computer Science - Artificial Intelligence},
+	file = {Iandola et al. - 2016 - SqueezeNet AlexNet-level accuracy with 50x fewer .pdf:/Users/davis/Zotero/storage/JWJXGXUK/Iandola et al. - 2016 - SqueezeNet AlexNet-level accuracy with 50x fewer .pdf:application/pdf}
+}
+
+@article{mobileNet,
+  title={Mobilenets: Efficient convolutional neural networks for mobile vision applications},
+  author={Howard, Andrew G and Zhu, Menglong and Chen, Bo and Kalenichenko, Dmitry and Wang, Weijun and Weyand, Tobias and Andreetto, Marco and Adam, Hartwig},
+  journal={arXiv preprint arXiv:1704.04861},
+  year={2017}
+}
+
+@article{_acdc,
+	title = {{ACDC}: {A} {Structured} {Efficient} {Linear} {Layer}},
+	shorttitle = {{ACDC}},
+	url = {http://arxiv.org/abs/1511.05946},
+	abstract = {The linear layer is one of the most pervasive modules in deep learning representations. However, it requires O(N 2) parameters and O(N 2) operations. These costs can be prohibitive in mobile applications or prevent scaling in many domains. Here, we introduce a deep, differentiable, fully-connected neural network module composed of diagonal matrices of parameters, A and D, and the discrete cosine transform C. The core module, structured as ACDC−1, has O(N ) parameters and incurs O(N log N ) operations. We present theoretical results showing how deep cascades of ACDC layers approximate linear layers. ACDC is, however, a stand-alone module and can be used in combination with any other types of module. In our experiments, we show that it can indeed be successfully interleaved with ReLU modules in convolutional neural networks for image recognition. Our experiments also study critical factors in the training of these structured modules, including initialization and depth. Finally, this paper also points out avenues for implementing the complex version of ACDC using photonic devices.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1511.05946 [cs]},
+	author = {Moczulski, Marcin and Denil, Misha and Appleyard, Jeremy and de Freitas, Nando},
+	month = nov,
+	year = {2015},
+	note = {arXiv: 1511.05946},
+	keywords = {Computer Science - Machine Learning, Computer Science - Neural and Evolutionary Computing},
+	file = {Moczulski et al. - 2015 - ACDC A Structured Efficient Linear Layer.pdf:/Users/davis/Zotero/storage/WV6X9LS2/Moczulski et al. - 2015 - ACDC A Structured Efficient Linear Layer.pdf:application/pdf}
+}
+
+@inproceedings{_adaptiveFastFood,
+	address = {Santiago, Chile},
+	title = {Deep {Fried} {Convnets}},
+	isbn = {978-1-4673-8391-2},
+	url = {http://ieeexplore.ieee.org/document/7410530/},
+	doi = {10.1109/ICCV.2015.173},
+	abstract = {The fully- connected layers of deep convolutional neural networks typically contain over 90\% of the network parameters. Reducing the number of parameters while preserving predictive performance is critically important for training big models in distributed systems and for deployment in embedded devices.},
+	language = {en},
+	urldate = {2018-11-05},
+	booktitle = {2015 {IEEE} {International} {Conference} on {Computer} {Vision} ({ICCV})},
+	publisher = {IEEE},
+	author = {Yang, Zichao and Moczulski, Marcin and Denil, Misha and Freitas, Nando de and Smola, Alex and Song, Le and Wang, Ziyu},
+	month = dec,
+	year = {2015},
+	pages = {1476--1483},
+	file = {Yang et al. - 2015 - Deep Fried Convnets.pdf:/Users/davis/Zotero/storage/HY4K8BLW/Yang et al. - 2015 - Deep Fried Convnets.pdf:application/pdf}
+}

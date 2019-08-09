@@ -1,0 +1,20 @@
+
+
+abstract
+    -multiplying matrices is important
+    -it's often the computational bottleneck
+        -speed, latency, energy consumption
+    -consequently, there's been a bunch of work on approximate matrix multiplication (AMM)
+    -existing work either replaces large matmuls with smaller ones or reduces bitwidth of numbers
+    -we introduce an AMM method that, in the realistic scenario of one matrix being known ahead of time, eliminates the multiplications entirely.
+    -Results across a wide range of tasks and datasets show that our method consistently achieves a better speed vs error tradeoff than other methods
+
+intro
+
+related work
+
+method
+
+results
+
+conclusion

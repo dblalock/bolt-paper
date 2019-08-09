@@ -1,0 +1,56 @@
+
+@inproceedings{convFreqHash,
+	address = {San Francisco, California, USA},
+	title = {Compressing {Convolutional} {Neural} {Networks} in the {Frequency} {Domain}},
+	isbn = {978-1-4503-4232-2},
+	url = {http://dl.acm.org/citation.cfm?doid=2939672.2939839},
+	doi = {10.1145/2939672.2939839},
+	abstract = {Convolutional neural networks (CNN) are increasingly used in many areas of computer vision. They are particularly attractive because of their ability to “absorb” great quantities of labeled data through millions of parameters. However, as model sizes increase, so do the storage and memory requirements of the classiﬁers, hindering many applications such as image and speech recognition on mobile phones and other devices. In this paper, we present a novel network architecture, Frequency-Sensitive Hashed Nets (FreshNets), which exploits inherent redundancy in both convolutional layers and fully-connected layers of a deep learning model, leading to dramatic savings in memory and storage consumption. Based on the key observation that the weights of learned convolutional ﬁlters are typically smooth and low-frequency, we ﬁrst convert ﬁlter weights to the frequency domain with a discrete cosine transform (DCT) and use a low-cost hash function to randomly group frequency parameters into hash buckets. All parameters assigned the same hash bucket share a single value learned with standard backpropagation. To further reduce model size, we allocate fewer hash buckets to high-frequency components, which are generally less important. We evaluate FreshNets on eight data sets, and show that it leads to better compressed performance than several relevant baselines.},
+	language = {en},
+	urldate = {2018-11-07},
+	booktitle = {Proceedings of the 22nd {ACM} {SIGKDD} {International} {Conference} on {Knowledge} {Discovery} and {Data} {Mining} - {KDD} '16},
+	publisher = {ACM Press},
+	author = {Chen, Wenlin and Wilson, James and Tyree, Stephen and Weinberger, Kilian Q. and Chen, Yixin},
+	year = {2016},
+	pages = {1475--1484},
+	file = {Chen et al. - 2016 - Compressing Convolutional Neural Networks in the F.pdf:~/Zotero/storage/Q8LFMI56/Chen et al. - 2016 - Compressing Convolutional Neural Networks in the F.pdf:application/pdf}
+}
+
+@article{amznFeatureHash,
+	title = {Statistical {Model} {Compression} for {Small}-{Footprint} {Natural} {Language} {Understanding}},
+	url = {http://arxiv.org/abs/1807.07520},
+	abstract = {In this paper we investigate statistical model compression applied to natural language understanding (NLU) models. Smallfootprint NLU models are important for enabling ofﬂine systems on hardware restricted devices, and for decreasing ondemand model loading latency in cloud-based systems. To compress NLU models, we present two main techniques, parameter quantization and perfect feature hashing. These techniques are complementary to existing model pruning strategies such as L1 regularization. We performed experiments on a large scale NLU system. The results show that our approach achieves 14-fold reduction in memory usage compared to the original models with minimal predictive performance impact.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1807.07520 [cs]},
+	author = {Strimel, Grant P. and Sathyendra, Kanthashree Mysore and Peshterliev, Stanislav},
+	month = jul,
+	year = {2018},
+	note = {arXiv: 1807.07520},
+	keywords = {Computer Science - Computation and Language},
+	file = {Strimel et al. - 2018 - Statistical Model Compression for Small-Footprint .pdf:~/Zotero/storage/W4FYJ5AC/Strimel et al. - 2018 - Statistical Model Compression for Small-Footprint .pdf:application/pdf}
+}
+
+@article{_hashNet,
+	title = {Compressing {Neural} {Networks} with the {Hashing} {Trick}},
+	abstract = {As deep nets are increasingly used in applications suited for mobile devices, a fundamental dilemma becomes apparent: the trend in deep learning is to grow models to absorb everincreasing data set sizes; however mobile devices are designed with very little memory and cannot store such large models. We present a novel network architecture, HashedNets, that exploits inherent redundancy in neural networks to achieve drastic reductions in model sizes. HashedNets uses a low-cost hash function to randomly group connection weights into hash buckets, and all connections within the same hash bucket share a single parameter value. These parameters are tuned to adjust to the HashedNets weight sharing architecture with standard backprop during training. Our hashing procedure introduces no additional memory overhead, and we demonstrate on several benchmark data sets that HashedNets shrink the storage requirements of neural networks substantially while mostly preserving generalization performance.},
+	language = {en},
+	author = {Chen, Wenlin and Wilson, James T and Tyree, Stephen and Weinberger, Kilian Q and Chen, Yixin},
+	pages = {10},
+	file = {Chen et al. - Compressing Neural Networks with the Hashing Trick.pdf:~/Zotero/storage/NLIK2MRP/Chen et al. - Compressing Neural Networks with the Hashing Trick.pdf:application/pdf}
+}
+
+@article{_wtaDnn,
+	title = {Scalable and {Sustainable} {Deep} {Learning} via {Randomized} {Hashing}},
+	url = {http://arxiv.org/abs/1602.08194},
+	abstract = {Current deep learning architectures are growing larger in order to learn from enormous datasets. These architectures require giant matrix multiplication operations to train millions or billions of parameters during forward and back propagation steps. These operations are very expensive from a computational and energy standpoint. We present a novel technique to reduce the amount of computation needed to train and test deep networks drastically. Our approach combines recent ideas from adaptive dropouts and randomized hashing for maximum inner product search to select only the nodes with the highest activation efﬁciently. Our new algorithm for training deep networks reduces the overall computational cost, of both feed-forward pass and backpropagation, by operating on signiﬁcantly fewer nodes. As a consequence, our algorithm only requires 5\% of computations (multiplications) compared to traditional algorithms, without any loss in the accuracy. Furthermore, due to very sparse gradient updates, our algorithm is ideally suited for asynchronous training leading to near linear speedup with increasing parallelism. We demonstrate the scalability and sustainability (energy efﬁciency) of our proposed algorithm via rigorous experimental evaluations.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1602.08194 [cs, stat]},
+	author = {Spring, Ryan and Shrivastava, Anshumali},
+	month = feb,
+	year = {2016},
+	note = {arXiv: 1602.08194},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning, Computer Science - Neural and Evolutionary Computing},
+	file = {Spring and Shrivastava - 2016 - Scalable and Sustainable Deep Learning via Randomi.pdf:~/Zotero/storage/8KDLR8UV/Spring and Shrivastava - 2016 - Scalable and Sustainable Deep Learning via Randomi.pdf:application/pdf}
+}

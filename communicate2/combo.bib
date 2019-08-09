@@ -1,0 +1,51 @@
+
+@article{distillAndQuantize,
+	title = {Model compression via distillation and quantization},
+	url = {http://arxiv.org/abs/1802.05668},
+	abstract = {Deep neural networks (DNNs) continue to make signiﬁcant advances, solving tasks from image classiﬁcation to translation or reinforcement learning. One aspect of the ﬁeld receiving considerable attention is efﬁciently executing deep models in resource-constrained environments, such as mobile or embedded devices. This paper focuses on this problem, and proposes two new compression methods, which jointly leverage weight quantization and distillation of larger networks, called “teachers,” into compressed “student” networks. The ﬁrst method we propose is called quantized distillation and leverages distillation during the training process, by incorporating distillation loss, expressed with respect to the teacher network, into the training of a smaller student network whose weights are quantized to a limited set of levels. The second method, differentiable quantization, optimizes the location of quantization points through stochastic gradient descent, to better ﬁt the behavior of the teacher model. We validate both methods through experiments on convolutional and recurrent architectures. We show that quantized shallow students can reach similar accuracy levels to state-of-the-art full-precision teacher models, while providing up to order of magnitude compression, and inference speedup that is almost linear in the depth reduction. In sum, our results enable DNNs for resource-constrained environments to leverage architecture and accuracy advances developed on more powerful devices.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1802.05668 [cs]},
+	author = {Polino, Antonio and Pascanu, Razvan and Alistarh, Dan},
+	month = feb,
+	year = {2018},
+	note = {arXiv: 1802.05668},
+	keywords = {Computer Science - Machine Learning, Computer Science - Neural and Evolutionary Computing},
+	file = {Polino et al. - 2018 - Model compression via distillation and quantizatio.pdf:~/Zotero/storage/PZJGIHXB/Polino et al. - 2018 - Model compression via distillation and quantizatio.pdf:application/pdf}
+}
+
+@article{slimNets,
+	title = {{SlimNets}: {An} {Exploration} of {Deep} {Model} {Compression} and {Acceleration}},
+	abstract = {Deep neural networks have achieved increasingly accurate results on a wide variety of complex tasks. However, much of this improvement is due to the growing use and availability of computational resources (e.g use of GPUs, more layers, more parameters, etc). Most state-of-the-art deep networks, despite performing well, over-parameterize approximate functions and take a signiﬁcant amount of time to train. With increased focus on deploying deep neural networks on resource constrained devices like smart phones, there has been a push to evaluate why these models are so resource hungry and how they can be made more efﬁcient. This work evaluates and compares three distinct methods for deep model compression and acceleration: weight pruning, low rank factorization, and knowledge distillation. Comparisons on VGG nets trained on CIFAR10 show that each of the models on their own are effective, but that the true power lies in combining them. We show that by combining pruning and knowledge distillation methods we can create a compressed network 85 times smaller than the original, all while retaining 96\% of the original model’s accuracy.},
+	language = {en},
+	author = {Oguntola, Ini and Olubeko, Subby and Sweeney, Christopher},
+	pages = {6},
+	year = {2018},
+	file = {Oguntola et al. - SlimNets An Exploration of Deep Model Compression.pdf:~/Zotero/storage/BWZ5WCWA/Oguntola et al. - SlimNets An Exploration of Deep Model Compression.pdf:application/pdf}
+}
+
+@article{clipQ,
+	title = {{CLIP}-{Q}: {Deep} {Network} {Compression} {Learning} by {In}-{Parallel} {Pruning}-{Quantization}},
+	abstract = {Deep neural networks enable state-of-the-art accuracy on visual recognition tasks such as image classiﬁcation and object detection. However, modern deep networks contain millions of learned weights; a more efﬁcient utilization of computation resources would assist in a variety of deployment scenarios, from embedded platforms with resource constraints to computing clusters running ensembles of networks. In this paper, we combine network pruning and weight quantization in a single learning framework that performs pruning and quantization jointly, and in parallel with ﬁne-tuning. This allows us to take advantage of the complementary nature of pruning and quantization and to recover from premature pruning errors, which is not possible with current two-stage approaches. Our proposed CLIP-Q method (Compression Learning by InParallel Pruning-Quantization) compresses AlexNet by 51fold, GoogLeNet by 10-fold, and ResNet-50 by 15-fold, while preserving the uncompressed network accuracies on ImageNet.},
+	language = {en},
+	author = {Tung, Frederick and Mori, Greg},
+	pages = {10},
+	year = {2018},
+	file = {Tung and Mori - CLIP-Q Deep Network Compression Learning by In-Pa.pdf:~/Zotero/storage/Z3PCQ92Y/Tung and Mori - CLIP-Q Deep Network Compression Learning by In-Pa.pdf:application/pdf}
+}
+
+@article{pruneQuantHuf,
+	title = {Deep {Compression}: {Compressing} {Deep} {Neural} {Networks} with {Pruning}, {Trained} {Quantization} and {Huffman} {Coding}},
+	shorttitle = {Deep {Compression}},
+	url = {http://arxiv.org/abs/1510.00149},
+	abstract = {Neural networks are both computationally intensive and memory intensive, making them difﬁcult to deploy on embedded systems with limited hardware resources. To address this limitation, we introduce “deep compression”, a three stage pipeline: pruning, trained quantization and Huffman coding, that work together to reduce the storage requirement of neural networks by 35⇥ to 49⇥ without affecting their accuracy. Our method ﬁrst prunes the network by learning only the important connections. Next, we quantize the weights to enforce weight sharing, ﬁnally, we apply Huffman coding. After the ﬁrst two steps we retrain the network to ﬁne tune the remaining connections and the quantized centroids. Pruning, reduces the number of connections by 9⇥ to 13⇥; Quantization then reduces the number of bits that represent each connection from 32 to 5. On the ImageNet dataset, our method reduced the storage required by AlexNet by 35⇥, from 240MB to 6.9MB, without loss of accuracy. Our method reduced the size of VGG-16 by 49⇥ from 552MB to 11.3MB, again with no loss of accuracy. This allows ﬁtting the model into on-chip SRAM cache rather than off-chip DRAM memory. Our compression method also facilitates the use of complex neural networks in mobile applications where application size and download bandwidth are constrained. Benchmarked on CPU, GPU and mobile GPU, compressed network has 3⇥ to 4⇥ layerwise speedup and 3⇥ to 7⇥ better energy efﬁciency.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1510.00149 [cs]},
+	author = {Han, Song and Mao, Huizi and Dally, William J.},
+	month = oct,
+	year = {2015},
+	note = {arXiv: 1510.00149},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition, Computer Science - Neural and Evolutionary Computing},
+	file = {Han et al. - 2015 - Deep Compression Compressing Deep Neural Networks.pdf:~/Zotero/storage/5GALFMGG/Han et al. - 2015 - Deep Compression Compressing Deep Neural Networks.pdf:application/pdf}
+}

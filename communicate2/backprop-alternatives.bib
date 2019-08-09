@@ -1,0 +1,241 @@
+
+@article{pipeliningBackprop,
+	title = {Decoupled {Parallel} {Backpropagation} with {Convergence} {Guarantee}},
+	abstract = {Backpropagation algorithm is indispensable for the training of feedforward neural networks. It requires propagating error gradients sequentially from the output layer all the way back to the input layer. The backward locking in backpropagation algorithm constrains us from updating network layers in parallel and fully leveraging the computing resources. Recently, several algorithms have been proposed for breaking the backward locking. However, their performances degrade seriously when networks are deep. In this paper, we propose decoupled parallel backpropagation algorithm for deep learning optimization with convergence guarantee. Firstly, we decouple the backpropagation algorithm using delayed gradients, and show that the backward locking is removed when we split the networks into multiple modules. Then, we utilize decoupled parallel backpropagation in two stochastic methods and prove that our method guarantees convergence to critical points for the non-convex problem. Finally, we perform experiments for training deep convolutional neural networks on benchmark datasets. The experimental results not only conﬁrm our theoretical analysis, but also demonstrate that the proposed method can achieve signiﬁcant speedup without loss of accuracy.},
+	language = {en},
+	author = {Huo, Zhouyuan and Gu, Bin and Yang, Qian and Huang, Heng},
+	pages = {9},
+	year = {2018},
+	file = {Huo et al. - Decoupled Parallel Backpropagation with Convergenc.pdf:/Users/davis/Zotero/storage/7K2LZQKC/Huo et al. - Decoupled Parallel Backpropagation with Convergenc.pdf:application/pdf}
+}
+
+@article{equilibriumProp,
+	title = {Equilibrium {Propagation}: {Bridging} the {Gap} {Between} {Energy}-{Based} {Models} and {Backpropagation}},
+	shorttitle = {Equilibrium {Propagation}},
+	url = {http://arxiv.org/abs/1602.05179},
+	abstract = {We introduce Equilibrium Propagation, a learning framework for energy-based models. It involves only one kind of neural computation, performed in both the ﬁrst phase (when the prediction is made) and the second phase of training (after the target or prediction error is revealed). Although this algorithm computes the gradient of an objective function just like Backpropagation, it does not need a special computation or circuit for the second phase, where errors are implicitly propagated. Equilibrium Propagation shares similarities with Contrastive Hebbian Learning and Contrastive Divergence while solving the theoretical issues of both algorithms: our algorithm computes the gradient of a well deﬁned objective function. Because the objective function is deﬁned in terms of local perturbations, the second phase of Equilibrium Propagation corresponds to only nudging the prediction (ﬁxed point, or stationary distribution) towards a conﬁguration that reduces prediction error. In the case of a recurrent multi-layer supervised network, the output units are slightly nudged towards their target in the second phase, and the perturbation introduced at the output layer propagates backward in the hidden layers. We show that the signal ’back-propagated’ during this second phase corresponds to the propagation of error derivatives and encodes the gradient of the objective function, when the synaptic update corresponds to a standard form of spike-timing dependent plasticity. This work makes it more plausible that a mechanism similar to Backpropagation could be implemented by brains, since leaky integrator neural computation performs both inference and error back-propagation in our model. The only local difference between the two phases is whether synaptic changes are allowed or not. We also show experimentally that multi-layer recurrently connected networks with 1, 2 and 3 hidden layers can be trained by Equilibrium Propagation on the permutation-invariant MNIST task.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1602.05179 [cs]},
+	author = {Scellier, Benjamin and Bengio, Yoshua},
+	month = feb,
+	year = {2016},
+	note = {arXiv: 1602.05179},
+	keywords = {Computer Science - Machine Learning},
+	file = {Scellier and Bengio - 2016 - Equilibrium Propagation Bridging the Gap Between .pdf:/Users/davis/Zotero/storage/L79J758R/Scellier and Bengio - 2016 - Equilibrium Propagation Bridging the Gap Between .pdf:application/pdf}
+}
+
+@article{approxBackpropCoding,
+	title = {An {Approximation} of the {Error} {Backpropagation} {Algorithm} in a {Predictive} {Coding} {Network} with {Local} {Hebbian} {Synaptic} {Plasticity}},
+	volume = {29},
+	issn = {0899-7667, 1530-888X},
+	url = {http://www.mitpressjournals.org/doi/10.1162/NECO_a_00949},
+	doi = {10.1162/NECO_a_00949},
+	language = {en},
+	number = {5},
+	urldate = {2018-11-05},
+	journal = {Neural Computation},
+	author = {Whittington, James C. R. and Bogacz, Rafal},
+	month = may,
+	year = {2017},
+	pages = {1229--1262},
+	file = {Whittington and Bogacz - 2017 - An Approximation of the Error Backpropagation Algo.pdf:/Users/davis/Zotero/storage/F5QX5KKR/Whittington and Bogacz - 2017 - An Approximation of the Error Backpropagation Algo.pdf:application/pdf}
+}
+@article{hintonBioAnyGood,
+  title={Assessing the scalability of biologically-motivated deep learning algorithms and architectures},
+  author={Bartunov, Sergey and Santoro, Adam and Richards, Blake A and Hinton, Geoffrey E and Lillicrap, Timothy},
+  journal={arXiv preprint arXiv:1807.04587},
+  year={2018}
+}
+
+@article{recirculation1996,
+  title={Biologically plausible error-driven learning using local activation differences: The generalized recirculation algorithm},
+  author={O'Reilly, Randall C},
+  journal={Neural computation},
+  volume={8},
+  number={5},
+  pages={895--938},
+  year={1996},
+  publisher={MIT Press}
+}
+
+@incollection{contrastive1991,
+	title = {Contrastive {Hebbian} {Learning} in the {Continuous} {Hopfield} {Model}},
+	isbn = {978-1-4832-1448-1},
+	url = {https://linkinghub.elsevier.com/retrieve/pii/B978148321448150007X},
+	abstract = {This paper shows that contrastive Hebbian, the algorithm used in mean field learning, can be applied to any continuous Hopfield model. This implies that non-logistic activation functions as well as self connections are allowed. Contrary to previous approaches, the learning algorithm is derived without considering it a mean field approximation to Boltzmann machine learning. The paper includes a discussion of the conditions under which the function that contrastive Hebbian mini{\textasciitilde} mizes can be considered a proper error function, and an analysis of five different training regimes. An appendix provides complete demonstrations and specific instructions on how to implement contrastive Hebbian learning in interactive activation and competition models (a convenient version of the continuous Hopfield model).},
+	language = {en},
+	urldate = {2018-11-05},
+	booktitle = {Connectionist {Models}},
+	publisher = {Elsevier},
+	author = {Movellan, Javier R.},
+	year = {1991},
+	doi = {10.1016/B978-1-4832-1448-1.50007-X},
+	pages = {10--17},
+	file = {Movellan - 1991 - Contrastive Hebbian Learning in the Continuous Hop.pdf:/Users/davis/Zotero/storage/HBBPS65F/Movellan - 1991 - Contrastive Hebbian Learning in the Continuous Hop.pdf:application/pdf}
+}
+
+@article{seungEquivalent,
+  title={Equivalence of backpropagation and contrastive Hebbian learning in a layered network},
+  author={Xie, Xiaohui and Seung, H Sebastian},
+  journal={Neural computation},
+  volume={15},
+  number={2},
+  pages={441--454},
+  year={2003},
+  publisher={MIT Press}
+}
+
+@article{diffTargetProp,
+	title = {Difference {Target} {Propagation}},
+	url = {http://arxiv.org/abs/1412.7525},
+	abstract = {Back-propagation has been the workhorse of recent successes of deep learning but it relies on infinitesimal effects (partial derivatives) in order to perform credit assignment. This could become a serious issue as one considers deeper and more non-linear functions, e.g., consider the extreme case of nonlinearity where the relation between parameters and cost is actually discrete. Inspired by the biological implausibility of back-propagation, a few approaches have been proposed in the past that could play a similar credit assignment role. In this spirit, we explore a novel approach to credit assignment in deep networks that we call target propagation. The main idea is to compute targets rather than gradients, at each layer. Like gradients, they are propagated backwards. In a way that is related but different from previously proposed proxies for back-propagation which rely on a backwards network with symmetric weights, target propagation relies on auto-encoders at each layer. Unlike back-propagation, it can be applied even when units exchange stochastic bits rather than real numbers. We show that a linear correction for the imperfectness of the auto-encoders, called difference target propagation, is very effective to make target propagation actually work, leading to results comparable to back-propagation for deep networks with discrete and continuous units and denoising auto-encoders and achieving state of the art for stochastic networks.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1412.7525 [cs]},
+	author = {Lee, Dong-Hyun and Zhang, Saizheng and Fischer, Asja and Bengio, Yoshua},
+	month = dec,
+	year = {2014},
+	note = {arXiv: 1412.7525},
+	keywords = {Computer Science - Machine Learning, Computer Science - Neural and Evolutionary Computing},
+	file = {Lee et al. - 2014 - Difference Target Propagation.pdf:/Users/davis/Zotero/storage/QB2PJX6Q/Lee et al. - 2014 - Difference Target Propagation.pdf:application/pdf}
+}
+
+@article{randomFeedback,
+	title = {Random feedback weights support learning in deep neural networks},
+	url = {http://arxiv.org/abs/1411.0247},
+	abstract = {The brain processes information through many layers of neurons. This deep architecture is representationally powerful1,2,3,4, but it complicates learning by making it hard to identify the responsible neurons when a mistake is made1,5. In machine learning, the backpropagation algorithm1 assigns blame to a neuron by computing exactly how it contributed to an error. To do this, it multiplies error signals by matrices consisting of all the synaptic weights on the neuron’s axon and farther downstream. This operation requires a precisely choreographed transport of synaptic weight information, which is thought to be impossible in the brain 1,6,7,8,9,10,11,12,13,14. Here we present a surprisingly simple algorithm for deep learning, which assigns blame by multiplying error signals by random synaptic weights. We show that a network can learn to extract useful information from signals sent through these random feedback connections. In essence, the network learns to learn. We demonstrate that this new mechanism performs as quickly and accurately as backpropagation on a variety of problems and describe the principles which underlie its function. Our demonstration provides a plausible basis for how a neuron can be adapted using error signals generated at distal locations in the brain, and thus dispels long-held assumptions about the algorithmic constraints on learning in neural circuits.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1411.0247 [cs, q-bio]},
+	author = {Lillicrap, Timothy P. and Cownden, Daniel and Tweed, Douglas B. and Akerman, Colin J.},
+	month = nov,
+	year = {2014},
+	note = {arXiv: 1411.0247},
+	keywords = {Computer Science - Neural and Evolutionary Computing, Quantitative Biology - Neurons and Cognition},
+	file = {Lillicrap et al. - 2014 - Random feedback weights support learning in deep n.pdf:/Users/davis/Zotero/storage/9TS6FU7V/Lillicrap et al. - 2014 - Random feedback weights support learning in deep n.pdf:application/pdf}
+}
+
+
+@article{onlineBacktrack,
+	title = {Training recurrent networks online without backtracking},
+	url = {http://arxiv.org/abs/1507.07680},
+	abstract = {We introduce the “NoBackTrack” algorithm to train the parameters of dynamical systems such as recurrent neural networks. This algorithm works in an online, memoryless setting, thus requiring no backpropagation through time, and is scalable, avoiding the large computational and memory cost of maintaining the full gradient of the current state with respect to the parameters.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1507.07680 [cs, stat]},
+	author = {Ollivier, Yann and Tallec, Corentin and Charpiat, Guillaume},
+	month = jul,
+	year = {2015},
+	note = {arXiv: 1507.07680},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning, Computer Science - Neural and Evolutionary Computing},
+	file = {Ollivier et al. - 2015 - Training recurrent networks online without backtra.pdf:/Users/davis/Zotero/storage/DW3Y84FG/Ollivier et al. - 2015 - Training recurrent networks online without backtra.pdf:application/pdf}
+}
+
+@article{understandingSynthGrad,
+	title = {Understanding {Synthetic} {Gradients} and {Decoupled} {Neural} {Interfaces}},
+	url = {http://arxiv.org/abs/1703.00522},
+	abstract = {When training neural networks, the use of Synthetic Gradients (SG) allows layers or modules to be trained without update locking - without waiting for a true error gradient to be backpropagated - resulting in Decoupled Neural Interfaces (DNIs). This unlocked ability of being able to update parts of a neural network asynchronously and with only local information was demonstrated to work empirically in Jaderberg et al (2016). However, there has been very little demonstration of what changes DNIs and SGs impose from a functional, representational, and learning dynamics point of view. In this paper, we study DNIs through the use of synthetic gradients on feed-forward networks to better understand their behaviour and elucidate their effect on optimisation. We show that the incorporation of SGs does not affect the representational strength of the learning system for a neural network, and prove the convergence of the learning system for linear and deep linear models. On practical problems we investigate the mechanism by which synthetic gradient estimators approximate the true loss, and, surprisingly, how that leads to drastically different layer-wise representations. Finally, we also expose the relationship of using synthetic gradients to other error approximation techniques and find a unifying language for discussion and comparison.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1703.00522 [cs]},
+	author = {Czarnecki, Wojciech Marian and Świrszcz, Grzegorz and Jaderberg, Max and Osindero, Simon and Vinyals, Oriol and Kavukcuoglu, Koray},
+	month = mar,
+	year = {2017},
+	note = {arXiv: 1703.00522},
+	keywords = {Computer Science - Machine Learning, Computer Science - Neural and Evolutionary Computing},
+	file = {Czarnecki et al. - 2017 - Understanding Synthetic Gradients and Decoupled Ne.pdf:/Users/davis/Zotero/storage/84LG4BTD/Czarnecki et al. - 2017 - Understanding Synthetic Gradients and Decoupled Ne.pdf:application/pdf}
+}
+
+@article{longTimeScale,
+	title = {Long {Timescale} {Credit} {Assignment} in {NeuralNetworks} with {External} {Memory}},
+	url = {http://arxiv.org/abs/1701.03866},
+	abstract = {Credit assignment in traditional recurrent neural networks usually involves back-propagating through a long chain of tied weight matrices. The length of this chain scales linearly with the number of time-steps as the same network is run at each time-step. This creates many problems, such as vanishing gradients, that have been well studied. In contrast, a NNEM's architecture recurrent activity doesn't involve a long chain of activity (though some architectures such as the NTM do utilize a traditional recurrent architecture as a controller). Rather, the externally stored embedding vectors are used at each time-step, but no messages are passed from previous time-steps. This means that vanishing gradients aren't a problem, as all of the necessary gradient paths are short. However, these paths are extremely numerous (one per embedding vector in memory) and reused for a very long time (until it leaves the memory). Thus, the forward-pass information of each memory must be stored for the entire duration of the memory. This is problematic as this additional storage far surpasses that of the actual memories, to the extent that large memories on infeasible to back-propagate through in high dimensional settings. One way to get around the need to hold onto forward-pass information is to recalculate the forward-pass whenever gradient information is available. However, if the observations are too large to store in the domain of interest, direct reinstatement of a forward pass cannot occur. Instead, we rely on a learned autoencoder to reinstate the observation, and then use the embedding network to recalculate the forward-pass. Since the recalculated embedding vector is unlikely to perfectly match the one stored in memory, we try out 2 approximations to utilize error gradient w.r.t. the vector in memory.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1701.03866 [cs]},
+	author = {Hansen, Steven Stenberg},
+	month = jan,
+	year = {2017},
+	note = {arXiv: 1701.03866},
+	keywords = {Computer Science - Machine Learning, Computer Science - Neural and Evolutionary Computing, Computer Science - Artificial Intelligence},
+	file = {Hansen - 2017 - Long Timescale Credit Assignment in NeuralNetworks.pdf:/Users/davis/Zotero/storage/H8K3FRVR/Hansen - 2017 - Long Timescale Credit Assignment in NeuralNetworks.pdf:application/pdf}
+}
+
+@article{backpropFreeDRL,
+	title = {Backpropagation-{Free} {Parallel} {Deep} {Reinforcement} {Learning}},
+	abstract = {In this paper we conjecture that an agent, envirionment pair µ, E trained using DDPG with an actor network µ and critic network Qµ can be decomposed into a number of sub-agent, sub-environment pairs µn, En ranging over every neuron in µ; that is, we show empirically that treating each neuron n as an agent µn : Rn R of its inputs and optimizing a value function Qµn with respect to the weights of µn is dual to optimizing Qµ with respect to the weights of µ. Finally we propose a learning rule which simultaneously optimizes each µn without error backpropogation.},
+	language = {en},
+	author = {Guss, William H and Kuznetsov, Phillip and Golmant, Noah and Johansen, Max},
+	pages = {7},
+	file = {Guss et al. - Backpropagation-Free Parallel Deep Reinforcement L.pdf:/Users/davis/Zotero/storage/UGGWS8QK/Guss et al. - Backpropagation-Free Parallel Deep Reinforcement L.pdf:application/pdf}
+}
+
+@article{decoupledNeural,
+	title = {Decoupled {Neural} {Interfaces} using {Synthetic} {Gradients}},
+	url = {http://arxiv.org/abs/1608.05343},
+	abstract = {Training directed neural networks typically requires forward-propagating data through a computation graph, followed by backpropagating error signal, to produce weight updates. All layers, or more generally, modules, of the network are therefore locked, in the sense that they must wait for the remainder of the network to execute forwards and propagate error backwards before they can be updated. In this work we break this constraint by decoupling modules by introducing a model of the future computation of the network graph. These models predict what the result of the modelled subgraph will produce using only local information. In particular we focus on modelling error gradients: by using the modelled synthetic gradient in place of true backpropagated error gradients we decouple subgraphs, and can update them independently and asynchronously i.e. we realise decoupled neural interfaces. We show results for feed-forward models, where every layer is trained asynchronously, recurrent neural networks (RNNs) where predicting one’s future gradient extends the time over which the RNN can effectively model, and also a hierarchical RNN system with ticking at different timescales. Finally, we demonstrate that in addition to predicting gradients, the same framework can be used to predict inputs, resulting in models which are decoupled in both the forward and backwards pass – amounting to independent networks which co-learn such that they can be composed into a single functioning corporation.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1608.05343 [cs]},
+	author = {Jaderberg, Max and Czarnecki, Wojciech Marian and Osindero, Simon and Vinyals, Oriol and Graves, Alex and Silver, David and Kavukcuoglu, Koray},
+	month = aug,
+	year = {2016},
+	note = {arXiv: 1608.05343},
+	keywords = {Computer Science - Machine Learning},
+	file = {Jaderberg et al. - 2016 - Decoupled Neural Interfaces using Synthetic Gradie.pdf:/Users/davis/Zotero/storage/86YTJ6Z8/Jaderberg et al. - 2016 - Decoupled Neural Interfaces using Synthetic Gradie.pdf:application/pdf}
+}
+
+@article{_synapto,
+	title = {Adaptive {Synaptogenesis} {Constructs} {Neural} {Codes} {That} {Benefit} {Discrimination}},
+	volume = {11},
+	issn = {1553-7358},
+	url = {http://dx.plos.org/10.1371/journal.pcbi.1004299},
+	doi = {10.1371/journal.pcbi.1004299},
+	abstract = {Intelligent organisms face a variety of tasks requiring the acquisition of expertise within a specific domain, including the ability to discriminate between a large number of similar patterns. From an energy-efficiency perspective, effective discrimination requires a prudent allocation of neural resources with more frequent patterns and their variants being represented with greater precision. In this work, we demonstrate a biologically plausible means of constructing a single-layer neural network that adaptively (i.e., without supervision) meets this criterion. Specifically, the adaptive algorithm includes synaptogenesis, synaptic shedding, and bi-directional synaptic weight modification to produce a network with outputs (i.e. neural codes) that represent input patterns proportional to the frequency of related patterns. In addition to pattern frequency, the correlational structure of the input environment also affects allocation of neural resources. The combined synaptic modification mechanisms provide an explanation of neuron allocation in the case of self-taught experts.},
+	language = {en},
+	number = {7},
+	urldate = {2018-11-09},
+	journal = {PLOS Computational Biology},
+	author = {Thomas, Blake T. and Blalock, Davis W. and Levy, William B.},
+	editor = {Granger, Richard},
+	month = jul,
+	year = {2015},
+	pages = {e1004299},
+	file = {Thomas et al. - 2015 - Adaptive Synaptogenesis Constructs Neural Codes Th.pdf:/Users/davis/Zotero/storage/CHFES7RZ/Thomas et al. - 2015 - Adaptive Synaptogenesis Constructs Neural Codes Th.pdf:application/pdf}
+}
+@article{hebb1949,
+  title={The organization of behavior: A neuropsychological theory},
+  author={Hebb, Donald O},
+  year={1949},
+  publisher={John Wiley}
+}
+@article{bcmOrig,
+  title={Theory for the development of neuron selectivity: orientation specificity and binocular interaction in visual cortex},
+  author={Bienenstock, Elie L and Cooper, Leon N and Munro, Paul W},
+  journal={Journal of Neuroscience},
+  volume={2},
+  number={1},
+  pages={32--48},
+  year={1982},
+  publisher={Soc Neuroscience}
+}
+@article{backpropStartedIn60s,
+  title={Deep learning in neural networks: An overview},
+  author={Schmidhuber, J{\"u}rgen},
+  journal={Neural networks},
+  volume={61},
+  pages={85--117},
+  year={2015},
+  publisher={Elsevier}
+}
+@article{backpropFirstPopularized,
+  title={Learning representations by back-propagating errors},
+  author={Rumelhart, David E and Hinton, Geoffrey E and Williams, Ronald J},
+  journal={nature},
+  volume={323},
+  number={6088},
+  pages={533},
+  year={1986},
+  publisher={Nature Publishing Group}
+}
