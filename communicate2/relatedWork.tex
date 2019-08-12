@@ -1,0 +1,32 @@
+
+
+% % ------------------------------------------------
+% \subsection{Exact Matrix Multiplication}
+% % ------------------------------------------------
+
+
+% ------------------------------------------------
+\subsection{Approximate Matrix Multiplication}
+% ------------------------------------------------
+
+sketching
+
+joint sketching
+
+% ------------------------------------------------
+\subsection{Structured Matrices}
+% ------------------------------------------------
+
+Winograd stuff (Toeplitz matrix)
+
+ACDC, Adaptive Fastfood, FHT, etc
+
+Sparsity, at least for stuff like Han2015
+
+% ------------------------------------------------
+\subsection{Vector Quantization}
+% ------------------------------------------------
+
+Our method is most similar to vector quantization methods developed for similarity search []. These methods transform the two matrices such that one becomes a collection of lookup tables and the other indices into those tables. Once transformed, the matrix multiplication \textit{per se} requires only table lookups. We adopt this same pattern, but replace the multiply-intensive transform with an efficient alternative. This replacement is enabled through our introduction of a fast and trainable family of quantization functions. We discuss these methods and how we differ from them in Sections~\ref{sec:background}~and~\ref{sec:method}.
+
+

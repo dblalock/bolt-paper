@@ -1,0 +1,32 @@
+
+% ------------------------------------------------
+\subsection{Problem Formulation}
+% ------------------------------------------------
+
+We consider three variations of the approximate matrix multiply problem. In all cases, let X = ...., <other variable definitions here>.
+
+Maybe a table of assumptions of different methods as far as training data and preprocessing time. And/or which problem statement they try to solve.
+
+Problem 1: No training data at all (most AMM work, ours with LUT computation + untrained encoding)
+
+Problem 2: Training data for one matrix (ours with LUT computation)
+
+Problem 3: One matrix fixed (VQ stuff with no optimizing wrt query, ours without learned quantization)
+
+Problem 3: Training data for both matrices (VQ stuff that rotates using query distro, Bolt, ours with LUT computation + weighting errs)
+
+Problem 4: Training data for one matrix, other matrix fixed (ours)
+
+% this is not quite MECE because could have one matrix fixed and other completely unknown, in which case no LUT computation but also no trained quantizers. Probably just note that this possibility exists and our method could do it, but we ignore it for rest of the paper because
+
+Note that this is maybe not a sufficient characterization because ours is also mostly just useful when one of the matrices is like really small.
+
+Should probably just show ours, ours without learned quantization func, and ours with LUT computation at runtime. As a result, should only introduce these three problems.
+
+% ------------------------------------------------
+\subsection{Vector Quantization}
+% ------------------------------------------------
+
+With problem statement ourFrame stuff using the two encoding functions and one distance function.
+
+First walk through basic VQ-based dot product, with img from poster.

@@ -81,7 +81,9 @@
 \begin{abstract}
 % ------------------------------------------------
 
-Multiplying matrices is among the most fundamental and most computationally demanding tasks in machine learning and scientific computing. Consequently, the task of efficiently approximating matrix products has received a great deal of attention in recent years. We describe an approximation method that obtains a significantly better efficiency vs. quality tradeoff than existing methods across a wide range of problems, metrics, and datasets. Furthermore, in the special case that one matrix is known ahead of time, our method computes matrix products with no multiplication operations, a property that may be of interest to hardware designers.
+Multiplying matrices is among the most fundamental and most computationally demanding tasks in machine learning and scientific computing. Consequently, the task of efficiently approximating matrix products has received a great deal of attention in recent years. Existing approximation methods work by reducing the number of multiply-add operations or by reducing the cost of each operation. We describe a method that, given time to preprocess one of the two matrices, eliminates the multiply-add operations entirely. Moreover, experiments across a wide range of datasets show that our method obtains a significantly better efficiency vs. quality tradeoff than existing approaches. Our method also has solid theoretical guarantees, based on an approach to bounding sums of dependent variables that may be of independent interest.
+
+% obtains a significantly better efficiency vs. quality tradeoff than existing methods across a wide range of problems, metrics, and datasets. Furthermore, in the special case that one matrix is known ahead of time, our method computes matrix products with no multiplication operations, a property that may be of interest to hardware designers.
 
 
 \end{abstract}
@@ -100,6 +102,12 @@ Multiplying matrices is among the most fundamental and most computationally dema
 %================================================================
 
 \input{relatedWork.tex}
+
+%================================================================
+\section{Background and Problem Statement}
+%================================================================
+
+\input{background.tex}
 
 %================================================================
 \section{Method}
@@ -130,7 +138,7 @@ Multiplying matrices is among the most fundamental and most computationally dema
 \section{Conclusion}
 %================================================================
 
-We sure did multiply those matrices.
+We sure did multiply those matrices. In the near future, we plan to integrate our method into the training of deep neural networks.
 
 % sysml says to include acknowledgements in initial submission
 % %================================================================

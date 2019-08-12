@@ -1,1 +1,30 @@
-Behold, an intro.
+
+Matrix multiplication is among the most fundamental subroutines in numerical and scientific computing, including machine learning. As a result, there has been a great deal of work over the years on implementing high-speed matrix multiplication libraries [], designing custom hardware to accelerate multiplication of certain classes of matrices [], scaling matrix multiplication across many machines [], and designing efficient Approximate Matrix Multiplication (AMM) algorithms under various assumptions and problem settings [].
+
+We focus on approximate multiplication of small, dense matrices that already reside in memory. By small, we are referring to the typical real-world case in which asymptotic complexity is a poor definition of speed. In contrast to most existing AMM work, we also consider various levels of prior knowledge about the distributions from which the matrices are drawn. In the least informed case, nothing is known about either matrix until the instant they are provided. In the most informed case, one matrix is known ahead of time and the other is drawn from a distribution from which we have numerous i.i.d. samples.
+
+Provided that one matrix is known ahead of time, our method requires zero multiplication operations, aside from possible pointer arithmetic at the implementation level. This is in contrast to existing work, which either reduces the number of multiplications [] or reduces the cost of each multiplication [], with the most extreme case of the latter being multiplication in hamming space [].
+Our method is most closely related to the vector quantization methods used for similarity search []. However, instead of using an expensive quantization function that requires many multiplies, we introduce a family of quantization functions that require no multiplies.
+
+TODO something about multiplication taking a lot of transistors vs table lookups.
+
+Our contributions can be summarized as follows:
+\begin{itemize}
+    \item An efficient family of vector quantization functions that can encode data at over \%d GB/s in a single CPU thread.
+    \item A provably good procedure for learning one of these functions from training data. As part of our analysis, we introduce a general technique for bounding sums of dependent variables that may be of independent interest.
+    \item An algorithm based on these functions for approximate matrix multiplication. Experiments across a variety of tasks and metrics demonstrate that our algorithm significantly outperforms existing alternatives. For example, TODO.
+    % \item A trainable preprocessing function that something?
+\end{itemize}
+
+% These methods transform the two matrices such that one becomes a collection of lookup tables and the other indices into those tables. Once transformed, the matrix multiplication \textit{per se} requires only table lookups. We adopt this same pattern, but replace the multiply-intensive transform with an efficient alternative. This replacement is enabled through our introduction of a fast and trainable family of quantization functions.
+
+%  which already compute matrix products \textit{per se} with no multiplies. However, they require many multiplies in
+
+% our key insight is that the quantization codebooks used by these methods
+
+
+% The basic insight behind our method is that vector quantization can be carried
+
+% In machine learning specifically, it is often the bottleneck in deep neural networks, which have emerged as an indispensible class of models for many tasks.
+
+

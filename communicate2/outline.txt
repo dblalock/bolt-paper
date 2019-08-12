@@ -10,11 +10,50 @@ abstract
     -Results across a wide range of tasks and datasets show that our method consistently achieves a better speed vs error tradeoff than other methods
 
 intro
+    -
 
 related work
+    -binary neural nets
+    -quantized neural nets in general
+    -using structured matrices in deep nets
+    -existing AMM work
+        -matrix sketching
+        -joint matrix sketching
+    -that one paper (or two?) that do LSH for k-means
+
+background (also VQ related work)
+    -pq, opq, aq, etc
 
 method
+    -what if instead of brute force comparison to find closest centroid, we had a fast function---with no multiplications---that would tell us nearest centroid?
+    -then we encode stuff crazy fast with no multiplies
+    -here's the function family we consider
+    -here's our function when there's no training data
+    -here's how we learn the function where there is training data
+
+theory
+    -submodularity, so competitiveness guarantee
+    -minimax kmeans generalization (basically just restating bachem2017)
+    -ideally some absolute quality guarantee as a function of # of codebooks
+        -maybe assumptions + generalized mcdiarmid / azuma
 
 results
+    -softmax
+        -matrices: rn56 softmax weights, cifar100
+        -metrics: classification acc vs time
+    -image filtering
+        -matrices: imagenet-10-of-each, vertical edge detector
+        -metrics: normalized frob norm vs time, picture of scipy.face()
+        -stuff to vary: kernel size
+    -ts forecasting
+        -matrices: ampd-power, n-tap AR model
+        -metrics: normalized MSE vs time, maybe zstd compression vs time
+        -stuff to vary: window size
+    -maybe MIPS to show failure case?
+    -maybe rn50 ImageNet softmax to show failure case
+
+    -probably something validating the conditions that our mcdiarmid thing relies on
 
 conclusion
+    -
+
