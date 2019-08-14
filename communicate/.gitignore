@@ -1,1 +1,14 @@
 acmart/
+bolt-source/
+bolt-submission/
+*.aux
+*.log
+*.bbl
+*.out
+*.pdf
+*.blg
+*.zip
+*.todo
+*.key
+
+citekeys.txt
