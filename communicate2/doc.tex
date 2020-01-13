@@ -81,7 +81,9 @@
 \begin{abstract}
 % ------------------------------------------------
 
-Multiplying matrices is among the most fundamental and most computationally demanding tasks in machine learning and scientific computing. Consequently, the task of efficiently approximating matrix products has received a great deal of attention in recent years. Existing approximation methods work by reducing the number of multiply-add operations, reducing the bitwidth of the data, or by otherwise reducing the cost of each operation. We describe a method that, given time to preprocess one of the two matrices, eliminates the multiply-add operations entirely. Moreover, experiments across a wide range of datasets show that our method obtains a significantly better efficiency vs. quality tradeoff than existing approaches. Our method also has theoretical guarantees, based on an approach to bounding sums of dependent variables that may be of independent interest.
+Multiplying matrices is among the most fundamental and most computationally demanding tasks in machine learning and scientific computing. Consequently, the task of efficiently approximating matrix products has received a great deal of attention in recent years. Existing approximation methods work by reducing the number of multiply-add operations, reducing the bitwidth of the data, or by otherwise reducing the cost of each multiply-add. We describe a method that, given time to preprocess one of the two matrices, eliminates the multiply-add operations entirely. Moreover, experiments across a wide range of datasets show that our method obtains a significantly better efficiency vs. quality tradeoff than existing approaches.
+
+% Our method also has theoretical guarantees, based on an approach to bounding sums of weakly dependent variables that may be of independent interest.
 
 % obtains a significantly better efficiency vs. quality tradeoff than existing methods across a wide range of problems, metrics, and datasets. Furthermore, in the special case that one matrix is known ahead of time, our method computes matrix products with no multiplication operations, a property that may be of interest to hardware designers.
 
@@ -91,35 +93,35 @@ Multiplying matrices is among the most fundamental and most computationally dema
 
 % \maketitle
 
-% ================================================================
-\section{Introduction} \label{sec:intro}
-% ================================================================
+% % ================================================================
+% \section{Introduction} \label{sec:intro}
+% % ================================================================
 
-\input{intro.tex}
+% \input{intro.tex}
 
-%================================================================
-\section{Related Work}
-%================================================================
+% %================================================================
+% \section{Related Work}
+% %================================================================
 
-\input{relatedWork.tex}
+% \input{relatedWork.tex}
 
-%================================================================
-\section{Background and Problem Statement}
-%================================================================
+% %================================================================
+% \section{Background and Problem Statement}
+% %================================================================
 
-\input{background.tex}
+% \input{background.tex}
 
-%================================================================
-\section{Method}
-%================================================================
+% %================================================================
+% \section{Method}
+% %================================================================
 
-\input{method.tex}
+% \input{method.tex}
 
-%================================================================
-\section{Theoretical Analysis}
-%================================================================
+% %================================================================
+% \section{Theoretical Analysis}
+% %================================================================
 
-\input{theory.tex}
+% \input{theory.tex}
 
 %================================================================
 \section{Experiments}
@@ -127,7 +129,7 @@ Multiplying matrices is among the most fundamental and most computationally dema
 
 \input{results.tex}
 
-% %================================================================
+%================================================================
 % \section{Open Questions and Future Directions}
 % %================================================================
 

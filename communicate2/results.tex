@@ -1,28 +1,75 @@
 
+To assess Mithral's effectiveness in practice, we implemented both it and existing algorithms in C++ and Python. All of our code and raw numerical results are publicly available, along with additional experiments omitted from this section.\footnote{https://smarturl.it/mithral}. In order to avoid implementation bias, we built upon the source code provided by \citep{bolt}\footnote{https://github.com/dblalock/bolt}. All experiments use a single thread on a 2013 Macbook Pro with a 2.6GHz Intel Core i7-4960HQ processor. Unless stated otherwise, all timing results use five trials, with each trial reporting the lowest time it took the code to execute in 20 runs. We use the best, rather than average, since this is standard practice in performance benchmarking and is robust to the purely additive noise introduced by competing CPU tasks.
+
+Because nearly all existing work on approximate matrix multiplication either focuses on special cases that do not satisfy our problem definition \cite{quicker-adc, pq, opq} or synthetic matrices, there is not a clear set of benchmark matrix multiply tasks to use. We therefore propose a collection of tasks that we believe are both reproducible and representative of many real-world matrices. These tasks include multiplication of hundreds of real-world matrices, which is, to the best of our knowledge, orders of magnitude more than have been used in any previous study.
+
+% ------------------------------------------------
+\subsection{Methods Tested}
+% ------------------------------------------------
+Most baselines take the form of selecting a matrix $\V \in \R^{D \times d}, d < D$ such that $\A \B \approx (\A \V) (\V^\top \B)$. Here $d$ is a free parameter that adjusts the quality vs speed tradeoff.
+
+\begin{itemize}\itemsep0em
+    \item PCA. We set $\V$ equal to the top principal components of the training matrix $\A_T$.
+    \item SparsePCA. We set $\V = \frac{1}{N_{train}} \argmin  + \lambda \norm{\V}_1$ TODO. This is not the only dictionary learning formulation referred to as SparsePCA [], but it is reasonably representative and is the only one with support in any major Python machine learning library.\footnote{TODO sklearn link here}.
+
+    Because SparsePCA requires the tuning of both $d$ and $\lambda$ for each matrix, we took steps to ensure that its results were not hampered by insufficient hyperparameter tuning. First, for each matrix product, we tried a range of lambda values which we found to encompass the full gamut of nearly 0\% to nearly 100\% sparsity: $\lambda \in 2^i, i \in \{-5, -4, -3, -2, -1, 0, 1, 2, 3\}$. Second, because different sparsity patterns may yield different exeuction times, we report not times from the single matrix SparsePCA produces for a given ($d, \lambda$) pair, but the best times from any of ten random matrices of the same size and at most the same sparsity. Finally and most importantly, we plot only the pareto frontier of (speed, quality) pairs produced for a given matrix multiply. I.e., we let SparsePCA cherrypick its best results on each individual matrix multiply.
+    % First, for any given $d$ value and level of sparsity, we report
+    % For each matrix product, we tried $\lambda \in 2^i, i \in \{-5, -4, -3, -2, -1, 0, 1, 2, 3\}$ for each matrix product. To ensure that our results err on the side of optimism (and also speed up our experiments), we report the best
+    % selected the lambda \textit{post-hoc}---i.e., we cherrypicked the best results on the test set rather than cross-validating,
+    \item FastJL \cite{fastjl}. Note that we don't time the fast hadamard transform step.
+    \item HashJL \cite{hashjl}. TODO concise summary of this.
+    \item OSNAP \cite{osnap}. The OSNAP sketch is essentially a collection of $s$ HashJL sketches, each of dimensionality $d / s$. Following \cite{iSVD}, we set $s = 4$. We also tried other values of $s$ and found that other values did not perform significantly better (except $s=1$, which reduces to HashJL).
+    \item RandGauss []. The entries of $\V$ are drawn i.i.d. from $\N(0, D^{-\frac{1}{2}})$.
+    \item OrthoGauss []. The entries of $\V$ initialized as in RandGauss, and then $\V$ is set to the $\mat{Q}$ matrix in a QR decomposition of a RandGauss matrix.
+    \item Rademacher \cite{sparseJL}. The entries of $\V$ are i.i.d. Rademacher random variables scaled by $\frac{1}{\sqrt{D}}$. TODO is that the right scale?
+    \item Bolt \cite{bolt}. As discussed in Section~\ref{sec:relatedWork} Bolt is the most similar to our own method. It is not optimized for small $M$, however, effectively performing a preliminary matrix product with $M=16$ as a preprocessing step.
+    \item Brute Force. We simply compute the matrix product $\A\B$ using a modern BLAS implementation. We also implemented our own matrix product function specialized for tall, skinny matrices. In all cases, we report the timings based on the better of these two functions for a given matrix product.
+\end{itemize}
+
+In addition to these baselines, we test two variations of our method:
+\begin{itemize}
+    \item Mithral. This is the algorithm described in Section~\ref{sec:methods}.
+    \item MithralPQ. This is a handicapped version of Mithral with $L=1$ instead of $L=C$. The disparity in performance between Mithral and MithralPQ is the gain from our proposed codebook finetuning algorithm.
+\end{itemize}
+
 % ------------------------------------------------
 \subsection{Softmax Classifier}
 % ------------------------------------------------
 
-Resnet-56 on CIFAR-10, CIFAR-100
+We approximated linear classifiers on the widely used CIFAR-10 and CIFAR-100 datasets []. The classifiers use as input features the 512-dimensional activations of an open-source, VGG-like neural networks trained on each dataset []. The matrices $\A$ are the $10000 \times 512$ -dimensional activations for the full test sets, and the matrices $\B$ are each original network's final dense layer.
 
-maybe actually get a ton of these softmaxes on these 2 datasets and make a bunch of subplots
-    -this would end up being kind of our main quantitative result
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=\linewidth]{amm/cifar_Speedup_Accuracy}
+\caption{Mithral.}
+\label{fig:cifar}
+\end{center}
+\end{figure}
 
 % ------------------------------------------------
 \subsection{Image Processing}
 % ------------------------------------------------
 
-Maybe just all the images from Caltech-101
-    -because high resolution, pretty standard, and not too many images
-        -fewer images = easier to work with than imagenet
-            -and don't need 1M of them to get a good comparison of methods
-
-    -probably just vertical filters of different sizes
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=\linewidth]{amm/caltech_Speedup_1 - NMSE}
+\caption{Boom, such accuracy.}
+\label{fig:caltech}
+\end{center}
+\end{figure}
 
 
 % ------------------------------------------------
-\subsection{Time Series Forecasting}
+\subsection{Kernel-based classification}
 % ------------------------------------------------
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=\linewidth]{amm/ucr_Speedup_Relative Accuracy}
+\caption{Boom, such accuracy.}
+\label{fig:ucr}
+\end{center}
+\end{figure}
 
 ampd power dataset
 
