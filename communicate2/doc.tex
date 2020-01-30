@@ -6,7 +6,8 @@
 \usepackage{hyperref}
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
 % \usepackage[accepted]{sysml2019}
-\usepackage{sysml2019}
+% \usepackage{sysml2019}
+\usepackage{icml2020}
 
 % \newcommand{\npapers}{\text{83 }}
 % \newcommand{\rawnpapers}{83}
@@ -26,14 +27,16 @@
 \input{setup.tex}
 
 % optional custom title for header
-\sysmltitlerunning{Multiplying Matrices Without Multiplying}
+% \sysmltitlerunning{Multiplying Matrices Without Multiplying}
+\icmltitlerunning{Multiplying Matrices Without Multiplying}
 
 \begin{document}
 
 \twocolumn[
 % ================================================================
 % \title{Have We Actually Learned Anything about \\ Pruning Neural Networks?}
-\sysmltitle{Multiplying Matrices Without Multiplying}
+% \sysmltitle{Multiplying Matrices Without Multiplying}
+\icmltitle{Multiplying Matrices Without Multiplying}
 % \title{Have We Actually Learned Anything about Pruning Neural Networks?}
 % ================================================================
 
@@ -63,25 +66,53 @@
 % }
 % \email{guttag@mit.edu}
 
-\begin{sysmlauthorlist}
-\sysmlauthor{Davis Blalock}{mit}
-\sysmlauthor{Jose Javier Gonzalez Ortiz?}{mit}
-\sysmlauthor{John Guttag}{mit}
-\end{sysmlauthorlist}
+% \begin{sysmlauthorlist}
+\begin{icmlauthorlist}
+% \sysmlauthor{Davis Blalock}{mit}
+% \sysmlauthor{John Guttag}{mit}
+\icmlauthor{Davis Blalock}{mit}
+\icmlauthor{Tamara Broderick?}{mit}
+\icmlauthor{John Guttag}{mit}
+% \end{sysmlauthorlist}
+\end{icmlauthorlist}
 
-\sysmlaffiliation{csail}{MIT CSAIL, Cambridge, MA, USA}
-\sysmlcorrespondingauthor{Davis Blalock}{dblalock@mit.edu}
+% \sysmlaffiliation{csail}{MIT CSAIL, Cambridge, MA, USA}
+% \sysmlcorrespondingauthor{Davis Blalock}{dblalock@mit.edu}
+\icmlaffiliation{csail}{MIT CSAIL, Cambridge, MA, USA}
+\icmlcorrespondingauthor{Davis Blalock}{dblalock@mit.edu}
 
 % apparently these only show up in pdf metadata, not document
-\sysmlkeywords{Approximate Algorithms, Matrix Multiplication}
+% \sysmlkeywords{Approximate Algorithms, Matrix Multiplication}
+\icmlkeywords{Approximate Algorithms, Matrix Multiplication}
 
 \vskip 0.3in
+] % end of icml 2 columnn
+
+\printAffiliationsAndNotice{}
 
 % ------------------------------------------------
 \begin{abstract}
 % ------------------------------------------------
 
-Multiplying matrices is among the most fundamental and most computationally demanding tasks in machine learning and scientific computing. Consequently, the task of efficiently approximating matrix products has received a great deal of attention in recent years. Existing approximation methods work by reducing the number of multiply-add operations, reducing the bitwidth of the data, or by otherwise reducing the cost of each multiply-add. We describe a method that, given time to preprocess one of the two matrices, eliminates the multiply-add operations entirely. Moreover, experiments across a wide range of datasets show that our method obtains a significantly better efficiency vs. quality tradeoff than existing approaches.
+Multiplying matrices is among the most fundamental and most computationally demanding operations in numerical computing. Consequently, the task of efficiently approximating matrix products has received a great deal of attention in recent years. Existing approximation methods work by reducing the number of multiply-add operations, reducing the bitwidth of the data, or by otherwise reducing the cost of each multiply-add.
+
+We describe a method that, given time to preprocess one of the two matrices, \textit{eliminates} the multiply-add operations. Moreover, experiments across hundreds of matrices from diverse domains show that our method is consistently $10\times$ faster than existing approaches for a given level of approximation error. For example, we are able to approximate a softmax classifier on the CIFAR-10 dataset $91\times$ faster than brute force with a $1\%$ loss of accuracy and no retraining.
+
+% \paragraph{Alternate Version}
+% Multiplying matrices is among the most fundamental and most computationally demanding operations in machine learning and scientific computing. Consequently, the task of efficiently approximating matrix products has received a great deal of attention in recent years.
+
+% We introduce an approximate matrix multiplication algorithm that significantly outperforms existing methods on hundreds of real-world matrices from diverse domains, often by a factor of $10\times$ or more.
+% Our algorithm obtains this speedup by departing from the traditional approaches that \textit{reduce} the number of multiply-add operations, we preprocess one of the matrices such that subsequent multiplies are \textit{eliminated entirely}.
+
+% Current methods work by reducing the number and cost of multiply-add operations through sparsity, factorization, and reduced bitwidth. We introduce a method that, given time to preprocess one of the two matrices, \textit{eliminates the multiply-add operations entirely}.
+
+% Moreover, in contrast to current methods, our algorithm does not reduce the cost of each multiply-add or diminish their number through factorization or sparsity; instead, it \textit{eliminates the multiply-adds} entirely by intelligently preprocessing one of the matrices.
+
+
+% not reduce the number of scalar multiply-adds,
+
+
+% after evaluating various approaches across hundreds of matrices from dive,
 
 % Our method also has theoretical guarantees, based on an approach to bounding sums of weakly dependent variables that may be of independent interest.
 
@@ -89,33 +120,33 @@ Multiplying matrices is among the most fundamental and most computationally dema
 
 
 \end{abstract}
-]  % end of manual twocolumn for sysml
+% ]  % end of manual twocolumn for sysml
 
 % \maketitle
 
-% % ================================================================
-% \section{Introduction} \label{sec:intro}
-% % ================================================================
+% ================================================================
+\section{Introduction} \label{sec:intro}
+% ================================================================
 
-% \input{intro.tex}
+\input{intro.tex}
 
-% %================================================================
-% \section{Related Work}
-% %================================================================
+%================================================================
+\section{Related Work}
+%================================================================
 
-% \input{relatedWork.tex}
+\input{relatedWork.tex}
 
-% %================================================================
-% \section{Background and Problem Statement}
-% %================================================================
+%================================================================
+\section{Background - Product Quantization}
+%================================================================
 
-% \input{background.tex}
+\input{background.tex}
 
-% %================================================================
-% \section{Method}
-% %================================================================
+%================================================================
+\section{Method}
+%================================================================
 
-% \input{method.tex}
+\input{method.tex}
 
 % %================================================================
 % \section{Theoretical Analysis}
@@ -123,11 +154,11 @@ Multiplying matrices is among the most fundamental and most computationally dema
 
 % \input{theory.tex}
 
-%================================================================
-\section{Experiments}
-%================================================================
+% %================================================================
+% \section{Experiments}
+% %================================================================
 
-\input{results.tex}
+% \input{results.tex}
 
 %================================================================
 % \section{Open Questions and Future Directions}
@@ -158,6 +189,7 @@ We sure did multiply those matrices. In the near future, we plan to integrate ou
 % \bibliographystyle{ACM-Reference-Format}
 % \bibliographystyle{abbrev}
 \bibliographystyle{sysml2019}
-\bibliography{prune,architectures,misc,understandDnn,classic,datasets,compress,science,metapapers}
+% \bibliography{prune,architectures,misc,understandDnn,classic,datasets,compress,science,metapapers}
+\bibliography{misc,sprintz,extract,bolt,backprop-alternatives,distillation,fast-dnn-runtime-stuff,fast-optimize,nets-theory,small-fast-arch,sparseAndPrune,scalarQuantize,vectorQuantize,combo,hashing,shrink+prune,binarize,ternary,automl,zero-shot,few-shot,amm,adversarial}
 
 \end{document}

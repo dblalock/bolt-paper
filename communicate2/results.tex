@@ -19,7 +19,7 @@ Most baselines take the form of selecting a matrix $\V \in \R^{D \times d}, d < 
     \item FastJL \cite{fastjl}. Note that we don't time the fast hadamard transform step.
     \item HashJL \cite{hashjl}. TODO concise summary of this.
     \item OSNAP \cite{osnap}. The OSNAP sketch is essentially a collection of $s$ HashJL sketches, each of dimensionality $d / s$. Following \cite{iSVD}, we set $s = 4$. We also tried other values of $s$ and found that other values did not perform significantly better (except $s=1$, which reduces to HashJL).
-    \item RandGauss []. The entries of $\V$ are drawn i.i.d. from $\N(0, D^{-\frac{1}{2}})$.
+    \item RandGauss []. The entries of $\V$ are drawn i.i.d. from $\mathcal{N}(0, D^{-\frac{1}{2}})$.
     \item OrthoGauss []. The entries of $\V$ initialized as in RandGauss, and then $\V$ is set to the $\mat{Q}$ matrix in a QR decomposition of a RandGauss matrix.
     \item Rademacher \cite{sparseJL}. The entries of $\V$ are i.i.d. Rademacher random variables scaled by $\frac{1}{\sqrt{D}}$. TODO is that the right scale?
     \item Bolt \cite{bolt}. As discussed in Section~\ref{sec:relatedWork} Bolt is the most similar to our own method. It is not optimized for small $M$, however, effectively performing a preliminary matrix product with $M=16$ as a preprocessing step.
@@ -33,31 +33,40 @@ In addition to these baselines, we test two variations of our method:
 \end{itemize}
 
 % ------------------------------------------------
-\subsection{Softmax Classifier}
+\subsection{How fast is Mithral?}
 % ------------------------------------------------
-
-We approximated linear classifiers on the widely used CIFAR-10 and CIFAR-100 datasets []. The classifiers use as input features the 512-dimensional activations of an open-source, VGG-like neural networks trained on each dataset []. The matrices $\A$ are the $10000 \times 512$ -dimensional activations for the full test sets, and the matrices $\B$ are each original network's final dense layer.
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[width=\linewidth]{amm/cifar_Speedup_Accuracy}
-\caption{Mithral.}
+\includegraphics[width=\linewidth]{amm/encode_speed}
+\caption{Mithral encodes the matrix $\A$ orders of magnitude more quickly than existing vector quantization methods.}
+\label{fig:cifar}
+\end{center}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=\linewidth]{amm/scan_speed}
+\caption{Given the encoded matrices, Mithral computes the approximate output twice as fast as the fastest existing method.}
 \label{fig:cifar}
 \end{center}
 \end{figure}
 
 % ------------------------------------------------
-\subsection{Image Processing}
+\subsection{Softmax Classifier}
 % ------------------------------------------------
+
+We approximated linear classifiers on the widely used CIFAR-10 and CIFAR-100 datasets []. The classifiers use as input features the 512-dimensional activations of an open-source, VGG-like neural networks trained on each dataset []. The matrices $\A$ are the $10000 \times 512$ -dimensional floating point activations for the full test sets, and the matrices $\B$ are each original network's final dense layer.
+
+As shown in Figure~\ref{fig:cifar}, Mithral significantly outperforms all existing methods, achieving near-perfect accuracy more than an order of magnitude faster than brute force.
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[width=\linewidth]{amm/caltech_Speedup_1 - NMSE}
-\caption{Boom, such accuracy.}
-\label{fig:caltech}
+\includegraphics[width=\linewidth]{amm/cifar_Speedup_Accuracy}
+\caption{Mithral achieves a dramatically better speed-accuracy tradeoff than any existing method when approximating two softmax classifiers.}
+\label{fig:cifar}
 \end{center}
 \end{figure}
-
 
 % ------------------------------------------------
 \subsection{Kernel-based classification}
@@ -65,7 +74,7 @@ We approximated linear classifiers on the widely used CIFAR-10 and CIFAR-100 dat
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[width=\linewidth]{amm/ucr_Speedup_Relative Accuracy}
+\includegraphics[width=\linewidth]{amm/ucr2_Speedup_Relative Accuracy_rbf}
 \caption{Boom, such accuracy.}
 \label{fig:ucr}
 \end{center}
@@ -75,4 +84,24 @@ ampd power dataset
 
 n-tap multivariate AR model for n = 8, 16, 32
 
+% ------------------------------------------------
+\subsection{Image Processing}
+% ------------------------------------------------
 
+To test the extreme limits of Mithral, we benchmarked the various techniques' ability to apply small filters to images. We took the first 10 images from the first 50 classes of the Caltech101 dataset as the training set, and the first 10 images from the remaining 51 classes as the test set. We constructed the $\A$ matrices by extracting each patch of each image in
+
+To allow meaningful speed comparisons across images, we resized and center cropped each image to $224 \times 224$ as commonly done in image classification pipelines (see, e.g., []).
+
+% Notes
+%   -CHW order
+%   -resized and center cropped to 224x224 as is common in deep learning
+%   -stride of (2, 2) on training set because
+
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=\linewidth]{amm/caltech_Speedup_1 - NMSE}
+\caption{Despite having only $M=2$ columns in the matrix $\B$, Mithral still achieves a significant speedup with reasonable accuracy. It is, however, much more effective for approximating a 5x5 low-pass filter (bottom) than a 3x3 high-pass filter (top). Methods that did not simultanesouly perform better than chance and provide any speedup over brute force are not shown.}
+\label{fig:caltech}
+\end{center}
+\end{figure}

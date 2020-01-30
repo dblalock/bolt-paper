@@ -1,32 +1,94 @@
 
-% ------------------------------------------------
-\subsection{Problem Formulation}
-% ------------------------------------------------
+Recall that our task is to construct functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$ such that
+\begin{align}
+    \norm{f(g(\A), h(\B)) - \A\B}_F < \eps(\tau) \norm{\A\B}_F
+\end{align}
+$\eps(\tau)$ is minimized given a time constraint $\tau$.
 
-We consider three variations of the approximate matrix multiply problem. In all cases, let X = ...., <other variable definitions here>.
+In this section, we discuss the vector quantization (VQ) approach to approximate matrix multiplication. % \cite{pq}, a classic approach to this problem that serves as a conceptual foundation for our own method. There are three basic steps behind PQ:
+At a high level, this approach consists of the following:
+\begin{enumerate}
+    \item asdf
+    % \item $g(\A)$
+    % \item Replacing each row of $\A$ with a prototype chosen from a predefined set.%
+    \item $g(\A)$ - Replacing each row of $\A$ with a prototype chosen from a predefined set.
+    \item asdf $h(\B)$ - Precomputing the dot products between each column of $\B$ and each prototype.
+    \item $f(\cdot,\cdot)$ - Using the precomputed dot products to \textit{lookup} the product $A[i]^\top B[:, j]$\footnote{Because we will frequently need to refer to slices of rank-3 tensors and above, we employ Python-style slicing notation rather than traditional superscripts and subscripts.} rather than compute it with a series of multiply-adds.
+\end{enumerate}
 
-Maybe a table of assumptions of different methods as far as training data and preprocessing time. And/or which problem statement they try to solve.
-
-Problem 1: No training data at all (most AMM work, ours with LUT computation + untrained encoding)
-
-Problem 2: Training data for one matrix (ours with LUT computation)
-
-Problem 3: One matrix fixed (VQ stuff with no optimizing wrt query, ours without learned quantization)
-
-Problem 4: Training data for both matrices (VQ stuff that rotates using query distro, Bolt, ours with LUT computation + weighting errs)
-
-Problem 5: Training data for one matrix, other matrix fixed (ours)
-
-% this is not quite MECE because could have one matrix fixed and other completely unknown, in which case no LUT computation but also no trained quantizers. Probably just note that this possibility exists and our method could do it, but we ignore it for rest of the paper because
-
-Note that this is maybe not a sufficient characterization because ours is also mostly just useful when one of the matrices is like really small.
-
-Should probably just show ours, ours without learned quantization func, and ours with LUT computation at runtime. As a result, should only introduce these three problems.
+We elaborate upon each of these steps below.
 
 % ------------------------------------------------
-\subsection{Vector Quantization}
+\subsection{Quantization Function - $g(\A)$}
 % ------------------------------------------------
 
-With problem statement ourFrame stuff using the two encoding functions and one distance function.
+% ------------------------------------------------
+\subsection{Table Construction - $h(\B)$}
+% ------------------------------------------------
 
-First walk through basic VQ-based dot product, with img from poster.
+% ------------------------------------------------
+\subsection{Lookup Scan - $f(\cdot,\cdot)$}
+% ------------------------------------------------
+
+
+% % ------------------------------------------------
+% \subsection{Problem Formulation}
+% % ------------------------------------------------
+
+% Let $\A \in \R^{N \times D}$ and $\B \in \R^{D \times M}$ be two matrices, with $N \gg D, M$, and $M$ not significantly larger than $D$. Given a computation time budget $\tau$, our task is to
+% construct three functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$ such that
+% \begin{align}
+%     \norm{f(g(\A), h(\B)) - \A\B}_F < \eps(\tau) \norm{\A\B}_F
+% \end{align}
+% for the smallest error $\eps(\tau)$ possible.
+
+% % . Moreover, the computation time $\tau(\eps)$ to run these three functions should be much smaller than the comuputation time $\tau_0$ to compute $\A\B$ directly.
+
+% We assume the existence of a training set $\tilde{\A}$, whose rows are drawn from the same distribution as the rows of $\A$. This is a natural assumption in the case that rows of $\A$ represent examples in training data, or structured subsets thereof (such as patches of natural images). This assumption is common in the information retrieval literature \cite{bolt, pairq}.%, but not in theoretical work.
+
+% % We also focus on the case in which $B$ has at most a few hundred columns--or even as few as 10. This is the range of sizes that one might obtain in a neural network, where each column of $B$ corresponds to one output neuron. It is also small enough that asymptotic complexity is a not a good characterization of how an algorithm will perform in practice.
+
+% We also assume that the cost of computing $h(\B)$ negligible provided that $h(\B) \in O(MD)$. One sufficient condition for this is $\B$ being provided ahead of time (as is the case when $\B$ represents predefined model weights). A second is that $\B$ has sufficiently few columns compared to the number of rows in $\A$.%, which happens when $N$ is sufficiently large relative to $M * \frac{\tau(\eps)}{\tau(0)}$.
+
+% % % ------------------------------------------------
+% % \subsection{Existing approaches}
+% % % ------------------------------------------------
+
+% % Many existing approaches construct a matrix $\V \in \R^{D \times d}, d < D$ such that
+% % \begin{align}
+% %     \A \B \approx (\A \V) (\V^\top \B).
+% % \end{align}
+% % Often, $\V$ is sparse [] or has structure [] such that these projection operations are faster than a dense matrix multiply.
+
+
+% % % ------------------------------------------------
+% % \subsection{Problem Formulation}
+% % % ------------------------------------------------
+
+% % We consider three variations of the approximate matrix multiply problem. In all cases, let X = ...., <other variable definitions here>.
+
+% % Maybe a table of assumptions of different methods as far as training data and preprocessing time. And/or which problem statement they try to solve.
+
+% % Problem 1: No training data at all (most AMM work, ours with LUT computation + untrained encoding)
+
+% % Problem 2: Training data for one matrix (ours with LUT computation)
+
+% % Problem 3: One matrix fixed (VQ stuff with no optimizing wrt query, ours without learned quantization)
+
+% % Problem 4: Training data for both matrices (VQ stuff that rotates using query distro, Bolt, ours with LUT computation + weighting errs)
+
+% % Problem 5: Training data for one matrix, other matrix fixed (ours)
+
+% % % this is not quite MECE because could have one matrix fixed and other completely unknown, in which case no LUT computation but also no trained quantizers. Probably just note that this possibility exists and our method could do it, but we ignore it for rest of the paper because
+
+% % Note that this is maybe not a sufficient characterization because ours is also mostly just useful when one of the matrices is like really small.
+
+% % Should probably just show ours, ours without learned quantization func, and ours with LUT computation at runtime. As a result, should only introduce these three problems.
+
+% % % ------------------------------------------------
+% % \subsection{Vector Quantization}
+% % % ------------------------------------------------
+
+% % With problem statement ourFrame stuff using the two encoding functions and one distance function.
+
+% % First walk through basic VQ-based dot product, with img from poster.

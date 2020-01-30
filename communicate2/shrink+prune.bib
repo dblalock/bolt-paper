@@ -1,0 +1,127 @@
+
+@article{he_amc:_2018,
+	title = {{AMC}: {AutoML} for {Model} {Compression} and {Acceleration} on {Mobile} {Devices}},
+	shorttitle = {{AMC}},
+	url = {http://arxiv.org/abs/1802.03494},
+	abstract = {Model compression is a critical technique to eﬃciently deploy neural network models on mobile devices which have limited computation resources and tight power budgets. Conventional model compression techniques rely on hand-crafted heuristics and rule-based policies that require domain experts to explore the large design space trading oﬀ among model size, speed, and accuracy, which is usually sub-optimal and time-consuming. In this paper, we propose AutoML for Model Compression (AMC) which leverage reinforcement learning to provide the model compression policy. This learning-based compression policy outperforms conventional rule-based compression policy by having higher compression ratio, better preserving the accuracy and freeing human labor. Under 4× FLOPs reduction, we achieved 2.7\% better accuracy than the handcrafted model compression policy for VGG-16 on ImageNet. We applied this automated, push-the-button compression pipeline to MobileNet and achieved 1.81× speedup of measured inference latency on an Android phone and 1.43× speedup on the Titan XP GPU, with only 0.1\% loss of ImageNet Top-1 accuracy.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1802.03494 [cs]},
+	author = {He, Yihui and Lin, Ji and Liu, Zhijian and Wang, Hanrui and Li, Li-Jia and Han, Song},
+	month = feb,
+	year = {2018},
+	note = {arXiv: 1802.03494},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {He et al. - 2018 - AMC AutoML for Model Compression and Acceleration.pdf:/Users/davis/Zotero/storage/TB83Y5CN/He et al. - 2018 - AMC AutoML for Model Compression and Acceleration.pdf:application/pdf}
+}
+
+@article{chandrasekhar_compression_2017,
+	title = {Compression of {Deep} {Neural} {Networks} for {Image} {Instance} {Retrieval}},
+	url = {http://arxiv.org/abs/1701.04923},
+	abstract = {Image instance retrieval is the problem of retrieving images from a database which contain the same object. Convolutional Neural Network (CNN) based descriptors are becoming the dominant approach for generating \{{\textbackslash}it global image descriptors\} for the instance retrieval problem. One major drawback of CNN-based \{{\textbackslash}it global descriptors\} is that uncompressed deep neural network models require hundreds of megabytes of storage making them inconvenient to deploy in mobile applications or in custom hardware. In this work, we study the problem of neural network model compression focusing on the image instance retrieval task. We study quantization, coding, pruning and weight sharing techniques for reducing model size for the instance retrieval problem. We provide extensive experimental results on the trade-off between retrieval performance and model size for different types of networks on several data sets providing the most comprehensive study on this topic. We compress models to the order of a few MBs: two orders of magnitude smaller than the uncompressed models while achieving negligible loss in retrieval performance.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1701.04923 [cs]},
+	author = {Chandrasekhar, Vijay and Lin, Jie and Liao, Qianli and Morère, Olivier and Veillard, Antoine and Duan, Lingyu and Poggio, Tomaso},
+	month = jan,
+	year = {2017},
+	note = {arXiv: 1701.04923},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {Chandrasekhar et al. - 2017 - Compression of Deep Neural Networks for Image Inst.pdf:/Users/davis/Zotero/storage/E4LUV7YY/Chandrasekhar et al. - 2017 - Compression of Deep Neural Networks for Image Inst.pdf:application/pdf}
+}
+
+@article{choi_universal_2018,
+	title = {Universal {Deep} {Neural} {Network} {Compression}},
+	url = {http://arxiv.org/abs/1802.02271},
+	abstract = {Compression of deep neural networks (DNNs) for memory- and computation-efﬁcient compact feature representations becomes a critical problem particularly for deployment of DNNs on resource-limited platforms. In this paper, we investigate lossy compression of DNNs by weight quantization and lossless source coding for memory-efﬁcient inference. Whereas the previous work addressed non-universal scalar quantization and entropy coding of DNN weights, we for the ﬁrst time introduce universal DNN compression by universal vector quantization and universal source coding. In particular, we examine universal randomized lattice quantization of DNNs, which randomizes DNN weights by uniform random dithering before lattice quantization and can perform near-optimally on any source without relying on knowledge of its probability distribution. Entropy coding schemes such as Huffman codes require prior calculation of source statistics, which is computationally consuming. Instead, we propose universal lossless source coding schemes such as variants of Lempel–Ziv–Welch or the Burrows–Wheeler transform. Finally, we present the methods of ﬁne-tuning vector quantized DNNs to recover the performance loss after quantization. Our experimental results show that the proposed universal DNN compression scheme achieves compression ratios of 124.80, 47.10 and 42.46 for LeNet5, 32-layer ResNet and AlexNet, respectively.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1802.02271 [cs]},
+	author = {Choi, Yoojin and El-Khamy, Mostafa and Lee, Jungwon},
+	month = feb,
+	year = {2018},
+	note = {arXiv: 1802.02271},
+	keywords = {Computer Science - Machine Learning, Computer Science - Computer Vision and Pattern Recognition, Computer Science - Neural and Evolutionary Computing},
+	file = {Choi et al. - 2018 - Universal Deep Neural Network Compression.pdf:/Users/davis/Zotero/storage/8Q7UVD6Z/Choi et al. - 2018 - Universal Deep Neural Network Compression.pdf:application/pdf}
+}
+
+@article{wen_terngrad:_nodate,
+	title = {{TernGrad}: {Ternary} {Gradients} to {Reduce} {Communication} in {Distributed} {Deep} {Learning}},
+	abstract = {High network communication cost for synchronizing gradients and parameters is the well-known bottleneck of distributed training. In this work, we propose TernGrad that uses ternary gradients to accelerate distributed deep learning in data parallelism. Our approach requires only three numerical levels \{−1, 0, 1\}, which can aggressively reduce the communication time. We mathematically prove the convergence of TernGrad under the assumption of a bound on gradients. Guided by the bound, we propose layer-wise ternarizing and gradient clipping to improve its convergence. Our experiments show that applying TernGrad on AlexNet doesn’t incur any accuracy loss and can even improve accuracy. The accuracy loss of GoogLeNet induced by TernGrad is less than 2\% on average. Finally, a performance model is proposed to study the scalability of TernGrad. Experiments show signiﬁcant speed gains for various deep neural networks. Our source code is available 1.},
+	language = {en},
+	author = {Wen, Wei and Xu, Cong and Yan, Feng and Wu, Chunpeng and Wang, Yandan and Chen, Yiran and Li, Hai},
+	pages = {11},
+	file = {Wen et al. - TernGrad Ternary Gradients to Reduce Communicatio.pdf:/Users/davis/Zotero/storage/LNHZE65Q/Wen et al. - TernGrad Ternary Gradients to Reduce Communicatio.pdf:application/pdf}
+}
+
+@article{han_deep_2015,
+	title = {Deep {Compression}: {Compressing} {Deep} {Neural} {Networks} with {Pruning}, {Trained} {Quantization} and {Huffman} {Coding}},
+	shorttitle = {Deep {Compression}},
+	url = {http://arxiv.org/abs/1510.00149},
+	abstract = {Neural networks are both computationally intensive and memory intensive, making them difﬁcult to deploy on embedded systems with limited hardware resources. To address this limitation, we introduce “deep compression”, a three stage pipeline: pruning, trained quantization and Huffman coding, that work together to reduce the storage requirement of neural networks by 35× to 49× without affecting their accuracy. Our method ﬁrst prunes the network by learning only the important connections. Next, we quantize the weights to enforce weight sharing, ﬁnally, we apply Huffman coding. After the ﬁrst two steps we retrain the network to ﬁne tune the remaining connections and the quantized centroids. Pruning, reduces the number of connections by 9× to 13×; Quantization then reduces the number of bits that represent each connection from 32 to 5. On the ImageNet dataset, our method reduced the storage required by AlexNet by 35×, from 240MB to 6.9MB, without loss of accuracy. Our method reduced the size of VGG-16 by 49× from 552MB to 11.3MB, again with no loss of accuracy. This allows ﬁtting the model into on-chip SRAM cache rather than off-chip DRAM memory. Our compression method also facilitates the use of complex neural networks in mobile applications where application size and download bandwidth are constrained. Benchmarked on CPU, GPU and mobile GPU, compressed network has 3× to 4× layerwise speedup and 3× to 7× better energy efﬁciency.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1510.00149 [cs]},
+	author = {Han, Song and Mao, Huizi and Dally, William J.},
+	month = oct,
+	year = {2015},
+	note = {arXiv: 1510.00149},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition, Computer Science - Neural and Evolutionary Computing},
+	file = {Han et al. - 2015 - Deep Compression Compressing Deep Neural Networks.pdf:/Users/davis/Zotero/storage/8ZEXLGUY/Han et al. - 2015 - Deep Compression Compressing Deep Neural Networks.pdf:application/pdf}
+}
+
+@article{hinton_keeping_nodate,
+	title = {Keeping {Neural} {Networks} {Simple} by {Minimizing} the {Description} {Length} of the {Weights}},
+	abstract = {Supervised neural networks generalize well if there is much less information in the weights than there is in the output vectors of the training cases. So during learning, it is important to keep the weights simple by penalizing the amount of information they contain. The amount of information in a weight can be controlled by adding Gaussian noise and the noise level can be adapted during learning to optimize the trade-off between the expected squared error of the network and the amount of information in the weights. We describe a method of computing the derivatives of the expected squared error and of the amount of information in the noisy weights in a network that contains a layer of non-linear hidden units. Provided the output units are linear, the exact derivatives can be computed efficiently without time-consuming Monte Carlo simulations. The idea of minimizing the amount of information that is required to communicate the weights of a neural network leads to a number of intereating schemes for encoding the weights.},
+	language = {en},
+	author = {Hinton, E},
+	pages = {9},
+	file = {Hinton - Keeping Neural Networks Simple by Minimizing the D.pdf:/Users/davis/Zotero/storage/7VUBF93B/Hinton - Keeping Neural Networks Simple by Minimizing the D.pdf:application/pdf}
+}
+
+@article{xiao_building_2017,
+	title = {Building {Fast} and {Compact} {Convolutional} {Neural} {Networks} for {Offline} {Handwritten} {Chinese} {Character} {Recognition}},
+	url = {http://arxiv.org/abs/1702.07975},
+	abstract = {Like other problems in computer vision, oﬄine handwritten Chinese character recognition (HCCR) has achieved impressive results using convolutional neural network (CNN)-based methods. However, larger and deeper networks are needed to deliver state-of-the-art results in this domain. Such networks intuitively appear to incur high computational cost, and require the storage of a large number of parameters, which renders them unfeasible for deployment in portable devices. To solve this problem, we propose a Global Supervised Low-rank Expansion (GSLRE) method and an Adaptive Drop-weight (ADW) technique to solve the problems of speed and storage capacity. We design a nine-layer CNN for HCCR consisting of 3,755 classes, and devise an algorithm that can reduce the networks computational cost by nine times and compress the network to 1/18 of the original size of the baseline model, with only a 0.21\% drop in accuracy. In tests, the proposed algorithm surpassed the best single-network performance reported thus far in the literature while requiring only 2.3 MB for storage. Furthermore, when integrated with our eﬀective forward implementation, the recognition of an oﬄine character image took only 9.7 ms on a CPU. Compared with the state-of-the-art CNN model for HCCR, our approach is approximately 30 times faster, yet 10 times more cost eﬃcient.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1702.07975 [cs]},
+	author = {Xiao, Xuefeng and Jin, Lianwen and Yang, Yafeng and Yang, Weixin and Sun, Jun and Chang, Tianhai},
+	month = feb,
+	year = {2017},
+	note = {arXiv: 1702.07975},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {Xiao et al. - 2017 - Building Fast and Compact Convolutional Neural Net.pdf:/Users/davis/Zotero/storage/87EUP5SJ/Xiao et al. - 2017 - Building Fast and Compact Convolutional Neural Net.pdf:application/pdf}
+}
+
+@inproceedings{wang_accelerating_2016,
+	address = {Amsterdam, The Netherlands},
+	title = {Accelerating {Convolutional} {Neural} {Networks} for {Mobile} {Applications}},
+	isbn = {978-1-4503-3603-1},
+	url = {http://dl.acm.org/citation.cfm?doid=2964284.2967280},
+	doi = {10.1145/2964284.2967280},
+	abstract = {Convolutional neural networks (CNNs) have achieved remarkable performance in a wide range of computer vision tasks, typically at the cost of massive computational complexity. The low speed of these networks may hinder realtime applications especially when computational resources are limited. In this paper, an e cient and e↵ective approach is proposed to accelerate the test-phase computation of CNNs based on low-rank and group sparse tensor decomposition. Speciﬁcally, for each convolutional layer, the kernel tensor is decomposed into the sum of a small number of low multilinear rank tensors. Then we replace the original kernel tensors in all layers with the approximate tensors and ﬁne-tune the whole net with respect to the ﬁnal classiﬁcation task using standard backpropagation.},
+	language = {en},
+	urldate = {2018-11-07},
+	booktitle = {Proceedings of the 2016 {ACM} on {Multimedia} {Conference} - {MM} '16},
+	publisher = {ACM Press},
+	author = {Wang, Peisong and Cheng, Jian},
+	year = {2016},
+	pages = {541--545},
+	file = {Wang and Cheng - 2016 - Accelerating Convolutional Neural Networks for Mob.pdf:/Users/davis/Zotero/storage/4ZEEEGNS/Wang and Cheng - 2016 - Accelerating Convolutional Neural Networks for Mob.pdf:application/pdf}
+}
+
+@article{ullrich_soft_2017,
+	title = {Soft {Weight}-{Sharing} for {Neural} {Network} {Compression}},
+	url = {http://arxiv.org/abs/1702.04008},
+	abstract = {The success of deep learning in numerous application domains created the desire to run and train them on mobile devices. This however, conﬂicts with their computationally, memory and energy intense nature, leading to a growing interest in compression. Recent work by Han et al. (2015a) propose a pipeline that involves retraining, pruning and quantization of neural network weights, obtaining state-of-the-art compression rates. In this paper, we show that competitive compression rates can be achieved by using a version of ”soft weight-sharing” (Nowlan \& Hinton, 1992). Our method achieves both quantization and pruning in one simple (re-)training procedure. This point of view also exposes the relation between compression and the minimum description length (MDL) principle.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1702.04008 [cs, stat]},
+	author = {Ullrich, Karen and Meeds, Edward and Welling, Max},
+	month = feb,
+	year = {2017},
+	note = {arXiv: 1702.04008},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning},
+	file = {Ullrich et al. - 2017 - Soft Weight-Sharing for Neural Network Compression.pdf:/Users/davis/Zotero/storage/Z3ACNH8G/Ullrich et al. - 2017 - Soft Weight-Sharing for Neural Network Compression.pdf:application/pdf}
+}

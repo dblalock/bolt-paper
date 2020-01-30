@@ -1,6 +1,15 @@
+
+Recall that our task is to construct functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$ such that
+\begin{align}
+    \norm{f(g(\A), h(\B)) - \A\B}_F < \eps(\tau) \norm{\A\B}_F
+\end{align}
+$\eps(\tau)$ is minimized given a time constraint $\tau$.
+
 % ------------------------------------------------
-\subsection{Quantization Functions}
+\subsection{Quantization Function - $g(\A)$}
 % ------------------------------------------------
+
+We begin by discussing
 
 Basically just intuition for why it just splits on a bunch of dims. Then define a split formally. Then pseudocode (or probably just formula for applying them)
 
@@ -13,7 +22,11 @@ Introduction to fact that we have two variations, one that requires training dat
 Pseudocode for probably both, but maybe just the greedy one.
 
 % ------------------------------------------------
-\subsection{Multiplying Matrices}
+\subsection{Table Construction - $h(\B)$}
+% ------------------------------------------------
+
+% ------------------------------------------------
+\subsection{Lookup Scan - $f(\cdot,\cdot)$}
 % ------------------------------------------------
 
 If we didn't have pseudocode in background section, put it here. Break it down by encoding, LUT creation, and distance computation. Seems like we should probably already have explained these, so probably just text saying we kind of tie it all together and replace whatever lines in earlier pseudocode with hash-based encoding.

@@ -1,0 +1,55 @@
+
+@article{gao_spotlight:_nodate,
+	title = {Spotlight: {Optimizing} {Device} {Placement} for {Training} {Deep} {Neural} {Networks}},
+	abstract = {Training deep neural networks (DNNs) requires an increasing amount of computation resources, and it becomes typical to use a mixture of GPU and CPU devices. Due to the heterogeneity of these devices, a recent challenge is how each operation in a neural network can be optimally placed on these devices, so that the training process can take the shortest amount of time possible. The current state-of-the-art solution uses reinforcement learning based on the policy gradient method, and it suffers from suboptimal training times. In this paper, we propose Spotlight, a new reinforcement learning algorithm based on proximal policy optimization, designed speciﬁcally for ﬁnding an optimal device placement for training DNNs. The design of our new algorithm relies upon a new model of the device placement problem: by modeling it as a Markov decision process with multiple stages, we are able to prove that Spotlight achieves a theoretical guarantee on performance improvements. We have implemented Spotlight in the CIFAR-10 benchmark and deployed it on the Google Cloud platform. Extensive experiments have demonstrated that the training time with placements recommended by Spotlight is 60.9\% of that recommended by the policy gradient method.},
+	language = {en},
+	author = {Gao, Yuanxiang and Chen, Li and Li, Baochun},
+	pages = {9},
+	file = {Gao et al. - Spotlight Optimizing Device Placement for Trainin.pdf:/Users/davis/Zotero/storage/G8QCAATB/Gao et al. - Spotlight Optimizing Device Placement for Trainin.pdf:application/pdf}
+}
+
+@article{ji_blackout:_2015,
+	title = {{BlackOut}: {Speeding} up {Recurrent} {Neural} {Network} {Language} {Models} {With} {Very} {Large} {Vocabularies}},
+	shorttitle = {{BlackOut}},
+	url = {http://arxiv.org/abs/1511.06909},
+	abstract = {We propose BlackOut, an approximation algorithm to efﬁciently train massive recurrent neural network language models (RNNLMs) with million word vocabularies. BlackOut is motivated by using a discriminative loss, and we describe a weighted sampling strategy which signiﬁcantly reduces computation while improving stability, sample efﬁciency, and rate of convergence. One way to understand BlackOut is to view it as an extension of the DropOut strategy to the output layer, wherein we use a discriminative training loss and a weighted sampling scheme. We also establish close connections between BlackOut, importance sampling, and noise contrastive estimation (NCE). Our experiments, on the recently released one billion word language modeling benchmark, demonstrate scalability and accuracy of BlackOut; we outperform the state-of-the art, and achieve the lowest perplexity scores on this dataset. Moreover, unlike other established methods which typically require GPUs or CPU clusters, we show that a carefully implemented version of BlackOut requires only 1-10 days on a single machine to train a RNNLM with a million word vocabulary and billions of parameters on one billion words. Although we describe BlackOut in the context of RNNLM training, it can be used to any networks with large softmax output layers.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1511.06909 [cs, stat]},
+	author = {Ji, Shihao and Vishwanathan, S. V. N. and Satish, Nadathur and Anderson, Michael J. and Dubey, Pradeep},
+	month = nov,
+	year = {2015},
+	note = {arXiv: 1511.06909},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning, Computer Science - Computation and Language, Computer Science - Neural and Evolutionary Computing},
+	file = {Ji et al. - 2015 - BlackOut Speeding up Recurrent Neural Network Lan.pdf:/Users/davis/Zotero/storage/47PV4FTU/Ji et al. - 2015 - BlackOut Speeding up Recurrent Neural Network Lan.pdf:application/pdf}
+}
+
+@article{bakhtiary_speeding_2015,
+	title = {Speeding {Up} {Neural} {Networks} for {Large} {Scale} {Classification} using {WTA} {Hashing}},
+	url = {http://arxiv.org/abs/1504.07488},
+	abstract = {In this paper we propose to use the Winner Takes All hashing technique to speed up forward propagation and backward propagation in fully connected layers in convolutional neural networks. The proposed technique reduces signiﬁcantly the computational complexity, which in turn, allows us to train layers with a large number of kernels with out the associated time penalty.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1504.07488 [cs]},
+	author = {Bakhtiary, Amir H. and Lapedriza, Agata and Masip, David},
+	month = apr,
+	year = {2015},
+	note = {arXiv: 1504.07488},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {Bakhtiary et al. - 2015 - Speeding Up Neural Networks for Large Scale Classi.pdf:/Users/davis/Zotero/storage/FWW624LW/Bakhtiary et al. - 2015 - Speeding Up Neural Networks for Large Scale Classi.pdf:application/pdf}
+}
+
+@article{chandar_hierarchical_2016,
+	title = {Hierarchical {Memory} {Networks}},
+	url = {http://arxiv.org/abs/1605.07427},
+	abstract = {Memory networks are neural networks with an explicit memory component that can be both read and written to by the network. The memory is often addressed in a soft way using a softmax function, making end-to-end training with backpropagation possible. However, this is not computationally scalable for applications which require the network to read from extremely large memories. On the other hand, it is well known that hard attention mechanisms based on reinforcement learning are challenging to train successfully. In this paper, we explore a form of hierarchical memory network, which can be considered as a hybrid between hard and soft attention memory networks. The memory is organized in a hierarchical structure such that reading from it is done with less computation than soft attention over a ﬂat memory, while also being easier to train than hard attention over a ﬂat memory. Speciﬁcally, we propose to incorporate Maximum Inner Product Search (MIPS) in the training and inference procedures for our hierarchical memory network. We explore the use of various state-of-the art approximate MIPS techniques and report results on SimpleQuestions, a challenging large scale factoid question answering task.},
+	language = {en},
+	urldate = {2018-11-05},
+	journal = {arXiv:1605.07427 [cs, stat]},
+	author = {Chandar, Sarath and Ahn, Sungjin and Larochelle, Hugo and Vincent, Pascal and Tesauro, Gerald and Bengio, Yoshua},
+	month = may,
+	year = {2016},
+	note = {arXiv: 1605.07427},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning, Computer Science - Computation and Language, Computer Science - Neural and Evolutionary Computing},
+	file = {Chandar et al. - 2016 - Hierarchical Memory Networks.pdf:/Users/davis/Zotero/storage/A6F62VYF/Chandar et al. - 2016 - Hierarchical Memory Networks.pdf:application/pdf}
+}
