@@ -31,6 +31,9 @@
 \usepackage{pbox}   % for trick to force linebreaks in table cells
 
 \usepackage{setspace}
+
+\usepackage{bm}  % bold math
+
 % \usepackage{setspace}
 
 % \usepackage{booktabs} % acm recommended, and for pandas latex tables
@@ -114,9 +117,11 @@
 % \parskip 0ex plus 0.2ex minus 0.1ex
 
 % make vectors be bold instead of with arrows
-\renewcommand{\vec}[1]{\mathbf{#1}}
+% \renewcommand{\vec}[1]{\mathbf{#1}}
+\renewcommand{\vec}[1]{\bm{#1}}
 % add 'mat' command to make matrices bold
-\newcommand{\mat}[1]{\mathbf{#1}}
+% \newcommand{\mat}[1]{\mathbf{#1}}
+\newcommand{\mat}[1]{\bm{#1}}
 
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
@@ -149,8 +154,12 @@
 
 \newcommand{\A}{\mat{A}}
 \newcommand{\Ahat}{\mat{\hat{A}}}
+\renewcommand{\a}{\vec{a}}
+\newcommand{\ahat}{\vec{\hat{a}}}
 \newcommand{\B}{\mat{B}}
 \newcommand{\Bhat}{\mat{\hat{B}}}
+\renewcommand{\b}{\vec{b}}
+\newcommand{\bhat}{\vec{\hat{b}}}
 \newcommand{\V}{\mat{V}}
 
 \renewcommand{\H}{\mathcal{H}}

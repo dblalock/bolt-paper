@@ -1,34 +1,117 @@
 
-Recall that our task is to construct functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$ such that
-\begin{align}
-    \norm{f(g(\A), h(\B)) - \A\B}_F < \eps(\tau) \norm{\A\B}_F
-\end{align}
-$\eps(\tau)$ is minimized given a time constraint $\tau$.
+% In the previous section, we saw that Product Quantization (PQ) has time complexity $\Theta(NDK + DKC + NMC)$. For the $N, M \gg D$ case considered in existing literature, the preprocessing time contributing the first two terms is negligible and the complexity is effectively $\Theta(NMC)$. Unfortunately, when not running many queries (large $M$) on huge databases (large $N$), this case often does not hold. As discussed previously, we would like an algorithm that requires only $N \gg M, D$. In this setting, the preprocessing time $g(\A)$ can be significant, since $ND$ may be similar to (or even larger than) $NM$.
+
+Product Quantization and its variants yield a large speedup with $N, M \gg D$. However, we require an algorithm that only needs $N \gg M, D$. In this setting, the preprocessing time $g(\A)$ can be significant, since $ND$ may be similar to (or even larger than) $NM$.
+
+To address this case, we introduce a new $g(\A)$ function that yields large speedups even on much smaller matrices. %In this section, we describe how \oursp builds upon the foundation of PQ to achieve this. We also discuss aspects of \oursp that offer further enhancements that are applicable to vector quantization approaches in general.
+The main idea behind our function is to determine the ``most similar'' prototype through locality-sensitive hashing \cite{lsh}; i.e., rather than compute the Euclidean distance between the row $\a$ and each prototype, we hash $\a$ to one of $K$ buckets where similar vectors tend to hash to the same bucket. The prototypes are constructed as the means of all points hashing to the same bucket.
+
+% Each bucket is associated with a prototype, defined to be the mean of all training vectors hashing to that bucket.
 
 % ------------------------------------------------
-\subsection{Quantization Function - $g(\A)$}
+\subsection{Hash Function Family}
 % ------------------------------------------------
 
-We begin by discussing
+The key question in this approach is how to choose the locality-sensitive hash function. There are many possible functions to choose from []. Ideally, one would try all possible functions on any given dataset and choose the one that performed the best, as defined by having some combination of highest intra-bucket similarity and fastest runtime.
 
-Basically just intuition for why it just splits on a bunch of dims. Then define a split formally. Then pseudocode (or probably just formula for applying them)
+There are two types of locality-sensitive hash functions: data-independent and data-dependent []. The former assume no training set and are typically based on randomized algorithms []. The latter assume a training set, and most often involve training a neural network to produce binary codes []. We refer the reader to [] for a survey. As one might expect, data-dependent hash functions yield higher quality results, but tend to run more slowly.
+
+Because we seek to exploit a training set while also doing far less work than even a single linear transform, we found it advantageous to design our own family of hash functions. This function family may be of independent interest, but we leave exploration of its efficacy in other contexts to future work. We do not claim that this method outperforms all possible alternatives---merely that it enables excellent results in our experiments.
+
+The family of hash functions we choose is balanced binary regression trees with axis-aligned splits. Each leaf of the tree is one bucket, so hashing consists of determining the appropriate leaf for a vector. To enable the use of SIMD instructions, the tree is limited to sixteen leaves and all nodes at a given level of the tree are required to split on the same axis (though not the same value).
+
+Formally, consider a set of $4$ indices ${j_1,\ldots,j_4}$ and a set of $2^4 - 1 = 15$split values $v_1,\ldots,v_15$. A vector $\x$ is mapped to an index using Algorithm~\ref{algo:ourEnc}.
+
+\begin{algorithm}[h]
+% \begin{struct}[h]
+% \label{algo:xff}
+% \floatname{algorithm}{Algorithm}
+\caption{FIRE\_Forecaster Class} \label{algo:xff}
+\begin{algorithmic}[1]
+
+\end{algorithmic}
+\end{algorithm}
 
 % ------------------------------------------------
-\subsection{Learning Splits}
+\subsection{Hashing quickly}
 % ------------------------------------------------
 
-Introduction to fact that we have two variations, one that requires training data and one that doesn't. Former is greedy and mention that we prove it's close to optimal.
+% Because the primary contribution is the idea of using a hash function \textit{at all} for this purpose,
 
-Pseudocode for probably both, but maybe just the greedy one.
+% Unfortunately, we found that randomized functions (as used in nearly all existing literature) performed poorly in practice. In many cases, this can be determined \textit{a priori}; for example, methods based on random projections []---including structured ones []---amount to linear operators, which are what we are attempting to avoid in the first place. Such methods also often entail hard-to-vectorize $\argmax$ functions and/or linear-time norm computations [].
+
+% An alternative to using randomized functions is to use a learned hash function.
+
+% Consequently, we designed a family of hash functions that yields high intra-bucket similarity and can run extremely quickly in modern CPUs. This function family may of independent interest, but we leave exploration of its efficacy in other contexts to future work. We do not claim that this method outperforms---merely that it enables excellent results in our experiments.
+
+
+% Specifically, in each of the $C$ subspaces, we learn a function $g^{(c)}: \R^{|\mathcal{J}^{(c)}|} \rightarrow \mathbb{Z}_K$ such that $Pr[g^{(c)}(\x) = g^{(c)}(\y)]$ is greater when $\norm{\x - \y}_2$ is smaller. % This is technically not equivalent to the traditional definition of locality sensitive hashing \cite{lsh}, in which
+
+%$g^{(c)}(\a)$
+
+% The main difference between our approach and PQ is the encoding funciton.
+
+% ------------------------------------------------
+\subsection{Learning the Hash Functions}
+% ------------------------------------------------
+
+
+
+% % ------------------------------------------------
+% \subsection{Encoding Function - $g(\A)$}
+% % ------------------------------------------------
+
+% \begin{align} \label{eq:ourLoss}
+%     g(\a)^{(c)} \triangleq \argmin_k \sum_{j\in \mathcal{J}_c} (\a_j - \mat{P}^{(c)}_{k,j})^2
+% \end{align}
+
 
 % ------------------------------------------------
 \subsection{Table Construction - $h(\B)$}
 % ------------------------------------------------
 
 % ------------------------------------------------
-\subsection{Lookup Scan - $f(\cdot,\cdot)$}
+\subsection{Aggregation - $f(\cdot,\cdot)$}
 % ------------------------------------------------
 
-If we didn't have pseudocode in background section, put it here. Break it down by encoding, LUT creation, and distance computation. Seems like we should probably already have explained these, so probably just text saying we kind of tie it all together and replace whatever lines in earlier pseudocode with hash-based encoding.
+% ------------------------------------------------
+\subsection{Complexity and Discussion}
+% ------------------------------------------------
+
+ % is sufficient  is sufficient zzto yield a speedup of $\Theta(\frac{D}{C})$  Unfortunately, outside of information retrieval, this case often does not hold. As discussed previously, we would like an algorithm that requires only $N \gg M, D$. In this setting, the preprocessing time
+
+
+
+% Recall that our task is to construct functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$ such that
+% \begin{align}
+%     \norm{f(g(\A), h(\B)) - \A\B}_F < \eps(\tau) \norm{\A\B}_F
+% \end{align}
+% $\eps(\tau)$ is minimized given a time constraint $\tau$.
+
+% % ------------------------------------------------
+% \subsection{Quantization Function - $g(\A)$}
+% % ------------------------------------------------
+
+% We begin by discussing
+
+% Basically just intuition for why it just splits on a bunch of dims. Then define a split formally. Then pseudocode (or probably just formula for applying them)
+
+% % ------------------------------------------------
+% \subsection{Learning Splits}
+% % ------------------------------------------------
+
+% Introduction to fact that we have two variations, one that requires training data and one that doesn't. Former is greedy and mention that we prove it's close to optimal.
+
+% Pseudocode for probably both, but maybe just the greedy one.
+
+% % ------------------------------------------------
+% \subsection{Table Construction - $h(\B)$}
+% % ------------------------------------------------
+
+% % ------------------------------------------------
+% \subsection{Lookup Scan - $f(\cdot,\cdot)$}
+% % ------------------------------------------------
+
+% If we didn't have pseudocode in background section, put it here. Break it down by encoding, LUT creation, and distance computation. Seems like we should probably already have explained these, so probably just text saying we kind of tie it all together and replace whatever lines in earlier pseudocode with hash-based encoding.
 
 
