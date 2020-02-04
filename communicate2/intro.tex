@@ -66,12 +66,12 @@ Our contributions can be summarized as follows:
 \end{itemize}
 
 % ------------------------------------------------
-\subsection{Problem Formulation}
+\subsection{Problem Formulation} \label{sec:problemStatement}
 % ------------------------------------------------
 
 Let $\A \in \R^{N \times D}$ and $\B \in \R^{D \times M}$ be two matrices, with $N \gg D, M$, and $M$ not significantly larger than $D$. Given a computation time budget $\tau$, our task is to
 construct three functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$ such that
-\begin{align}
+\begin{align} \label{eq:objective}
     \norm{\alpha f(g(\A), h(\B)) + \mat{\beta} - \A\B}_F < \eps(\tau) \norm{\A\B}_F
 \end{align}
 for the smallest error $\eps(\tau)$ possible. The scalar $\alpha$ and bias matrix $\mat{\beta}$ must be constants, and are separated from $f(\cdot)$ so that it can produce low-bitwidth outputs that may not capture the range of values in $\A\B$. %Furthermore, $\alpha$ must be a power of $2$ so that multiplication can be replaced with bit shifting.\footnote{}

@@ -143,12 +143,17 @@
 % \newcommand{\mat}[1]{\mathbf{#1}}
 \newcommand{\mat}[1]{\bm{#1}}
 
+
+\newcommand{\cs}[0]{\text{, }}
+
 % \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 % \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 \providecommand{\ceil}[1]{\left \lceil #1 \right \rceil }
 \providecommand{\floor}[1]{\left \lfloor #1 \right \rfloor }
 
-\newtheorem{Definition}{Definition}[section]
+% \newtheorem{Definition}{Definition}[section]
+% \newtheorem{Theorem}{Theorem}[section]
+% \newtheorem{P}{Definition}[section]
 
 % ------------------------ convenience commands
 \newcommand\eps\varepsilon
@@ -219,8 +224,8 @@
 
 
 % \usepackage{mathtools}
-% \usepackage{amsthm}           % theorems
-% \newtheorem{theorem}{Theorem}[section]
-% \newtheorem{lemma}{Lemma}[section]
-% \newtheorem{definition}{Definition}[section]
-% \newtheorem{corollary}{Corrolary}[section]
+\usepackage{amsthm}           % theorems
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{corollary}{Corrolary}[section]
