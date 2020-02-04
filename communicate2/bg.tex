@@ -34,6 +34,8 @@ We discuss the most relevant of these vector quantization-based approaches in mo
 
 Our method is also built on vector quantization, but instead of applying $g(\cdot)$ to a transformed matrix $\A \V_A$, we directly transform $\A$ itself. Because we use a $g(\cdot)$ function that does not require any multiply-adds, our overall procedure requires multiply-adds only if $\V_B^\top \B$ cannot be precomputed. We also depart from existing vector-quantization based AMM through the addition of several more algorithmic enhancements, but defer discussion of these to section~\ref{sec:method}.
 
+TODO talk about Ryan Spring's DNNs + Hashing stuff somewhere. Also talk about idea of using LSH for clustering being an existing thing in the differential privacy literature.
+
 % There have been variations of this approach (see \cite{learningToHashSurvey, hashingSimilaritySurvey} for detailed surveys), with much of the effort aimed at developing better $\V_A$ and $\V_B$ matrices.
 
 

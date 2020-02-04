@@ -9,52 +9,193 @@ The main idea behind our function is to determine the ``most similar'' prototype
 % Each bucket is associated with a prototype, defined to be the mean of all training vectors hashing to that bucket.
 
 % ------------------------------------------------
-\subsection{Hash Function Family}
+\subsection{Hash Function Family, $g(\cdot)$}
 % ------------------------------------------------
 
-The key question in this approach is how to choose the locality-sensitive hash function. There are many possible functions to choose from []. Ideally, one would try all possible functions on any given dataset and choose the one that performed the best, as defined by having some combination of highest intra-bucket similarity and fastest runtime.
-
-There are two types of locality-sensitive hash functions: data-independent and data-dependent []. The former assume no training set and are typically based on randomized algorithms []. The latter assume a training set, and most often involve training a neural network to produce binary codes []. We refer the reader to [] for a survey. As one might expect, data-dependent hash functions yield higher quality results, but tend to run more slowly.
+The key question in this approach is how to choose the locality-sensitive hash function. %There are many possible functions to choose from []. % Ideally, one would try all possible functions on any given dataset and choose the one that performed the best, as defined by having some combination of highest intra-bucket similarity and fastest runtime.
+% There are two types of locality-sensitive hash functions
+There are two types of these functions to choose from: data-independent and data-dependent []. The former assume no training set and are typically based on randomization []. The latter assume a training set, and most often involve training a neural network to produce binary codes []. We refer the reader to [] for a survey. As one might expect, data-dependent hash functions yield higher quality results, but tend to run more slowly and lack formal guarantees.
 
 Because we seek to exploit a training set while also doing far less work than even a single linear transform, we found it advantageous to design our own family of hash functions. This function family may be of independent interest, but we leave exploration of its efficacy in other contexts to future work. We do not claim that this method outperforms all possible alternatives---merely that it enables excellent results in our experiments.
 
 The family of hash functions we choose is balanced binary regression trees with axis-aligned splits. Each leaf of the tree is one bucket, so hashing consists of determining the appropriate leaf for a vector. To enable the use of SIMD instructions, the tree is limited to sixteen leaves and all nodes at a given level of the tree are required to split on the same axis (though not the same value).
 
-Formally, consider a set of $4$ indices ${j_1,\ldots,j_4}$ and a set of $2^4 - 1 = 15$split values $v_1,\ldots,v_15$. A vector $\x$ is mapped to an index using Algorithm~\ref{algo:ourEnc}.
+% hack to get perfect spacing
+% \algnewcommand{\COMMENTT}[2][.5\linewidth]{\leavevmode\hfill\makebox[#1][l]{\hphantom{a} // ~#2}}
+
+% Formally, consider a set of four indices ${j_1,\ldots,j_d}$ and four arrays of split values $\vec{v}_1,\ldots,\vec{v}_d$, with $v_d^\prime$ having length $2^{d^\prime} - 1$. A vector $\x$ is mapped to an index using Algorithm~\ref{algo:ourEnc}.
+Formally, consider a set of four indices ${j^1,\ldots,j^4}$ and four arrays of split values $\vec{v}^1,\ldots,\vec{v}^4$, with $v_t$ having length $2^{t-1}$. A vector $\x$ is mapped to an index using Algorithm~\ref{algo:ourEnc}.
+\begin{algorithm}[h]
+\caption{\oursp Hash Function} \label{algo:ourEnc}
+\begin{algorithmic}[1]
+    \STATE {\bfseries Input:} vector $\x$, split indices ${j^1,\ldots,j^4}$, split values $\vec{v}^1,\ldots,\vec{v}^4$
+    % \STATE {$i \leftarrow 0$}  \COMMENT{Node Index Within Level (Zero-Indexed)}
+    \STATE {$i \leftarrow 1$}  \COMMENT{node index within level of tree}
+    % \STATE {$i \leftarrow 1$}  \bgroup\hfill//~Foo\egroup
+    \FOR{$t \leftarrow 1 \textbf{ to } 4$}
+    % // for each level of tree
+    % \STATE{$v \leftarrow \vec{v}^t_i$}   %\phantom{    }// lookup split value based on current $i$
+    % \STATE{$b \leftarrow a_{j^t} \ge v \text{ ? } 1 \text{ : } 0$}  %\phantom{  }// above split value?
+    \STATE{$v \leftarrow \vec{v}^t_i$}   \COMMENT{lookup split value for node $i$ at level $t$}
+    \STATE{$b \leftarrow x_{j^t} \ge v \text{ ? } 1 \text{ : } 0$}  \COMMENT{above split value?}
+    % \STATE{$i \leftarrow 2i - 1 + b$}  %\phantom{    }// node index in next tree level
+    \STATE{$i \leftarrow 2i - 1 + b$} \COMMENT{assign to left or right child}
+    \ENDFOR
+    \STATE{ \textbf{return} $i$}
+    % \RETURN {$i + 1$}  \COMMENT{One-indexed}
+    % \RETURN {$i$}
+\end{algorithmic}
+\end{algorithm}
+
+This function is simple, only depends on a constant number of indices in the input vector, and can easily be vectorized, provided that the matrix whose rows are being encoded is stored in column-major order.
+
+The only subtlety in doing this vectorization is that one must execute line 4 using shuffle instructions such as \texttt{vpshufb} on x86, \texttt{vtbl} on ARM, or \texttt{vtbl} on PowerPC. In order to do this, the split values and scalars $x_{j^t}$ must be 8-bit integers. We quantize them by learning for each split index $j$ a pair of scalars $(\gamma_j, \delta_j)$, where
+\begin{align}
+    \delta_j &\triangleq \min_i \v^j_i \\
+    % \gamma_j \triangleq 2^l, l = \left \lfloor \text{log2} \left( \frac{255}{\max_i \v^j_i - \delta_j} \right) \right \rfloor
+    \gamma_j &\triangleq 2^l, l = \floor{ \log_2 \left( \frac{255}{\max_i \v^j_i - \delta_j} \right) }
+\end{align}
+% and
+% \begin{align}
+% %     &\min_i \v^j_i - \delta_j = 0 \\
+% %     &\max_i \gamma_j(\v^j_i - \delta_j) \le 255
+% \end{align}
+% and $\gamma_j$ is a power of 2.
+This restriction of $\gamma_j$ to power of two allows one to quantize $x_{j^t}$ values with only shifts instead of multiplies. The $\vec{v}$ values can be quantized at the end of the training phase, while the $x_{j^t}$ values must be quantized within Algorithm~\ref{algo:ourEnc} before line 5.% (though in practice, $\gamma_j$ and $\delta_j$ are applied using a fused-multiply-add.
+% first computing the minimum and maximum split value within each $\vec{v}$, subtracting the smallest value
+
+% ------------------------------------------------
+\subsection{Learning the Hash Function Parameters}
+% ------------------------------------------------
+
+The split indices ${j^1,\ldots,j^4}$ and split values $\vec{v}^1,\ldots,\vec{v}^4$ are optimized on the training set $\tilde{\A}$ using a greedy algorithm. This algorithm begins with a single-node tree and iteratively adds levels by splitting the current tree's leaves. It tracks which rows of $\tilde{\A}$ are assigned to each leaf node in order to assess the quality of possible splits and choose the best among those considered. To generate possible splits, the algorithm proposes a small number of indices using a heuristic and determines the optimal split values for each index.% , and chooses the index and values that yield the lowest loss. This loss is defined
+
+To describe this process more formally, it will be helpful to introduce the notion of a \textit{bucket} $\mathcal{B}^t_i$ which is the set of vectors hashed to node $i$ in level $t$ of the tree, with the root of the tree as level 0 and $\mathcal{B}^0_1$ containing all the vectors. It will also be helpful to define the loss associated with a bucket, or a specific (index, bucket) pair. These losses are is defined as:
+\begin{align}
+    \mathcal{L}(j \text{, } \mathcal{B}) &\triangleq \sum_{x \in \mathcal{B}} \left( x_j - \frac{1}{|\mathcal{B}|}\sum_{x \in \mathcal{B}} \right)^2.  \\
+    \mathcal{L}(\mathcal{B}) &\triangleq \sum_j \mathcal{L}(j \text{, } \mathcal{B})
+\end{align}
+I.e., this loss for each index is the sum of squared errors (SSE) when estimating each $x_j$ as equal to its mean value within the bucket, and the overall loss for a bucket is the sum of the values in each dimension. The overall loss can also be understood as the ``energy'' of the bucket [].
+Using this notation, it suffices to characterize the learning algorithm by describing the construction of level $t$ of the tree given buckets $\mathcal{B}^{t-1}_1,\ldots,\mathcal{B}^{t-1}_{2^{t-1}}$ from the previous level.
+
+The construction of level $t$ of the tree is given in Algorithm~\ref{algo:learnTree}.
+In line~\ref{line:dimHeuristic}, we select a certain number of indices to evaluate. Several heuristics are possible, including evaluating all indices. We found that simply selecting the top $n$ indices that contributed the most loss summed across all buckets was difficult to beat. In preliminary experiments, we found that using $n > 4$ indices offered little or no additional benefit (and even choosing $n = 1$ was nearly as good), so we hardcode $n = 4$.
+% The loss associated with a given index in a given bucket is the variance within that dimension multiplied by the size of the bucket---i.e., the sum of squared errors compared to the bucket's mean.
+
+In lines~\ref{lines:dimEvalStart}-\ref{lines:dimEvalStart}, we find the minimal loss obtainable by splitting all buckets along that index, but with bucket-specific cutoffs. This loss is minimal not in the sense that it leads to the best overall tree, but that it minimizes the sum of the losses in the buckets produced in this iteration. To do this, we invoke the subroutine \texttt{optimal\_split\_value}, which takes in a bucket $\mathcal{B}$ and an index $j$ and tests all possible splits to find which minimizes $\mathcal{L}(j \text{, } \mathcal{B})$. This can be done in time $\Theta(b \log(b))$, where $b = |\mathcal{B}|$. The pseudocode for this subroutine is given in Algorithm~\ref{algo:optimalSplitVal} and Algorithm~\ref{algo:cumSSE}. These algorithms exploit the fact that the sum of squared errors can be computed using only the sum of values and sum of squared values, both of which can be updated in $O(1)$ time when a vector is moved from one side of the split to the other.
+
+TODO move optimal\_split\_val algorithms to appendix / supplementary materials.
+
+Once a split index and array of split values are chosen, all that remains is to split the buckets to form the next level of the tree (lines~\ref{line:splitBucketsStart}-\ref{line:splitBucketsEnd}). This just entails forming two child buckets from each current bucket, where the first child has vectors whose elements $x_j$ are less than the bucket's split value and the second child has those whose elements are above the bucket's split value.
+
+Once the full tree has been constructed, the prototypes are set to the means of each bucket.
 
 \begin{algorithm}[h]
-% \begin{struct}[h]
-% \label{algo:xff}
-% \floatname{algorithm}{Algorithm}
-\caption{FIRE\_Forecaster Class} \label{algo:xff}
+\caption{Adding The Next Level to the Hashing Tree} \label{algo:learnTree}
 \begin{algorithmic}[1]
+    \STATE {\bfseries Input:} buckets $\mathcal{B}^{t-1}_1,\ldots,\mathcal{B}^{t-1}_{2^{t-1}}$, training matrix $\tilde{\A}$
+
+    \LINECOMMENT{Greedily choose next split index and values}
+    \STATE{$\mathcal{\hat{J}} \leftarrow \texttt{heuristic\_select\_idxs}(
+        \mathcal{B}^{t-1}_1,\ldots,\mathcal{B}^{t-1}_{2^{t-1}})$}\label{line:dimHeuristic}
+    \STATE{$l_{min} \text{, } j_{min}, \vec{v}^{min} \leftarrow \inf \text{, NaN, NaN}$}
+    \FOR{$j \in \mathcal{\hat{J}}$} \label{line:dimEvalStart}
+        \STATE{$l \leftarrow 0 $}  \COMMENT{Initialize loss for this index to 0}
+        \STATE{$\vec{v} \leftarrow \text{[ ]}$} \COMMENT{Empty list of split values}
+        \FOR{$i \leftarrow 1 \textbf{ to } 2^{t-1} $}
+            \STATE{$v_i \text{, } l_i \leftarrow \texttt{optimal\_split\_value}(j \text{, } \mathcal{B}^{t-1}_i) $}
+            \STATE{$\texttt{append}(\vec{v}, v_i)$}  \COMMENT{append split value for bucket $i$}
+            \STATE{$l \leftarrow l + l_i$}  \COMMENT{accumulate loss from bucket $i$}
+        \ENDFOR
+        \IF {$ l < l_{min} $}
+            \STATE{$l_{min} \leftarrow l \text{, } j_{min} \leftarrow j \text{, } \vec{v}^{min} \leftarrow \vec{v} $}
+            \COMMENT{new best split}
+        \ENDIF
+    \ENDFOR \label{line:dimEvalStart}
+
+    \LINECOMMENT{Create new buckets using chosen split}
+    \STATE{$\bm{\mathcal{B}} \leftarrow $ [ ]} \label{line:splitBucketsStart}
+    \FOR{$i \leftarrow 1 \textbf{ to } 2^{t-1} $}
+        \STATE{ $\mathcal{B}_{below} \text{, } \mathcal{B}_{above} \leftarrow \texttt{apply\_split}(v^{min}_i \text{, } \mathcal{B}^{t-1}_i) $}
+        % \STATE{$\texttt{append}(\bm{\mathcal{B}}, [\mathcal{B}_{below}, \mathcal{B}_{above}])$}
+        \STATE{$\texttt{append}(\bm{\mathcal{B}}, \mathcal{B}_{below})$}
+        \STATE{$\texttt{append}(\bm{\mathcal{B}}, \mathcal{B}_{above})$}
+    \ENDFOR \label{line:splitBucketsEnd}
+    \STATE{\textbf{return } $\bm{\mathcal{B}} \text{, } l_{min} \text{, } j_{min} \text{, } v^{min}$}
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[h]
+\caption{Optimal Split Value Within a Bucket} \label{algo:optimalSplitVal}
+\begin{algorithmic}[1]
+    \STATE {\bfseries Input:} bucket $\mathcal{B}$, index $j$
+    \STATE {$\mat{X} \leftarrow \texttt{as\_2d\_array}(\mathcal{B})$ }
+    \STATE {$\mat{X}^{sort} = \texttt{sort\_rows\_based\_on\_col}(\mat{X} \text{, } j)$}
+    \STATE {$\texttt{sses\_head} \leftarrow \texttt{cumulative\_sse}(\mat{X}^{sort}, \texttt{false}) $}
+    \STATE {$\texttt{sses\_tail} \leftarrow \texttt{cumulative\_sse}(\mat{X}^{sort}, \texttt{true}) $}
+    \STATE {$\texttt{losses} \leftarrow \texttt{sses\_head} $}
+    \STATE {$\texttt{losses}_{1:N-1} \leftarrow \texttt{losses}_{1:N-1} + \texttt{sses\_tail}_{2:n} $}
+    % \STATE {$ n^\ast \leftarrow \min_n \sum_{d=1}^D $}
+    % \STATE {$ n^\ast \leftarrow \argmin_n \texttt{sses\_head}_n + \texttt{sses\_tail}_{n+1} $}
+    \STATE {$ n^\ast \leftarrow \argmin_n \texttt{losses}_n $}
+    \STATE{$ \textbf{return } (\mat{X}^{sort}_{n^\ast, j} + \mat{X}^{sort}_{n^\ast + 1, j}) / 2 \text{, } \texttt{losses}_{n^\ast} $}
+    % \STATE {$\texttt{sses\_tail} \leftarrow \texttt{reverse\_row\_order}(\texttt{cumsse\_cols}(\texttt{reverse\_row\_order}(\mat{X}_{sort})_) $}
+    % \STATE {$\texttt{sses\_tail} \leftarrow \texttt{reverse\_row\_order}(\texttt{cumsse\_cols}(\texttt{reverse\_row\_order}(\mat{X}_{sort})_) $}
 
 \end{algorithmic}
 \end{algorithm}
 
+\begin{algorithm}[h]
+% \caption{Cumulative SSE Within Columns} \label{algo:cumSSE}
+\caption{Cumulative SSE} \label{algo:cumSSE}
+\begin{algorithmic}[1]
+    \STATE {\bfseries Input:} 2D array $\mat{X}$, boolean \texttt{reverse}
+    \STATE {$N, D \leftarrow \texttt{shape}(\mat{X})$}
+    \IF {\texttt{reverse}}
+        \STATE{$ \forall_i \texttt{ swap}(\mat{X}_{i,d}, \mat{X}_{N-i+1,d}) $}
+    \ENDIF
+
+    % \STATE {$\texttt{out} \leftarrow \texttt{empty}(N \text{, } D)$}
+    \STATE {$\texttt{out} \leftarrow \texttt{empty}(N)$}
+    \STATE {$\texttt{cumX} \leftarrow \texttt{empty}(D)$}
+    \STATE {$\texttt{cumX2} \leftarrow \texttt{empty}(D)$}
+
+    \LINECOMMENT{Initialize first row of output and cumulative values}
+    \STATE{$\texttt{out}_{1} \leftarrow 0 $}
+    \FOR{$d \leftarrow 1 \textbf{ to } D $}
+        \STATE{$\texttt{cumX}_d \leftarrow X_{1, d} $}
+        \STATE{$\texttt{cumX2}_d \leftarrow (X_{1, d})^2 $}
+        % \STATE{$\texttt{out}_{1, d} \leftarrow 0 $}
+    \ENDFOR
+    \LINECOMMENT{Compute remaining output rows}
+    \FOR{$n \leftarrow 2 \textbf{ to } N $}
+        \STATE{$\texttt{out}_{n} \leftarrow 0 $}
+        \FOR{$d \leftarrow 1 \textbf{ to } D $}
+            \STATE{$\texttt{cumX}_d \leftarrow \texttt{cumX}_d + X_{1, d} $}
+            \STATE{$\texttt{cumX2}_d \leftarrow \texttt{cumX2}_d + (X_{1, d})^2 $}
+            % \STATE{$\texttt{meanX} \leftarrow \texttt{cumX}_d / n $}
+            % \STATE{$\texttt{out}_{n, d} \leftarrow \texttt{cumX2}_d - (\texttt{cumX}_d \times \texttt{cumX}_d / n)$}
+            \STATE{$\texttt{out}_{n} \leftarrow \texttt{out}_{n} + \texttt{cumX2}_d - (\texttt{cumX}_d \times \texttt{cumX}_d / n)$}
+        \ENDFOR
+    \ENDFOR
+    \STATE{\textbf{return } \texttt{out}}
+\end{algorithmic}
+\end{algorithm}
+
 % ------------------------------------------------
-\subsection{Hashing quickly}
+\subsection{Optimizing the Prototypes}
 % ------------------------------------------------
 
-% Because the primary contribution is the idea of using a hash function \textit{at all} for this purpose,
+At this point, we have a complete algorithm. We could simply drop our hash-based encoding function into PQ and approximate matrix products. However, we contribute two additional enhancements.
 
-% Unfortunately, we found that randomized functions (as used in nearly all existing literature) performed poorly in practice. In many cases, this can be determined \textit{a priori}; for example, methods based on random projections []---including structured ones []---amount to linear operators, which are what we are attempting to avoid in the first place. Such methods also often entail hard-to-vectorize $\argmax$ functions and/or linear-time norm computations [].
+First, we introduce a means of optimizing the prototypes given only the matrix $\tilde{\A}$. While several methods proposed prototype or table optimizations based on knowledge of $\B$ [] and others optimize them at the expense of slowing down the function $g(\cdot)$, we believe we are the first to introduce a means of optimizing the centroids that does not do either of these. Our insight is that one can exploit mutual information between encodings in different subspaces to more accurately approximate the data distribution.
 
-% An alternative to using randomized functions is to use a learned hash function.
+Let $\mat{P} \in \R^{KC \times D}$ be a matrix whose diagonal blocks of size $K \times |\mathcal{J}^{(c)}|$ consist of the learned prototypes.
 
-% Consequently, we designed a family of hash functions that yields high intra-bucket similarity and can run extremely quickly in modern CPUs. This function family may of independent interest, but we leave exploration of its efficacy in other contexts to future work. We do not claim that this method outperforms---merely that it enables excellent results in our experiments.
-
-
-% Specifically, in each of the $C$ subspaces, we learn a function $g^{(c)}: \R^{|\mathcal{J}^{(c)}|} \rightarrow \mathbb{Z}_K$ such that $Pr[g^{(c)}(\x) = g^{(c)}(\y)]$ is greater when $\norm{\x - \y}_2$ is smaller. % This is technically not equivalent to the traditional definition of locality sensitive hashing \cite{lsh}, in which
-
-%$g^{(c)}(\a)$
-
-% The main difference between our approach and PQ is the encoding funciton.
 
 % ------------------------------------------------
-\subsection{Learning the Hash Functions}
+\subsection{Fast 8-bit Aggregation}
 % ------------------------------------------------
-
 
 
 % % ------------------------------------------------
@@ -66,17 +207,17 @@ Formally, consider a set of $4$ indices ${j_1,\ldots,j_4}$ and a set of $2^4 - 1
 % \end{align}
 
 
-% ------------------------------------------------
-\subsection{Table Construction - $h(\B)$}
-% ------------------------------------------------
+% % ------------------------------------------------
+% \subsection{Table Construction - $h(\B)$}
+% % ------------------------------------------------
 
-% ------------------------------------------------
-\subsection{Aggregation - $f(\cdot,\cdot)$}
-% ------------------------------------------------
+% % ------------------------------------------------
+% \subsection{Aggregation - $f(\cdot,\cdot)$}
+% % ------------------------------------------------
 
-% ------------------------------------------------
-\subsection{Complexity and Discussion}
-% ------------------------------------------------
+% % ------------------------------------------------
+% \subsection{Complexity and Discussion}
+% % ------------------------------------------------
 
  % is sufficient  is sufficient zzto yield a speedup of $\Theta(\frac{D}{C})$  Unfortunately, outside of information retrieval, this case often does not hold. As discussed previously, we would like an algorithm that requires only $N \gg M, D$. In this setting, the preprocessing time
 
@@ -115,3 +256,20 @@ Formally, consider a set of $4$ indices ${j_1,\ldots,j_4}$ and a set of $2^4 - 1
 % If we didn't have pseudocode in background section, put it here. Break it down by encoding, LUT creation, and distance computation. Seems like we should probably already have explained these, so probably just text saying we kind of tie it all together and replace whatever lines in earlier pseudocode with hash-based encoding.
 
 
+
+% To explain how this is done, it suffices to consider how the next split index $j^t$ and split values $v^t$ are chosen given ${j^1,\ldots,j^{t-1}}$ and $\vec{v}^1,\ldots,\vec{v}^{t-1}$. To do this, it helps to introduce \textit{buckets} $\mathcal{B}^t_1,\ldots,\mathcal{B}^t_{2^t-1}$, which are the sets of vectors mapped to each node of the tree at iteration $t$.
+
+% Because the primary contribution is the idea of using a hash function \textit{at all} for this purpose,
+
+% Unfortunately, we found that randomized functions (as used in nearly all existing literature) performed poorly in practice. In many cases, this can be determined \textit{a priori}; for example, methods based on random projections []---including structured ones []---amount to linear operators, which are what we are attempting to avoid in the first place. Such methods also often entail hard-to-vectorize $\argmax$ functions and/or linear-time norm computations [].
+
+% An alternative to using randomized functions is to use a learned hash function.
+
+% Consequently, we designed a family of hash functions that yields high intra-bucket similarity and can run extremely quickly in modern CPUs. This function family may of independent interest, but we leave exploration of its efficacy in other contexts to future work. We do not claim that this method outperforms---merely that it enables excellent results in our experiments.
+
+
+% Specifically, in each of the $C$ subspaces, we learn a function $g^{(c)}: \R^{|\mathcal{J}^{(c)}|} \rightarrow \mathbb{Z}_K$ such that $Pr[g^{(c)}(\x) = g^{(c)}(\y)]$ is greater when $\norm{\x - \y}_2$ is smaller. % This is technically not equivalent to the traditional definition of locality sensitive hashing \cite{lsh}, in which
+
+%$g^{(c)}(\a)$
+
+% The main difference between our approach and PQ is the encoding funciton.

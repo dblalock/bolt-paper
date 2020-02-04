@@ -34,22 +34,42 @@
 
 \usepackage{bm}  % bold math
 
+\usepackage[dvipsnames]{xcolor}
+
+% \color{ForestGreen}
+
 % \usepackage{setspace}
 
 % \usepackage{booktabs} % acm recommended, and for pandas latex tables
 
 %-------------------------------------------------------------- Algorithm setup
 
-% commented out for sysml
+% commented out for sysml/icml
 
 % \usepackage{algorithm}
+% \usepackage{algorithmicx}
 % \usepackage[noend]{algpseudocode} % I think this removes trailing "end {if,for,while}"
 
-% % \algnewcommand{\LineComment}[1]{\State \(\triangleright\) #1} % left-aligned comments
-% % \algnewcommand{\SideComment}[1]{\(//\) #1}
+% % % \algnewcommand{\LineComment}[1]{\State \(\triangleright\) #1} % left-aligned comments
+% % % \algnewcommand{\SideComment}[1]{\(//\) #1}
 % \algnewcommand{\COMMENT}[2][.5\linewidth]{\leavevmode\hfill\makebox[#1][l]{//~#2}}
 % \algnewcommand{\LineComment}[1]{\State \(//\) #1}	% left-aligned comments
 % \algnewcommand\RETURN{\State \textbf{return} }
+
+
+% sane comments when forced to use plain algorithmic instead of algorithmicx
+% \renewcommand{\algorithmiccomment}[1]{\bgroup\hfill//~#1\egroup}
+    % {\color{Gray}
+\renewcommand{\algorithmiccomment}[1]{
+    {\color{OliveGreen}
+        \bgroup\hfill//~#1\egroup
+    }
+}
+\newcommand{\LINECOMMENT}[1]{
+    {\color{OliveGreen}
+        //~#1
+    }
+}
 
 
 %-------------------------------------------------------------- Figures setup
@@ -123,8 +143,10 @@
 % \newcommand{\mat}[1]{\mathbf{#1}}
 \newcommand{\mat}[1]{\bm{#1}}
 
-\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
-\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+% \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+% \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\providecommand{\ceil}[1]{\left \lceil #1 \right \rceil }
+\providecommand{\floor}[1]{\left \lfloor #1 \right \rfloor }
 
 \newtheorem{Definition}{Definition}[section]
 
