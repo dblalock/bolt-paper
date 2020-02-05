@@ -1,7 +1,4 @@
 
-
-
-
 Recall that our task is to construct functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$ such that
 \begin{align}
     \norm{f(g(\A), h(\B)) - \A\B}_F < \eps(\tau) \norm{\A\B}_F
@@ -85,80 +82,15 @@ Given the encoding of $\a$ and the lookup tables for $\b$, the product can be ap
 
 This has complexity $\Theta(C)$ for each pair of vectors, or $\Theta(NMC)$ for the full matrix product $\A\B$. Since $C \ll D$, this provides a large speedup when $N$ and $M$ are large enough to amortize the costs of $g(\cdot)$ and $h(\cdot)$.
 
-% ------------------------------------------------
-\subsection{Complexity and Extensions}
-% ------------------------------------------------
-
-The total time complexity of PQ is equal to $\Theta(NDK + DKC + NMC)$. When $N$ and $M$ are large, the last term dominates and the complexity of PQ is essentially $\Theta(NMC)$.
-Assuming one does not use Strassen's or other algorithms that are never used in practice in modern numerical libraries, full matrix multiplication has complexity $\Theta(NDM)$. Thus, PQ offers a speedup of $\Theta(\frac{D}{C})$.
-
-To increase this ratio, many authors have attempted to construct more elaborate $g(\cdot)$ and $h(\cdot)$ functions. One line of work seeks to preprocess $\a$ and/or $\b$ with rotation matrices \cite{opq,cartesianKmeans,lopq}. Another line of work seeks to relax the restriction that the codebooks use disjoint subspaces; several authors \cite{aq,cq,otq,sq,grvq,stackedQuantizers} have observed that equation~\ref{eq:pqLoss} is a special case of
-\begin{align} \label{eq:nonOrthogonal}
-    \sum_{i=1}^N min_{\{z^{(1)},\ldots,z^{(C)}\}} \sum_{j=1}^D \left( \tilde{A}_{ij} - \sum_{c=1}^C \mat{P}^{(c)}_{z^{(c)},j} \right) ^2.
-\end{align}
-That is, all $C$ codebooks can contribute to approximating any dimension of $\a$, instead of only one codebook being responsible for it. This is strictly more expressive, but also slows down $g(\cdot)$ greatly and complicates training. There has been effort to reduce these burdens by carefully ordering update and assignment operations \cite{stackedQuantizers}, adding sparsity \cite{sq}, or structuring overlap between codebooks so that optimal assignments remain possible \cite{otq}. TODO sentence about optimizing LUTs directly.
-
-
-%\footnote{This is assuming one does not uses Strassen's or other lower-complexity algorithms that are never used in practice in modern numerical libraries.} When $N$ and $M$ are large, the last term dominates and the complexity of PQ is essentially $\Theta(NDK + DKC + NMC)$. % We do not compare to Strassen's since we are concerned with CPU time on real-world matrices, not assymptotic complexity}.
-
 % % ------------------------------------------------
-% \subsection{Problem Formulation}
+% \subsection{Complexity and Extensions}
 % % ------------------------------------------------
 
-% Let $\A \in \R^{N \times D}$ and $\B \in \R^{D \times M}$ be two matrices, with $N \gg D, M$, and $M$ not significantly larger than $D$. Given a computation time budget $\tau$, our task is to
-% construct three functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$ such that
-% \begin{align}
-%     \norm{f(g(\A), h(\B)) - \A\B}_F < \eps(\tau) \norm{\A\B}_F
+% The total time complexity of PQ is equal to $\Theta(NDK + DKC + NMC)$. When $N$ and $M$ are large, the last term dominates and the complexity of PQ is essentially $\Theta(NMC)$.
+% Assuming one does not use Strassen's or other algorithms that are never used in practice in modern numerical libraries, full matrix multiplication has complexity $\Theta(NDM)$. Thus, PQ offers a speedup of $\Theta(\frac{D}{C})$.
+
+% To increase this ratio, many authors have attempted to construct more elaborate $g(\cdot)$ and $h(\cdot)$ functions. One line of work seeks to preprocess $\a$ and/or $\b$ with rotation matrices \cite{opq,cartesianKmeans,lopq}. Another line of work seeks to relax the restriction that the codebooks use disjoint subspaces; several authors \cite{aq,cq,otq,sq,grvq,stackedQuantizers} have observed that equation~\ref{eq:pqLoss} is a special case of
+% \begin{align} \label{eq:nonOrthogonal}
+%     \sum_{i=1}^N min_{\{z^{(1)},\ldots,z^{(C)}\}} \sum_{j=1}^D \left( \tilde{A}_{ij} - \sum_{c=1}^C \mat{P}^{(c)}_{z^{(c)},j} \right) ^2.
 % \end{align}
-% for the smallest error $\eps(\tau)$ possible.
-
-% % . Moreover, the computation time $\tau(\eps)$ to run these three functions should be much smaller than the comuputation time $\tau_0$ to compute $\A\B$ directly.
-
-% We assume the existence of a training set $\tilde{\A}$, whose rows are drawn from the same distribution as the rows of $\A$. This is a natural assumption in the case that rows of $\A$ represent examples in training data, or structured subsets thereof (such as patches of natural images). This assumption is common in the information retrieval literature \cite{bolt, pairq}.%, but not in theoretical work.
-
-% % We also focus on the case in which $B$ has at most a few hundred columns--or even as few as 10. This is the range of sizes that one might obtain in a neural network, where each column of $B$ corresponds to one output neuron. It is also small enough that asymptotic complexity is a not a good characterization of how an algorithm will perform in practice.
-
-% We also assume that the cost of computing $h(\B)$ negligible provided that $h(\B) \in O(MD)$. One sufficient condition for this is $\B$ being provided ahead of time (as is the case when $\B$ represents predefined model weights). A second is that $\B$ has sufficiently few columns compared to the number of rows in $\A$.%, which happens when $N$ is sufficiently large relative to $M * \frac{\tau(\eps)}{\tau(0)}$.
-
-% % % ------------------------------------------------
-% % \subsection{Existing approaches}
-% % % ------------------------------------------------
-
-% % Many existing approaches construct a matrix $\V \in \R^{D \times d}, d < D$ such that
-% % \begin{align}
-% %     \A \B \approx (\A \V) (\V^\top \B).
-% % \end{align}
-% % Often, $\V$ is sparse [] or has structure [] such that these projection operations are faster than a dense matrix multiply.
-
-
-% % % ------------------------------------------------
-% % \subsection{Problem Formulation}
-% % % ------------------------------------------------
-
-% % We consider three variations of the approximate matrix multiply problem. In all cases, let X = ...., <other variable definitions here>.
-
-% % Maybe a table of assumptions of different methods as far as training data and preprocessing time. And/or which problem statement they try to solve.
-
-% % Problem 1: No training data at all (most AMM work, ours with LUT computation + untrained encoding)
-
-% % Problem 2: Training data for one matrix (ours with LUT computation)
-
-% % Problem 3: One matrix fixed (VQ stuff with no optimizing wrt query, ours without learned quantization)
-
-% % Problem 4: Training data for both matrices (VQ stuff that rotates using query distro, Bolt, ours with LUT computation + weighting errs)
-
-% % Problem 5: Training data for one matrix, other matrix fixed (ours)
-
-% % % this is not quite MECE because could have one matrix fixed and other completely unknown, in which case no LUT computation but also no trained quantizers. Probably just note that this possibility exists and our method could do it, but we ignore it for rest of the paper because
-
-% % Note that this is maybe not a sufficient characterization because ours is also mostly just useful when one of the matrices is like really small.
-
-% % Should probably just show ours, ours without learned quantization func, and ours with LUT computation at runtime. As a result, should only introduce these three problems.
-
-% % % ------------------------------------------------
-% % \subsection{Vector Quantization}
-% % % ------------------------------------------------
-
-% % With problem statement ourFrame stuff using the two encoding functions and one distance function.
-
-% % First walk through basic VQ-based dot product, with img from poster.
+% That is, all $C$ codebooks can contribute to approximating any dimension of $\a$, instead of only one codebook being responsible for it. This is strictly more expressive, but also slows down $g(\cdot)$ greatly and complicates training. There has been effort to reduce these burdens by carefully ordering update and assignment operations \cite{stackedQuantizers}, adding sparsity \cite{sq}, or structuring overlap between codebooks so that optimal assignments remain possible \cite{otq}. TODO sentence about optimizing LUTs directly.

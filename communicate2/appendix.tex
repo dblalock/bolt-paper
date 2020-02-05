@@ -1,0 +1,131 @@
+
+% ================================================================
+\section{Quantization and \oursHash} \label{sec:hashQuantize}
+% ================================================================
+
+The only subtlety in vectorizing our hash function is that one must execute line 4 using shuffle instructions such as \texttt{vpshufb} on x86, \texttt{vtbl} on ARM, or \texttt{vtbl} on PowerPC. In order to do this, the split values and scalars $x_{j^t}$ must be 8-bit integers. We quantize them by learning for each split index $j$ a pair of scalars $(\gamma_j, \delta_j)$, where
+\begin{align}
+    \delta_j &\triangleq \min_i \v^j_i \label{eq:offset} \\
+    % \gamma_j \triangleq 2^l, l = \left \lfloor \text{log2} \left( \frac{255}{\max_i \v^j_i - \delta_j} \right) \right \rfloor
+    \gamma_j &\triangleq 2^l, l = \floor{ \log_2 \left( \frac{255}{\max_i \v^j_i - \delta_j} \right) \label{eq:scale} }
+\end{align}
+% and
+% \begin{align}
+% %     &\min_i \v^j_i - \delta_j = 0 \\
+% %     &\max_i \gamma_j(\v^j_i - \delta_j) \le 255
+% \end{align}
+% and $\gamma_j$ is a power of 2.
+This restriction of $\gamma_j$ to powers of two allows one to quantize $x_{j^t}$ values with only shifts instead of multiplies. The $\vec{v}$ values can be quantized at the end of the training phase, while the $x_{j^t}$ values must be quantized within Algorithm~\ref{algo:ourEnc} before line 5.
+
+% ================================================================
+\vfill\break  % columnbreak
+\section{Subroutines for \oursHash} \label{sec:optimalSplitVal}
+% ================================================================
+
+\begin{algorithm}[h]
+\caption{Optimal Split Value Within a Bucket} \label{algo:optimalSplitVal}
+\begin{algorithmic}[1]
+    \STATE {\bfseries Input:} bucket $\mathcal{B}$, index $j$
+    \STATE {$\mat{X} \leftarrow \texttt{as\_2d\_array}(\mathcal{B})$ }
+    \STATE {$\mat{X}^{sort} = \texttt{sort\_rows\_based\_on\_col}(\mat{X} \text{, } j)$}
+    \STATE {$\texttt{sses\_head} \leftarrow \texttt{cumulative\_sse}(\mat{X}^{sort}, \texttt{false}) $}
+    \STATE {$\texttt{sses\_tail} \leftarrow \texttt{cumulative\_sse}(\mat{X}^{sort}, \texttt{true}) $}
+    \STATE {$\texttt{losses} \leftarrow \texttt{sses\_head} $}
+    \STATE {$\texttt{losses}_{1:N-1} \leftarrow \texttt{losses}_{1:N-1} + \texttt{sses\_tail}_{2:N} $}
+    % \STATE {$ n^\ast \leftarrow \min_n \sum_{d=1}^D $}
+    % \STATE {$ n^\ast \leftarrow \argmin_n \texttt{sses\_head}_n + \texttt{sses\_tail}_{n+1} $}
+    \STATE {$ n^\ast \leftarrow \argmin_n \texttt{losses}_n $}
+    \STATE{$ \textbf{return } (\mat{X}^{sort}_{n^\ast \text{, } j} + \mat{X}^{sort}_{n^\ast + 1 \text{, } j}) / 2 \text{, } \texttt{losses}_{n^\ast} $}
+    % \STATE {$\texttt{sses\_tail} \leftarrow \texttt{reverse\_row\_order}(\texttt{cumsse\_cols}(\texttt{reverse\_row\_order}(\mat{X}_{sort})_) $}
+    % \STATE {$\texttt{sses\_tail} \leftarrow \texttt{reverse\_row\_order}(\texttt{cumsse\_cols}(\texttt{reverse\_row\_order}(\mat{X}_{sort})_) $}
+
+\end{algorithmic}
+\end{algorithm}
+
+
+
+\begin{algorithm}[h]
+% \caption{Cumulative SSE Within Columns} \label{algo:cumSSE}
+\caption{Cumulative SSE} \label{algo:cumSSE}
+\begin{algorithmic}[1]
+    \STATE {\bfseries Input:} 2D array $\mat{X}$, boolean \texttt{reverse}
+    \STATE {$N, D \leftarrow \texttt{shape}(\mat{X})$}
+    \IF {\texttt{reverse}}
+        \STATE{$ \forall_i \texttt{ swap}(\mat{X}_{i,d}, \mat{X}_{N-i+1,d}) $}
+    \ENDIF
+
+    % \STATE {$\texttt{out} \leftarrow \texttt{empty}(N \text{, } D)$}
+    \STATE {$\texttt{out} \leftarrow \texttt{empty}(N)$}
+    \STATE {$\texttt{cumX} \leftarrow \texttt{empty}(D)$}
+    \STATE {$\texttt{cumX2} \leftarrow \texttt{empty}(D)$}
+
+    \LINECOMMENT{Initialize first row of output and cumulative values}
+    \STATE{$\texttt{out}_{1} \leftarrow 0 $}
+    \FOR{$d \leftarrow 1 \textbf{ to } D $}
+        \STATE{$\texttt{cumX}_d \leftarrow X_{1, d} $}
+        \STATE{$\texttt{cumX2}_d \leftarrow (X_{1, d})^2 $}
+        % \STATE{$\texttt{out}_{1, d} \leftarrow 0 $}
+    \ENDFOR
+
+    \LINECOMMENT{Compute remaining output rows}
+    \FOR{$n \leftarrow 2 \textbf{ to } N $}
+        \STATE{$\texttt{out}_{n} \leftarrow 0 $}
+        \FOR{$d \leftarrow 1 \textbf{ to } D $}
+            \STATE{$\texttt{cumX}_d \leftarrow \texttt{cumX}_d + X_{1, d} $}
+            \STATE{$\texttt{cumX2}_d \leftarrow \texttt{cumX2}_d + (X_{1, d})^2 $}
+            % \STATE{$\texttt{meanX} \leftarrow \texttt{cumX}_d / n $}
+            % \STATE{$\texttt{out}_{n, d} \leftarrow \texttt{cumX2}_d - (\texttt{cumX}_d \times \texttt{cumX}_d / n)$}
+            \STATE{$\texttt{out}_{n} \leftarrow \texttt{out}_{n} + \texttt{cumX2}_d - (\texttt{cumX}_d \times \texttt{cumX}_d / n)$}
+        \ENDFOR
+    \ENDFOR
+    \STATE{\textbf{return } \texttt{out}}
+\end{algorithmic}
+\end{algorithm}
+
+% ================================================================
+\vfill\break  % columnbreak
+\section{Analysis of Aggregation Using Pairwise Averages} \label{sec:aggregateAnalysis}
+% ================================================================
+
+
+\begin{theorem}[Bias and Variance of Sum Estimator]
+Let $\hat{s}(\x), \x \in \R^C, C \text{ \% } U = 0$ be the sum estimator described in section~\ref{sec:aggregate} and let $s(\x) \triangleq \sum_c x_c$. Further suppose that the low bits of any two scalars averaged are drawn from a Bernoulli(.5) distribution. Then $E[s(\x) - \hat{s}(\x)] = C \log_2(U) / 4$ and $E[(s(\x) - \hat{s}(\x))^2] = C \log_2(U) / 8$.
+\end{theorem}
+
+\begin{proof}
+TODO
+\end{proof}
+
+
+% ================================================================
+\vfill\break  % columnbreak
+\section{Additional experimental details} \label{sec:experimentDetails}
+% ================================================================
+
+% ------------------------------------------------
+\subsection{SparsePCA details}
+% ------------------------------------------------
+
+We took steps to ensure that SparsePCA's results were not hampered by insufficient hyperparameter tuning. First, for each matrix product, we tried a range of lambda values which we found to encompass the full gamut of nearly 0\% to nearly 100\% sparsity: $\lambda \in 2^i, i \in \{-5, -4, -3, -2, -1, 0, 1, 2, 3\}$. Second, because different sparsity patterns may yield different exeuction times, we report not times from the single matrix SparsePCA produces for a given ($d, \lambda$) pair, but the best times from any of ten random matrices of the same size and at most the same sparsity. Finally and most importantly, we plot only the pareto frontier of (speed, quality) pairs produced for a given matrix multiply. I.e., we let SparsePCA cherrypick its best results on each individual matrix multiply.
+
+% ------------------------------------------------
+\subsection{Additional Baselines}
+% ------------------------------------------------
+
+% ------------------------------------------------
+\subsection{UCR Time Series Archive}
+% ------------------------------------------------
+
+Since different datasets have different test set sizes, all results are for a standardized test set size of 1000 rows. We wanted the length to be a multiple of 32 since existing methods operate best with sizes that are either powers of two or, failing that, multiples of large powers of two.
+
+% since having a length that is a multiple of at least 8 is the best-case scenario for most existing methods, and 320 is a ``rounder'' number than 312.
+
+% ------------------------------------------------
+\subsection{Caltech101}
+% ------------------------------------------------
+
+We only extracted full windows---i.e., never past the edge of an image. We extracted the windows in CHW order, meaning that scalars from the same color channel were placed at contiguous indices. The ``first'' images are based on filename in lexicographic order.
+
+We used pairs of filters because using a single filter would mean timing a matrix-vector product instead of a matrix-matrix product.
+
+so that other methods could, theoretically, amortize their preprocessing costs and obtain a speedup. In practic

@@ -11,8 +11,11 @@
 
 % \newcommand{\oursp}{\textsc{HashMul}\text{ }}
 % \newcommand{\ours}{\textsc{HashMul}}
-\newcommand{\oursp}{\textsc{MADDNESS}\text{ }}
-\newcommand{\ours}{\textsc{MADDNESS}}
+% \newcommand{\oursp}{\textsc{MADDNESS}\text{ }}
+% \newcommand{\ours}{\textsc{MADDNESS}}
+\newcommand{\oursp}{\textsc{Maddness}\text{ }}
+\newcommand{\ours}{\textsc{Maddness}}
+\newcommand{\oursHash}{\textsc{MaddnessHash}}
 
 % \newcommand{\mine}{\textsc{Sprintz}}
 % \newcommand{\minesp}{\textsc{Sprintz}\text{ }}
@@ -156,30 +159,25 @@ We introduce an approximate matrix multiplication algorithm that substantially o
 
 % \maketitle
 
-% % ================================================================
-% \section{Introduction} \label{sec:intro}
-% % ================================================================
+% ================================================================
+\section{Introduction} \label{sec:intro}
+% ================================================================
 
-% \input{intro.tex}
+\input{intro.tex}
 
-% % ================================================================
-% % \section{Background and Related Work}
-% \section{Related Work}
-% % ================================================================
+% ================================================================
+% \section{Background and Related Work}
+\section{Related Work}
+% ================================================================
 
-% \input{bg.tex}
+% \input{relatedWork.tex}
+\input{bg.tex}
 
-% % %================================================================
-% % \section{Related Work}
-% % %================================================================
+%================================================================
+\section{Background}
+%================================================================
 
-% % \input{relatedWork.tex}
-
-% %================================================================
-% \section{Background}
-% %================================================================
-
-% \input{background.tex}
+\input{background.tex}
 
 %================================================================
 \section{Method}
@@ -193,32 +191,20 @@ We introduce an approximate matrix multiplication algorithm that substantially o
 
 % \input{theory.tex}
 
-% %================================================================
-% \section{Experiments}
-% %================================================================
-
-% \input{results.tex}
-
 %================================================================
-% \section{Open Questions and Future Directions}
-% %================================================================
+\section{Experiments}
+%================================================================
 
-% \input{questions.tex}
+\input{results.tex}
 
 
 %================================================================
 \section{Conclusion}
 %================================================================
 
-We sure did multiply those matrices. In the near future, we plan to integrate our method into the training of deep neural networks.
+We introduce an approximate matrix multiplication algorithm that achieves a significantly better speed-quality tradeoff than existing methods, as measured on hundreds of real-world matrices from various domains. Our method's performance stems from 1) its replacement of the bottleneck in existing methods with a learned locality-sensitive hash function, 2) its optimization of a quantity that other methods cannot optimize without a large slowdown, and 3) its use of an inexact estimator for computing sums. In future work, we plan to integrate our method into neural networks and specialize it for convolutions.
 
-% sysml says to include acknowledgements in initial submission
-% %================================================================
-% \section{Acknowledgements}
-% %================================================================
-
-% We thank Luigi Celona for providing the data used in \cite{luigi}.
-% %``Benchmark Analysis of Representative Deep Neural Network Architectures.'' []
+% We sure did multiply those matrices. In the near future, we plan to integrate our method into the training of deep neural networks.
 
 % ================================================================
 % References
@@ -231,6 +217,11 @@ We sure did multiply those matrices. In the near future, we plan to integrate ou
 \bibliographystyle{icml2020}
 % \bibliography{prune,architectures,misc,understandDnn,classic,datasets,compress,science,metapapers}
 
-% \bibliography{misc,sprintz,extract,bolt,backprop-alternatives,distillation,fast-dnn-runtime-stuff,fast-optimize,nets-theory,small-fast-arch,sparseAndPrune,scalarQuantize,vectorQuantize,combo,hashing,shrink+prune,binarize,ternary,automl,zero-shot,few-shot,amm,adversarial}
+\bibliography{misc,sprintz,extract,bolt,backprop-alternatives,distillation,fast-dnn-runtime-stuff,fast-optimize,nets-theory,small-fast-arch,sparseAndPrune,scalarQuantize,vectorQuantize,combo,hashing,shrink+prune,binarize,ternary,automl,zero-shot,few-shot,amm,adversarial}
+
+\clearpage
+\newpage  % so we can cut the pdf
+\appendix
+\input{appendix.tex}
 
 \end{document}

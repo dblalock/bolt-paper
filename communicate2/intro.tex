@@ -6,16 +6,17 @@ We focus on the AMM task under the assumptions that the matrices are tall, relat
 This setting arises naturally in machine learning and data mining when one has a data matrix $\mat{A}$ whose rows are samples and a linear operator $\mat{B}$ one wishes to apply to these samples. $\mat{B}$ could be a linear classifier, linear regressor, or an embedding matrix, among other possibilities.
 
 As a concrete example, consider the task of approximating a softmax classifier trained to predict image labels given embeddings derived from a neural network. Here, the rows of $\A$ are the embeddings for each image, and the columns of $\B$ are the weight vectors for each class. Classification is performed by computing the product $\A\B$ and taking the argmax within each row of the result.
-In Figure~\ref{fig:fig1}, we see the results of approximating $\A\B$ using our method, \ours, and its best-performing rivals \cite{hashjl, sparsepca} on the CIFAR-10 and CIFAR-100 datasets. Each method yields a curve whose points are specific speedups and associated levels of classification accuracy. More speedup and more accuracy (up and to the right) is better. While we defer detailed discussion to section~\ref{sec:results}, it is clear that our proposed approach significantly outperforms alternatives.
-
+In Figure~\ref{fig:fig1}, we see the results of approximating $\A\B$ using our method and its best-performing rivals \cite{hashjl, sparsepca} on the CIFAR-10 and CIFAR-100 datasets.
 \vspace{1mm}
 \begin{figure}[h]
 \begin{center}
 \includegraphics[width=\linewidth]{amm/fig1}
-\caption{\oursp achieves a dramatically better speed-accuracy tradeoff than existing methods when approximating two linear classifiers.}
+\caption{Our method achieves a dramatically better speed-accuracy tradeoff than existing methods when approximating two linear classifiers.}
 \label{fig:fig1}
 \end{center}
 \end{figure}
+
+Each method yields a curve whose points are specific speedups and associated levels of classification accuracy. More speedup and more accuracy (up and to the right) is better. While we defer detailed discussion to section~\ref{sec:results}, it is clear that our proposed approach significantly outperforms alternatives.
 
 % In addition to achieving strong empirical performance, our method also has an
 
@@ -26,7 +27,7 @@ In addition to achieving strong empirical performance, our method represents a s
 Often, $\V_A$ and $\V_B$ are sparse, embody some sort of sampling scheme, or have other structure such that these projection operations are faster than a dense matrix multiply. In short, these methods use linear functions to preprocess $\A$ and $\B$ and reduce the problem to exact matrix multiplication in a lower-dimensional space
 % reduce the AMM problem to exact matrix multiplication in a lower-dimensional space using linear functions to preprocess $\A$ and $\B$.
 
-Our proposed method, \ours, instead employs a \textit{nonlinear} preprocessing function and reduces the problem to table lookups. Moreover, in the case that $\B$ is known ahead of time---which happens when applying a trained linear model to new data, among other situations---\oursp does not require any multiply-add operations. This includes binary \texttt{XNOR} and \texttt{popcount} operations [], as well as the summation of shifted and masked scalars to approximate multiplication []. I.e., we are not merely approximating scalar multiplies at the bit manipulation level, but approximating matrix products at the algorithm level.
+Our proposed method, \ours\footnote{Multiply-ADDitioN-lESS}, instead employs a \textit{nonlinear} preprocessing function and reduces the problem to table lookups. Moreover, in the case that $\B$ is known ahead of time---which happens when applying a trained linear model to new data, among other situations---\oursp does not require any multiply-add operations. This includes binary \texttt{XNOR} and \texttt{popcount} operations [], as well as the summation of shifted and masked scalars to approximate multiplication []. I.e., we are not merely approximating scalar multiplies at the bit manipulation level, but approximating matrix products at the algorithm level.
 
 % An extension of this method common in the information retrieval literature is to define a nonlinear function $g(\cdot)$ such that
 % \begin{align}

@@ -14,7 +14,7 @@ One weakness of the above approaches is that they consider each matrix individua
 % In the information retrieval community, approximate matrix multiplication is almost exclusively studied in the regime where $N, M \gg D$ and either $\A$ or $\B$ is either fixed ahead of time or changing slowly.
 % Another relevant body of methods comes from the information retrieval literature.
 
-\subsection{Nonlinear Approximation}
+\subsection{Vector Quantization}
 
 While they are not traditionally considered related work for AMM methods, there are also a number of relevant approaches from the information retrieval literature. These approaches consider the tasks of nearest neighbor and maximum inner product search, not approximate matrix multiplication \textit{per se}; however, these methods either
 \begin{enumerate}
@@ -34,7 +34,12 @@ We discuss the most relevant of these vector quantization-based approaches in mo
 
 Our method is also built on vector quantization, but instead of applying $g(\cdot)$ to a transformed matrix $\A \V_A$, we directly transform $\A$ itself. Because we use a $g(\cdot)$ function that does not require any multiply-adds, our overall procedure requires multiply-adds only if $\V_B^\top \B$ cannot be precomputed. We also depart from existing vector-quantization based AMM through the addition of several more algorithmic enhancements, but defer discussion of these to section~\ref{sec:method}.
 
+
+\subsection{Hashing to Avoid Linear Operators}
+
 TODO talk about Ryan Spring's DNNs + Hashing stuff somewhere. Also talk about idea of using LSH for clustering being an existing thing in the differential privacy literature.
+
+TODO talk about dp kmeans stuff.
 
 % There have been variations of this approach (see \cite{learningToHashSurvey, hashingSimilaritySurvey} for detailed surveys), with much of the effort aimed at developing better $\V_A$ and $\V_B$ matrices.
 
