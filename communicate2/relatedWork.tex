@@ -1,64 +1,22 @@
 
-% Because accelerating linear operations on CPUs is a well-studied topic, our review of related work will necessarily be incomplete. We
+Because our work draws on ideas from randomized algorithms, approximate matrix multiplication, vector quantization, and other fields, the body of work related to our own is vast. We therefore seek only to provide only a high-level overview, and refer the interested reader to \cite{learningToHashSurvey, hashingSimilaritySurvey, isvd} for more detailed surveys. We also defer discussion of related vector quantization methods to the following sections, since it is easier to appreciate how they differ from our own method once our method has been introduced.
 
-% ================================
-\subsection{Binarization and Vector Quantization}
-% ================================
+\subsection{Linear Approximation}
 
-One approach to accelerating matrix multiplications is to reduce them to a large number of inner product operations and accelerate these vector operations.
+Most AMM methods work by constructing matrices $\V_A, \V_B \in \R^{D \times d}, d \ll D$ such that
+\begin{align}
+    \A \B \approx (\A \V_A) (\V_B^\top \B).
+\end{align}
+There are many options for choosing $\V_A$ and $\V_B$
+%, depending on what assumptions one makes. The most common case studied is that in which $N$, $D$, and $M$ are large, but one has little or no prior knowledge about either matrix.
+One simple approach is to choose them such that $(\A \V_A)$ and $(\V_B^\top \B)$ preserve certain structure in $\A$ and $\B$---i.e. to sketch each matrix independently. The most prominent deterministic matrix sketching methods are the Frequent Directions algorithm \cite{liberty_simple_2012, ghashami_frequent_2016} and its many variations \cite{teng_fast_2019, francis_practical_2018, ye_frequent_2016, huang_near_2019, luo_robust_2019, francis_improvement_2018}. There are also many randomized sketching methods \cite{sarlos_improved_2006, kyrillidis_approximate_2014, pagh_compressed_2013, hashjl,osnap} and random sampling-based methods \cite{drineas_fast_2006-1, drineas_fast_2006-2}.
 
-Accelerating vector operations through binarization and vector quantization has been the subject of a great deal of research in the computer vision, information retrieval, and machine learning communities, among others. Our review will be incomplete, so we refer the reader to \cite{learningToHashSurvey, hashingSimilaritySurvey} for detailed surveys.
+A weakness of matrix sketching methods in the context of matrix multiplication is that they only consider each matrix in isolation. The first authors to formally address AMM by considering both matrices were \citet{drineas_fast_2006}, who sampled columns of $\A$ and rows of $\B$ according to a sampling distribution dependent upon both matrices. Later work by \citet{manne_fast_2014} reduces approximation of the matrices to an optimization problem, which is solved by steepest descent. \citet{mroueh_co-occuring_2016}, \citet{ye_frequent_2016}, and \citet{francis_improvement_2018} introduce variations of the Frequent Directions algorithm that take into account both matrices simultaneously.
 
-Binary embedding techniques seek to map vectors in $\mathbb{R}^J$ to $H$-dimensional Hamming space, typically with $H < J$. The appeal of binary embedding is that a $H$-element vector in Hamming space can be stored in $H$ bits, affording excellent compression. Moreover, the \texttt{popcount} instruction present on virtually all desktop, smart phone, and server processors can be used to compute products between 8 byte vectors in as little as three cycles. This fast product computation comes at the price of reduced representational accuracy for a given code length \cite{opq,hashingSimilaritySurvey}. % He \textit{et al.} \cite{opq} showed that the popular binary embedding technique of \cite{ITQ} is a more constrained version of their vector quantization algorithm, and that the objective function of another state-of-the art binary embedding \cite{isohash} can be understood as maximizing only one of two sufficient conditions for optimal encoding of Gaussian data.
+All of the above methods differ from our own not merely in specifics, but also in problem formulation. These methods all assume that there is no training set $\tilde{\A}$ and all focus on large matrices, where provably reduced asymptotic complexity for a given level of error is the goal. % We assume smaller matrices and the presence of a training set.
 
-Vector quantization approaches yield lower errors than binary embedding for a given space constraint, but usually entail slower encoding and product computations. The simplest and most popular vector quantization method is $k$-means, which can be seen as encoding a vector as the centroid to which it is closest. A generalization of $k$-means, Product Quantization (PQ) \cite{pq}, splits the vector into disjoint subvectors and runs $k$-means on each. The resulting code is the concatenation of the codes for each subspace. Numerous generalizations of PQ have been published, including Cartesian $k$-means \cite{cartesianKmeans}, Optimized Product Quantization \cite{opq},  Generalized Residual Vector Quantization \cite{grvq}, Additive Quantization \cite{aq}, Composite Quantization \cite{cq}, Optimized Tree Quantization \cite{otq}, Stacked Quantizers \cite{stackedQuantizers}, Local Search Quantization \cite{lsq}, and Polysemous Codes \cite{polysemous}. The idea behind most of these generalizations is to either rotate the vectors or relax the constraint that the subvectors be disjoint. Collectively, techniques that rely on using the concatenation of multiple codes to describe a vector are known as Multi-Codebook Quantization (MCQ) methods. % , Residual Vector Quantization [],
+\subsection{Hashing to Avoid Linear Operations}
 
-% Douze \textit{et al.}
-% An interesting hybrid of binary embedding and vector quantization is the Polysemous Coding of \citet{polysemous}. This encoding uses product quantization codebooks optimized to also function as binary codes, allowing the use of Hamming distances as a fast approximation that can be refined for promising nearest neighbor candidates.
-
-% ================================
-\subsection{Matrix Approximation}
-% ================================
-
-An alternative to approximating the individual rows and columns of matrices is to approximate the entire matrix. This approach is more popular in the theory community, and essentially consists of replacing the matrices $\A$ and $\B$ with new matrices $\A^\prime$ and $\B^\prime$ such that $\norm{\A\B - \A^\prime \B^\prime}$ is small under some suitable norm. The norm chosen is typically the Frobenius norm or the spectral norm.
-
-Matrix approximation approaches can be divided into two groups: those that consider each matrix in isolation, and those that consider the two matrices together. We will refer to the former as \emph{independent} and the latter as \emph{joint}.
-
-Independent approximation methods seek to approximate each matrix individually, typically attempting to minimize $\norm{\A - \A^\prime}$ for some matrix norm. Given enough computation time, the optimal matrix (for some notions of optimal) can be computed exactly. Specifically, the Eckert-Young-Mirsky theorem \cite{eckartYoungMirskyThm} states that the best rank-$k$ approximation to a matrix in terms of the Frobenius norm can be obtained by taking the top $k$ singular values and vectors from a singular value decomposition of the matrix. Consequently, most work on this area focuses on obtaining efficient alternatives to this ideal (but slow) procedure. Most methods center on one of three basic approaches: deterministic sketching, random sketching, or random sampling. Deterministic sketching methods employ a fixed algorithm or projection matrix to obtain a low-rank approximation to the original matrix. The most prominent of these methods are the Frequent Directions algorithm \cite{liberty_simple_2012, ghashami_frequent_2016} and its many variations \cite{teng_fast_2019, francis_practical_2018, ye_frequent_2016, huang_near_2019, luo_robust_2019, francis_improvement_2018}. Random sketching methods typically design matrices with certain properties or structure, such as having entries composed of or multiplied by i.i.d. Rademacher random variables \cite{sarlos_improved_2006, kyrillidis_approximate_2014, pagh_compressed_2013} or having a particular sparse structure \cite{osnap}. Random sampling methods choose subsets of rows and/or columns, typically in accordance with some theoretically motivated sampling distribution \cite{drineas_fast_2006-1, drineas_fast_2006-2}.
-
-% Drineas \textit{et al.}
-% Mroueh \textit{et al.}, Ye \textit{et al.}, and Francis and Raimond
-Joint approximation methods also attempt to construct smaller matrices $\A^\prime$ and $\B^\prime$, but the construction of each depends on the other matrix. The first such approach was that of \citet{drineas_fast_2006}, which sampled columns of $\A$ and rows of $\B$ according to a sampling distribution dependent upon both matrices. Later work by \citet{manne_fast_2014} reduces approximation of the matrices to an optimization problem, which is solved by steepest descent. \citet{mroueh_co-occuring_2016}, \citet{ye_frequent_2016}, and \citet{francis_improvement_2018} introduce variations of the Frequent Directions algorithm that take into account both matrices simultaneously. These approaches obtain better asymptotic guarantees for similar asymptotic complexities, though, like most matrix approximation methods, it is unclear how well they work in practice.
-
-
-
-% % % ------------------------------------------------
-% % \subsection{Exact Matrix Multiplication}
-% % % ------------------------------------------------
-
-
-% % ------------------------------------------------
-% \subsection{Approximate Matrix Multiplication}
-% % ------------------------------------------------
-
-% sketching
-
-% joint sketching
-
-% % ------------------------------------------------
-% \subsection{Structured Matrices}
-% % ------------------------------------------------
-
-% Winograd stuff (Toeplitz matrix)
-
-% ACDC, Adaptive Fastfood, FHT, etc
-
-% Sparsity, at least for stuff like Han2015
-
-% % ------------------------------------------------
-% \subsection{Vector Quantization}
-% % ------------------------------------------------
-
-% Our method is most similar to vector quantization methods developed for similarity search []. These methods transform the two matrices such that one becomes a collection of lookup tables and the other indices into those tables. Once transformed, the matrix multiplication \textit{per se} requires only table lookups. We adopt this same pattern, but replace the multiply-intensive transform with an efficient alternative. This replacement is enabled through our introduction of a fast and trainable family of quantization functions. We discuss these methods and how we differ from them in Sections~\ref{sec:background}~and~\ref{sec:method}.
+In the neural network acceleration literature, there have been several efforts to accelerate dense linear layers using some form of hashing \cite{springScalable,slide,wtaSoftmax,googleWtaCvpr,hashnet}. These methods differ from our own in the hash functions chosen, the inability to exploit a training set, and in the overall goal of the algorithm. While we seek to approximate the entire output matrix, these methods seek to either sample outputs \cite{springScalable,slide}, approximate only the largest outputs \cite{wtaSoftmax,googleWtaCvpr}, or implement a fixed, sparse linear operator \cite{hashnet}.
 
 
