@@ -105,53 +105,9 @@
 \begin{abstract}
 % ------------------------------------------------
 
-% Multiplying matrices is among the most fundamental and most computationally demanding operations in machine learning and numerical computing. Consequently, the task of efficiently approximating matrix products has received significant attention in recent years. Existing approximation methods work by reducing the number of multiply-add operations or reducing the cost of each multiply-add by lowering the bitwidth of the data.
-
-% We describe a method that, given time to preprocess one of the two matrices, \textit{eliminates} the multiply-add operations. The key idea behind our method is to replace the expensive encoding step common in vector quantization methods with a learned locality-sensitive hash function. This preprocessing can be performed offline in many real-world settings and is often not the bottleneck even when performed online. Experiments across hundreds of matrices from diverse domains show that our method is consistently faster than existing approaches for a given level of approximation error, often by a factor of $10\times$ or more.
-
-% ------------------------
-
 Multiplying matrices is among the most fundamental and most computationally demanding operations in machine learning and numerical computing. Consequently, the task of efficiently approximating matrix products has received significant attention.
 
-We introduce an approximate matrix multiplication algorithm that substantially outperforms existing methods. Concretely, experiments using hundreds of matrices from diverse domains show that it runs far faster than current approaches for a given amount of error, often obtaining over a $10\times$ relative speedup. In the common case that one matrix is known ahead of time, our method also has the interesting property that it requires \textit{zero} multiply-add operations. The key idea behind our approach is to replace the expensive encoding step common in vector quantization methods with a learned locality-sensitive hash function.
-
-%The key idea behind our method is to replace the expensive encoding step common in vector quantization methods with a learned locality-sensitive hash function. In the common case that one matrix is known ahead of time, our approach also has the interesting property that it requires \textit{zero} multiply-add operations.
-
-% ------------------------
-
-% In addition to working well, this approach has an interesting consquence: in the common case that one matrix is known ahead of time, our method requires \textit{zero} multiply-add operations, including binary ones.
-% An interesting consequence of this approach is that, in the common case that one matrix is known ahead of time, our method requires \textit{zero} multiply-add operations, including binary ones. % This suggests that our method may be especially amenable to acceleration by future hardware.
-% To the best of our knowledge, this property is unique among AMM algorithms.
-% in the common case that one matrix is known ahead of time, our method has the intriguing property of requiring \textit{zero} multiply-add operations, including binary ones.
-% The key idea behind our method is to replace the expensive encoding step common in vector quantization methods with a learned locality-sensitive hash function.
-
-% ------------------------
-
- % and up to $100\times$ faster than exact multiplication with only minimal error.
-
-% , or much more accurate for a given speedup. % For example, when approximating a softmax classifier on the CIFAR-100 dataset with a $<1\%$ loss in accuracy, our method is $55\times$ faster than exact multiplication, while the best existing method is only
-
-% CIFAR-10 dataset $91\times$ faster than brute force with a $1\%$ loss of accuracy and no retraining.
-
-% \paragraph{Alternate Version}
-% Multiplying matrices is among the most fundamental and most computationally demanding operations in machine learning and scientific computing. Consequently, the task of efficiently approximating matrix products has received a great deal of attention in recent years.
-
-% We introduce an approximate matrix multiplication algorithm that significantly outperforms existing methods on hundreds of real-world matrices from diverse domains, often by a factor of $10\times$ or more.
-% Our algorithm obtains this speedup by departing from the traditional approaches that \textit{reduce} the number of multiply-add operations, we preprocess one of the matrices such that subsequent multiplies are \textit{eliminated entirely}.
-
-% Current methods work by reducing the number and cost of multiply-add operations through sparsity, factorization, and reduced bitwidth. We introduce a method that, given time to preprocess one of the two matrices, \textit{eliminates the multiply-add operations entirely}.
-
-% Moreover, in contrast to current methods, our algorithm does not reduce the cost of each multiply-add or diminish their number through factorization or sparsity; instead, it \textit{eliminates the multiply-adds} entirely by intelligently preprocessing one of the matrices.
-
-
-% not reduce the number of scalar multiply-adds,
-
-
-% after evaluating various approaches across hundreds of matrices from dive,
-
-% Our method also has theoretical guarantees, based on an approach to bounding sums of weakly dependent variables that may be of independent interest.
-
-% obtains a significantly better efficiency vs. quality tradeoff than existing methods across a wide range of problems, metrics, and datasets. Furthermore, in the special case that one matrix is known ahead of time, our method computes matrix products with no multiplication operations, a property that may be of interest to hardware designers.
+We introduce an approximate matrix multiplication algorithm that substantially outperforms existing methods. Experiments using hundreds of matrices from diverse domains show that it runs far faster than current approaches for a given amount of error, often obtaining more than a $10\times$ relative speedup. In the common case that one matrix is known ahead of time, our method also has the interesting property that it requires \textit{zero} multiply-add operations. The key idea behind our approach is to replace the expensive encoding step common in vector quantization methods with a learned locality-sensitive hash function.
 
 
 \end{abstract}
@@ -182,7 +138,7 @@ We introduce an approximate matrix multiplication algorithm that substantially o
 
 %================================================================
 \vspace{-7mm}
-\section{Method} \label{sec:method}
+\section{Our Method} \label{sec:method}
 \vspace{-1mm}
 %================================================================
 
@@ -218,8 +174,10 @@ We introduce an approximate matrix multiplication algorithm that achieves a sign
 \bibliographystyle{icml2020}
 % \bibliography{prune,architectures,misc,understandDnn,classic,datasets,compress,science,metapapers}
 
-\bibliography{architectures,datasets,misc,sprintz,extract,bolt,backprop-alternatives,distillation,fast-dnn-runtime-stuff,fast-optimize,nets-theory,small-fast-arch,sparseAndPrune,scalarQuantize,vectorQuantize,combo,hashing,shrink+prune,binarize,ternary,automl,zero-shot,few-shot,amm,ammMore,lsh,adversarial}
 
+% TODO uncomment
+
+\bibliography{architectures,datasets,misc,sprintz,extract,bolt,backprop-alternatives,distillation,fast-dnn-runtime-stuff,fast-optimize,nets-theory,small-fast-arch,sparseAndPrune,scalarQuantize,vectorQuantize,combo,hashing,shrink+prune,binarize,ternary,automl,zero-shot,few-shot,amm,ammMore,lsh,adversarial}
 \clearpage
 \newpage  % so we can cut the pdf
 \appendix

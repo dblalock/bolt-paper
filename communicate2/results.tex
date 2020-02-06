@@ -1,10 +1,12 @@
 
-To assess \ours's effectiveness, we implemented both it and existing algorithms in C++ and Python. All of our code and raw numerical results are publicly available at \texttt{https://smarturl.it/\ours}. All experiments use a single thread on a 2013 Macbook Pro with a 2.6GHz Intel Core i7-4960HQ processor. Unless stated otherwise, all timing results use five trials, with each trial reporting the lowest time it took the code to execute in 20 runs. We use the best, rather than average, since this is standard practice in performance benchmarking and is robust to the purely additive noise introduced by competing CPU tasks.
+To assess \ours's effectiveness, we implemented both it and existing algorithms in C++ and Python. All of our code and raw numerical results are publicly available at \texttt{https://smarturl.it/\ours}. All experiments use a single thread on a Macbook Pro with a 2.6GHz Intel Core i7-4960HQ processor. Unless stated otherwise, all timing results use five trials, with each trial reporting the lowest time it took the code to execute in 20 runs. We use the best, rather than average, since this is standard practice in performance benchmarking and is robust to the purely additive noise introduced by competing CPU tasks. Standard deviations are shown for all curves as shaded areas, but are often too small to see.
 % In order to avoid implementation bias, we built upon the source code provided by \citep{bolt}\footnote{https://github.com/dblalock/bolt}, which has the most in common with our method and includes highly tuned implementations of many algorithms to which we compare.
 
 % The metrics and baselines shown below are only a subset of those evaluated. In particular, we also measured squared errors, correlations, cosine similarities, etc, in addition to classification accuracies, but omit these since they are similar. See Appendix~\ref{sec:experimentDetails} for more results.
 
-Additional details about data cleaning, hyperparameter tuning, and other minutiae can be found in Appendix~\ref{sec:experimentDetails}. We do not need to tune any hyperparameters for our own method, but to ensure that other methods are not hindered by insufficient hyperparameter tuning, we allow them to tune their parameters on the test data and select the best results at a given speed \textit{post-hoc}. Also note that we compared to many methods not shown here, such as numerous randomized methods and variations of the Frequent Directions method \cite{liberty_simple_2012, ghashami_frequent_2016}. We report only those shown here since they performed the best.
+Additional details about data cleaning, hyperparameter tuning, and other minutiae can be found in Appendix~\ref{sec:experimentDetails}. We do not need to tune any hyperparameters for our own method, but to ensure that other methods are not hindered by insufficient hyperparameter tuning, we allow them to tune their parameters on the test data and select the best results at a given speed \textit{post-hoc}.
+
+% Also note that we compared to many methods not shown here, such as numerous randomized methods and variations of the Frequent Directions method \cite{liberty_simple_2012, ghashami_frequent_2016}. We report only those shown here since they performed the best.
 
 % Because nearly all existing work on approximate matrix multiplication either focuses on special cases that do not satisfy our problem definition \cite{quickerAdc, pq, opq} or synthetic matrices, there is not a clear set of benchmark matrix multiply tasks to use. We therefore propose a collection of tasks that we believe are both reproducible and representative of many real-world matrices. To the best of our knowledge, our experiments use over an order of magnitude more matrices than any previous study.
 
@@ -22,13 +24,13 @@ Recall that most baselines take the form of selecting a matrix $\V \in \R^{D \ti
     % First, for any given $d$ value and level of sparsity, we report
     % For each matrix product, we tried $\lambda \in 2^i, i \in \{-5, -4, -3, -2, -1, 0, 1, 2, 3\}$ for each matrix product. To ensure that our results err on the side of optimism (and also speed up our experiments), we report the best
     % selected the lambda \textit{post-hoc}---i.e., we cherrypicked the best results on the test set rather than cross-validating,
-    \item FastJL \cite{fastjl}. $\V$ is set to Rademacher random variables composed with a Fast Hadamard Transform (FHT). For simplicity, we don't include the FHT in the timing.
+    \item \textbf{FastJL} \cite{fastjl}. $\V$ is set to Rademacher random variables composed with a Fast Hadamard Transform (FHT). For simplicity, we don't include the FHT in the timing.
     \item \textbf{HashJL} \cite{hashjl}. $\V$ is zero except for a $\pm 1$ in each row, with both sign and position chosen uniformly at random.
     % \item OSNAP \cite{osnap}. The OSNAP sketch is essentially a collection of $s$ HashJL sketches, each of dimensionality $d / s$. Following \cite{iSVD}, we set $s = 4$. We also tried other values of $s$ and found that other values did not perform significantly better (except $s=1$, which reduces to HashJL).
     \item \textbf{RandGauss} \cite{lshOrig,E2LSH}. The entries of $\V$ are drawn i.i.d. from $\mathcal{N}(0, \frac{1}{D}\mat{I})$.
     % \item OrthoGauss \cite{superbitLSH}. The entries of $\V$ initialized as in RandGauss, and then $\V$ is set to the $\mat{Q}$ matrix in a QR decomposition of a RandGauss matrix.
     % \item Rademacher \cite{rademacherJL}. The entries of $\V$ are i.i.d. Rademacher random variables scaled by $\frac{1}{\sqrt{D}}$. TODO is that the right scale?
-    \item \textbf{Bolt} \cite{bolt}. Bolt is an extension of PQ that uses quantized lookup tables and a reduced number of codebooks to obtain $10\times$ speedups over traditional PQ. It is also the most similar method to our own. % It is not optimized for small $M$, however, effectively performing a preliminary matrix product with $M=16$ as a preprocessing step.
+    \item \textbf{Bolt} \cite{bolt}. Bolt is an extension of PQ that uses quantized lookup tables and a reduced number of codebooks to obtain $10\times$ speedups over traditional PQ. It is the most similar method to our own, differing only in the encoding function, the use of averaging instead of upcasting, and the optimization of centroids. % It is not optimized for small $M$, however, effectively performing a preliminary matrix product with $M=16$ as a preprocessing step.
     % As discussed in Section~\ref{sec:relatedWork},
     \item \textbf{Exact Multiplication}. We simply compute the matrix product $\A\B$ using a modern BLAS implementation.
 \end{itemize}
@@ -40,23 +42,24 @@ In addition to these baselines, we test two variations of our method:
     \item \ours-PQ. A handicapped version of \oursp without the prototype optimization step. The gap between \oursp and \ours-PQ is the gain from optimizing the prototypes.
 \end{itemize}
 \vspace{-2mm}
+% compared to many methods not shown here, such as numerous randomized methods and variations of the Frequent Directions method \cite{liberty_simple_2012, ghashami_frequent_2016}. We report only those shown here since they performed the best.
 We also compared to many additional methods (see Appendix~\ref{sec:experimentDetails}), but omit their results since they were not competitive with the listed baselines.
 
 % ------------------------------------------------
 \subsection{How fast is \ours?}
 % ------------------------------------------------
 
-We begin by profiling the raw speed of our method and the most similar baselines. In Figure~\ref{fig:encodeSpeed}, we time the $g(\A)$ functions for $\A$ matrices with $2^{15}$ rows and varying number of columns $D$. Following \cite{bolt}, we also vary the size of the row encodings, profiling 8, 16, and 32 bytes per row. \oursp is not only faster than existing methods, but faster than the machine's memory bandwidth. This is possible because it only reads $O(C)$ columns, and $C$ can be lower than $D$.
+We begin by profiling the raw speed of our method. In Figure~\ref{fig:encodeSpeed}, we time the $g(\A)$ functions for various vector quantization methods. The $\A$ matrices have $2^{14}$ rows and varying numbers of columns $D$. Following \cite{bolt}, we also vary the number of codebooks $C$, profiling 8-, 16-, and 32-byte encodings. We measure in bytes rather than codebooks since PQ and OPQ use eight bits per codebook instead of four. \oursp is up to two orders of magnitude faster than existing methods. \ours's throughput grows with row length because its encoding cost is $O(C)$ rather than $O(D)$. % \oursp is not only faster than existing methods, but faster than the machine's memory bandwidth of 15GB/s. This is possible because it only reads $O(C)$ columns, and $C$ can be lower than $D$.
 
 \begin{figure}[h]
 \begin{center}
 \includegraphics[width=\linewidth]{amm/encode_speed}
-\caption{\oursp encodes the matrix $\A$ orders of magnitude more quickly than existing vector quantization methods.}
+\caption{\oursp encodes the $\A$ matrix orders of magnitude more quickly than existing vector quantization methods.}
 \label{fig:encodeSpeed}
 \end{center}
 \end{figure}
 
-We also profile the speed of our aggregation function $f(\cdot, \cdot)$ using the same baselines as \citet{bolt}. Our average-based aggregation is significantly faster than the upcasting-based method of Bolt, its nearest rival.
+We also profile the speed of our aggregation function $f(\cdot, \cdot)$ using the same baselines as \citet{bolt}. As Figure~\ref{fig:scanSpeed} shows, our average-based aggregation is significantly faster than the upcasting-based method of Bolt, its nearest rival.
 %Though less dramatic a speedup than for the encoding function, we see that our average-based aggregation is significantly faster than the upcasting-based method of Bolt, its nearest rival.
 
 \begin{figure}[h]
@@ -73,7 +76,7 @@ We also profile the speed of our aggregation function $f(\cdot, \cdot)$ using th
 
 As described in section~\ref{sec:intro}, we approximated linear classifiers on the widely used CIFAR-10 and CIFAR-100 datasets \cite{cifarDsets}. The classifiers use as input features the 512-dimensional activations of open-source, VGG-like neural networks trained on each dataset \cite{cifarVgg}. The matrices $\A$ are the $10000 \times 512$-dimensional floating point activations for the full test sets, and the matrices $\B$ are each original network's final dense layer. The $50000 \times 512$-dimensional activations from the training set serve as the training matrices $\tilde{\A}$.
 
-As shown in Figure~\ref{fig:cifar}, \oursp significantly outperforms all existing methods, achieving near-perfect accuracy more than an order of magnitude faster than brute force.
+As shown in Figure~\ref{fig:cifar}, \oursp significantly outperforms all existing methods, achieving virtually the same accuracy as exact multiplication more than an order of magnitude faster.
 
 \begin{figure}[h]
 \begin{center}
@@ -91,7 +94,7 @@ To assess the efficacy of our method on a larger and more diverse set of dataset
 
 This is not the state-of-the-art means of classifying time series, but it does yield fixed-sized matrices and is representative of several modern techniques for constructing highly efficient classifiers \cite{snc,dsnc,bnc,protonn}. This setup also complements the CIFAR results by being an extremely difficult task, since Stochastic Neighbor Compression has already optimized the classifer to avoid redundancy. % since the distances between time series are often far smaller than their euclidean lengths; this property means that even small amounts of approximation error are sufficient to change predictions. It is also difficult because the $\B$ matrix has been optimized to avoid redundancy, so any acceleration
 
-As shown in Figure~\ref{fig:ucr}, \oursp is significantly faster at a given level of accuracy. A counter-intuitive result, however is that optimization of the prototypes is occasionally worse than not optimizing them (see the red line dipping below the blue one in the lower subplot). Since the optimization strictly increases the expressive power, we believe that this is a product of overfitting and could be corrected were we to tune the ridge regression's parameter (instead of always using $\lambda = 1$). This subplot also reveals that the most stringent degredation requirements can sometimes only be satisfied by PCA at a low speedup, since this is the only curve close to $1$.
+As shown in Figure~\ref{fig:ucr}, \oursp is significantly faster at a given level of accuracy. A counter-intuitive result, however is that optimization of the prototypes is occasionally worse than not optimizing them (see the red line dipping below the blue one in the lowest subplot). Since the optimization strictly increases the expressive power, we believe that this is a product of overfitting and could be corrected were we to tune the ridge regression's parameter (instead of always using $\lambda = 1$). This subplot also reveals that the most stringent degredation requirements can sometimes only be satisfied by PCA at a low speedup, since this is the only curve close to $1$.
 % , at high accuracy preservation thresholds,  % However as indicated by \oursp never approaching a fraction of 1 on the bottom subplot, \oursp does not consistently preserve the full accuracy. This suggests that, for difficult classification problems in which almost no accuracy can be sacrificed, \outsp is often not the best choice. The only methods that reliably preserve nearly the full original accuracy are PCA with a small speedup and, with certain parameter settings, Bolt.
 
 \begin{figure}[h]
@@ -106,20 +109,20 @@ As shown in Figure~\ref{fig:ucr}, \oursp is significantly faster at a given leve
 \subsection{Image Filtering}
 % ------------------------------------------------
 
-To test the extreme limits of \ours, we benchmarked the various techniques' ability to apply small filters to images. As representative examples we chose $3 \times 3$ Sobel filters and $5 \times 5$ gaussian filters. The former are common high-pass filters and the latter are common low-pass filters. We took the first 10 images from the first 50 classes of the Caltech101 dataset as the training set, and the first 10 images from the remaining 51 classes as the test set. We constructed the $\A$ matrices by extracting each patch of each image as one row.
+To test the extreme limits of \ours, we benchmarked the various techniques' ability to apply small filters to images. This task is extreme in that $D$ and $M$ are tiny, affording almost no opportunity to amortize preprocessing costs. As representative example filters, we chose $3 \times 3$ Sobel kernels and $5 \times 5$ Gaussian kernels. The former are common high-pass filters and the latter are common low-pass filters. We took the first 10 images from the first 50 classes of the Caltech101 dataset as the training set, and the first 10 images from the remaining 51 classes as the test set. We constructed the $\A$ matrices by extracting each patch of each image as one row. The $\B$ matrices have two columns, corresponding to one pair of Sobel or Gaussian filters.
 
  %See Appendix~\ref{sec:experimentDetails} for additional details.
 
 We report the normalized mean-squared error (NMSE), defined as $\norm{\mat{\hat{C}}_{i,j} - \A\B}^2_F / \norm{\A\B}^2_F$, where $\hat{\mat{C}}$ is the method's estimate of $\A\B$. An NMSE of 0 is perfect and an NMSE of 1 corresponds to always predicting 0.
 
-In Figure~\ref{fig:caltech}, we see that it is only \oursp that offers any advantage over exact matrix products. This is likely because two columns afford almost no time to amortize preprocessing costs for $\A$; indeed, rival vector quantization methods cannot logically do less work than brute force in this setting, and dense linear methods can only save work by embedding rows of $\A$ in one-dimensional space.
+In Figure~\ref{fig:caltech}, we see that it is only \oursp that offers any advantage over exact matrix products. This is likely because two columns afford almost no time to preprocess $\A$; indeed, rival vector quantization methods cannot logically do less work than brute force in this setting, and dense linear methods can only save work by embedding rows of $\A$ in one-dimensional space.
 
-\oursp performs much worse on the high-pass filters (top) than the low-pass filters (bottom). This is likely because the former produce outputs with variance that is orders of magnitude lower than that of the original image; this means that the NMSE denominator, $\norm{\A\B}^2_F$ is tiny.% relative to $\norm{\A}_F$ and $\norm{\B}_F$.
+\oursp performs much worse on the high-pass filters (top) than the low-pass filters (bottom). This is likely because the former produce outputs with variance that is orders of magnitude lower than that of the original image; this means that the NMSE denominator, $\norm{\A\B}^2_F$ is tiny.  % relative to $\norm{\A}_F$ and $\norm{\B}_F$.
 
 \begin{figure}[h]
 \begin{center}
 \includegraphics[width=\linewidth]{amm/caltech_Speedup_1 - NMSE}
-\caption{Despite having only $M=2$ columns in the matrix $\B$, \oursp still achieves a significant speedup with reasonable accuracy. It is, however, much more effective for approximating a 5x5 low-pass filter (bottom) than a 3x3 high-pass filter (top). Methods that are Pareto dominated by exact matrix multiplication on both tasks are not shown.}
+\caption{Despite having only $M=2$ columns in the matrix $\B$, \oursp still achieves a significant speedup with reasonable accuracy. Methods that are Pareto dominated by exact matrix multiplication on both tasks are not shown; this includes all methods but \oursp and SparsePCA.} % It is, however, much more effective for approximating a 5x5 low-pass filter (bottom) than a 3x3 high-pass filter (top).
 %Only \oursp is not Pareto dominated by exact matrix multiplication (.}
 \label{fig:caltech}
 \end{center}

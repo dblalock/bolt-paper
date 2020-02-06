@@ -135,7 +135,7 @@ Because nearly all existing work on approximate matrix multiplication either foc
 \subsection{SparsePCA details}
 % ------------------------------------------------
 
-We took steps to ensure that SparsePCA's results were not hampered by insufficient hyperparameter tuning. First, for each matrix product, we tried a range of lambda values which we found to encompass the full gamut of nearly 0\% to nearly 100\% sparsity: $\lambda \in 2^i, i \in \{-5, -4, -3, -2, -1, 0, 1, 2, 3\}$. Second, because different sparsity patterns may yield different exeuction times, we report not times from the single matrix SparsePCA produces for a given ($d, \lambda$) pair, but the best times from any of ten random matrices of the same size and at most the same sparsity. Finally and most importantly, we plot only the pareto frontier of (speed, quality) pairs produced for a given matrix multiply. I.e., we let SparsePCA cherrypick its best results on each individual matrix multiply.
+We took steps to ensure that SparsePCA's results were not hampered by insufficient hyperparameter tuning. First, for each matrix product, we tried a range of lambda values which we found to encompass the full gamut of nearly 0\% to nearly 100\% sparsity: $\lambda \in 2^i, i \in \{-5, -4, -3, -2, -1, 0, 1, 2, 3\}$. Second, because different sparsity patterns may yield different exeuction times, we report not times from the single matrix SparsePCA produces for a given ($d, \lambda$) pair, but the best times from any of ten random matrices of the same size and at most the same sparsity. Finally and most importantly, we plot only the Pareto frontier of (speed, quality) pairs produced for a given matrix multiply. I.e., we let SparsePCA cherrypick its best results on each individual matrix multiply.
 
 % ------------------------------------------------
 \subsection{Exact Matrix Multiplication}
@@ -143,11 +143,13 @@ We took steps to ensure that SparsePCA's results were not hampered by insufficie
 
 We also implemented our own matrix product function specialized for tall, skinny matrices. In all cases, we report the timings based on the better of these two functions for a given matrix product.
 
-% % ------------------------------------------------
-% \subsection{Additional Baselines}
-% % ------------------------------------------------
+% ------------------------------------------------
+\subsection{Additional Baselines}
+% ------------------------------------------------
 
-% TODO
+We also tested Frequent Directions / Fast frequent directions \cite{liberty_simple_2012, ghashami_frequent_2016, isvd}, many variations of the sampling method of \cite{drineas_fast_2006}, projection using orthogonalized gaussian random matrices \cite{superbitLSH}, projection using matrices of scaled i.i.d. rademacher random variables \cite{rademacherJL}, projection using orthonormalized matrices of rademacher random variables, the co-occuring directions sketch \cite{mroueh_co-occuring_2016}, OSNAP \cite{osnap}, Product Quantization \cite{pq}, and Optimized Product Quanization \cite{opq}.
+
+The poor performance of many of these methods is unsurprising in our setting. Given that we have access to a training set on which to learn the true principal components, the Eckert-Young-Mirsky theorem \cite{eckartYoungMirskyThm} suggests that PCA should outperform any other matrix sketching method employing dense projection matrices. Also, since PQ and OPQ use 256 dense centroids (except in the Bolt / QuickerADC variations), it is also not possible for them to perform well when $\min(D, M)$ is not significantly larger than 256.
 
 % ------------------------------------------------
 \subsection{UCR Time Series Archive}
@@ -172,3 +174,5 @@ We only extracted full windows---i.e., never past the edge of an image. We extra
 We used pairs of filters because using a single filter would mean timing a matrix-vector product instead of a matrix-matrix product.
 
 To allow meaningful speed comparisons across images, we resized and center cropped each image to $224 \times 224$ as commonly done in image classification pipelines \cite{resNet,resnet2,densenet}. We then extracted sliding windows of the appropriate size and used each (flattened) window as one row of $\tilde{\A}$ or $\A$. We similarly flattened the filters, with each set of coefficients forming one column of $\B$. In both cases, $\B$ has two columns---this is because using a single filter would mean timing a matrix-vector product instead of a matrix-matrix product. Moreover, because Sobel filters are often used in horizontal and vertical pairings, and Gaussian filters are often used together to perform difference-of-Gaussians transforms.
+
+Even though the RGB values at each position are naturally unsigned 8-bit integers, we allowed all rival methods to operate on them as 32-bit floating point, without including the conversion when timing them. Because it only requires checking whether values are above a threshold, \oursp can operate on 8-bit data directly.

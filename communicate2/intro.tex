@@ -1,5 +1,5 @@
 
-Matrix multiplication is among the most fundamental subroutines throughout numerical computing, including machine learning. As a result, there has been a great deal of work on implementing high-speed matrix multiplication libraries \cite{pytorch,eigen,tensorflow}, designing custom hardware to accelerate multiplication of certain classes of matrices \cite{eie,eyeriss,scnn,tpu}, scaling matrix multiplication across many machines \cite{distributedCoded, shortDot, entangledPolynomial, matmulCommunicationBounds}, and designing efficient Approximate Matrix Multiplication (AMM) algorithms under various assumptions and problem settings \cite{drineas_fast_2006,manne_fast_2014,ye_frequent_2016,mroueh_co-occuring_2016,bolt}.
+Matrix multiplication is among the most fundamental subroutines used in machine learning and scientific computing. As a result, there has been a great deal of work on implementing high-speed matrix multiplication libraries \cite{pytorch,eigen,tensorflow}, designing custom hardware to accelerate multiplication of certain classes of matrices \cite{eie,eyeriss,scnn,tpu}, scaling matrix multiplication across many machines \cite{distributedCoded, shortDot, entangledPolynomial, matmulCommunicationBounds}, and designing efficient Approximate Matrix Multiplication (AMM) algorithms under various assumptions and problem settings \cite{drineas_fast_2006,manne_fast_2014,ye_frequent_2016,mroueh_co-occuring_2016,bolt}.
 
 We focus on the AMM task under the assumptions that the matrices are tall, relatively dense, and resident in a single machine's memory. In this setting, the primary challenge is minimization of the amount of CPU time required to approximate linear operations with a given level of fidelity.
 %not reduction of disk or network usage [], efficient coordination between distributed workers [], maximization of a space-distortion tradeoff [], or reduction of asymptotic complexity []. Instead, it is minimization of the amount of CPU time required to approximate linear operations with a given level of fidelity.
@@ -26,7 +26,7 @@ Our method represents a significant methodological departure from most tradition
 \begin{align}
     \A \B \approx (\A \V_A) (\V_B^\top \B).
 \end{align}
-Often, $\V_A$ and $\V_B$ are sparse, embody some sort of sampling scheme, or have other structure such that these projection operations are faster than a dense matrix multiply. In short, these methods use linear functions to preprocess $\A$ and $\B$ and reduce the problem to exact matrix multiplication in a lower-dimensional space
+Often, $\V_A$ and $\V_B$ are sparse, embody some sort of sampling scheme, or have other structure such that these projection operations are faster than a dense matrix multiply. In short, these methods use linear functions to preprocess $\A$ and $\B$ and reduce the problem to exact matrix multiplication in a lower-dimensional space.
 % reduce the AMM problem to exact matrix multiplication in a lower-dimensional space using linear functions to preprocess $\A$ and $\B$.
 
 Our proposed method, \ours\footnote{Multiply-ADDitioN-lESS}, instead employs a \textit{nonlinear} preprocessing function and reduces the problem to table lookups. Moreover, in the case that $\B$ is known ahead of time---which happens when applying a trained linear model to new data, among other situations---\oursp does not require any multiply-add operations.
@@ -76,11 +76,17 @@ Our contributions can be summarized as follows:
 % ------------------------------------------------
 
 Let $\A \in \R^{N \times D}$ and $\B \in \R^{D \times M}$ be two matrices, with $N \gg D, M$, and $M$ not significantly larger than $D$. Given a computation time budget $\tau$, our task is to
-construct three functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$ such that
+construct three functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$, along with constants $\alpha$ and $\beta$, such that
 \begin{align} \label{eq:objective}
     \norm{\alpha f(g(\A), h(\B)) + \mat{\beta} - \A\B}_F < \eps(\tau) \norm{\A\B}_F
 \end{align}
-for the smallest error $\eps(\tau)$ possible. The scalar $\alpha$ and bias matrix $\mat{\beta}$ must be constants, and are separated from $f(\cdot)$ so that it can produce low-bitwidth outputs that may not capture the range of values in $\A\B$. %Furthermore, $\alpha$ must be a power of $2$ so that multiplication can be replaced with bit shifting.\footnote{}
+for the smallest error $\eps(\tau)$ possible. The constants $\alpha$ and $\beta$ are separated from $f(\cdot,\cdot)$ so that $f(\cdot,\cdot)$ can produce low-bitwidth outputs (e.g., in the range $[0, 255]$) even when the entries of $\A\B$ do not fall in this range.
+
+% it produce low-bitwidth outputs
+
+% The scalar $\alpha$ and bias matrix $\mat{\beta}$ must be known constants. These constants are separated from $f(\cdot,\cdot)$ so that it produce low-bitwidth outputs.
+
+% , and are separated from $f(\cdot)$ so that it can produce low-bitwidth outputs that may not capture the range of values in $\A\B$. %Furthermore, $\alpha$ must be a power of $2$ so that multiplication can be replaced with bit shifting.\footnote{}
 % to allow $f(\cdot)$ to
 
 % . Moreover, the computation time $\tau(\eps)$ to run these three functions should be much smaller than the comuputation time $\tau_0$ to compute $\A\B$ directly.
