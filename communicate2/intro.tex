@@ -1,12 +1,13 @@
 
-Matrix multiplication is among the most fundamental subroutines throughout numerical computing, including machine learning. As a result, there has been a great deal of work on implementing high-speed matrix multiplication libraries [], designing custom hardware to accelerate multiplication of certain classes of matrices [], scaling matrix multiplication across many machines [], and designing efficient Approximate Matrix Multiplication (AMM) algorithms under various assumptions and problem settings [].
+Matrix multiplication is among the most fundamental subroutines throughout numerical computing, including machine learning. As a result, there has been a great deal of work on implementing high-speed matrix multiplication libraries \cite{pytorch,eigen,tensorflow}, designing custom hardware to accelerate multiplication of certain classes of matrices \cite{eie,eyeriss,scnn,tpu}, scaling matrix multiplication across many machines \cite{distributedCoded, shortDot, entangledPolynomial, matmulCommunicationBounds}, and designing efficient Approximate Matrix Multiplication (AMM) algorithms under various assumptions and problem settings \cite{drineas_fast_2006,manne_fast_2014,ye_frequent_2016,mroueh_co-occuring_2016,bolt}.
 
-We focus on the AMM task under the assumptions that the matrices are tall, relatively dense, and resident in a single machine's memory. In this setting, the primary challenge is not reduction of disk or network usage [], efficient coordination between distributed workers [], maximization of a space-distortion tradeoff [], or reduction of asymptotic complexity []. Instead, it is minimization of the amount of CPU time required to approximate linear operations with a given level of fidelity.
+We focus on the AMM task under the assumptions that the matrices are tall, relatively dense, and resident in a single machine's memory. In this setting, the primary challenge is minimization of the amount of CPU time required to approximate linear operations with a given level of fidelity.
+%not reduction of disk or network usage [], efficient coordination between distributed workers [], maximization of a space-distortion tradeoff [], or reduction of asymptotic complexity []. Instead, it is minimization of the amount of CPU time required to approximate linear operations with a given level of fidelity.
 
 This setting arises naturally in machine learning and data mining when one has a data matrix $\mat{A}$ whose rows are samples and a linear operator $\mat{B}$ one wishes to apply to these samples. $\mat{B}$ could be a linear classifier, linear regressor, or an embedding matrix, among other possibilities.
 
 As a concrete example, consider the task of approximating a softmax classifier trained to predict image labels given embeddings derived from a neural network. Here, the rows of $\A$ are the embeddings for each image, and the columns of $\B$ are the weight vectors for each class. Classification is performed by computing the product $\A\B$ and taking the argmax within each row of the result.
-In Figure~\ref{fig:fig1}, we see the results of approximating $\A\B$ using our method and its best-performing rivals \cite{hashjl, sparsepca} on the CIFAR-10 and CIFAR-100 datasets.
+In Figure~\ref{fig:fig1}, we see the results of approximating $\A\B$ using our method and its best-performing rivals \cite{hashjl, sparsePCA} on the CIFAR-10 and CIFAR-100 datasets.
 \vspace{1mm}
 \begin{figure}[h]
 \begin{center}
@@ -16,7 +17,7 @@ In Figure~\ref{fig:fig1}, we see the results of approximating $\A\B$ using our m
 \end{center}
 \end{figure}
 
-Each method yields a curve whose points are specific speedups and associated levels of classification accuracy. More speedup and more accuracy (up and to the right) is better. While we defer detailed discussion to section~\ref{sec:results}, it is clear that our proposed approach significantly outperforms alternatives.
+Each method yields a curve whose points are specific speedups and associated levels of classification accuracy. More speedup and more accuracy (up and to the right) is better. While we defer detailed discussion to Section~\ref{sec:results}, it is clear that our proposed approach significantly outperforms alternatives.
 
 % In addition to achieving strong empirical performance, our method also has an
 
@@ -27,7 +28,7 @@ In addition to achieving strong empirical performance, our method represents a s
 Often, $\V_A$ and $\V_B$ are sparse, embody some sort of sampling scheme, or have other structure such that these projection operations are faster than a dense matrix multiply. In short, these methods use linear functions to preprocess $\A$ and $\B$ and reduce the problem to exact matrix multiplication in a lower-dimensional space
 % reduce the AMM problem to exact matrix multiplication in a lower-dimensional space using linear functions to preprocess $\A$ and $\B$.
 
-Our proposed method, \ours\footnote{Multiply-ADDitioN-lESS}, instead employs a \textit{nonlinear} preprocessing function and reduces the problem to table lookups. Moreover, in the case that $\B$ is known ahead of time---which happens when applying a trained linear model to new data, among other situations---\oursp does not require any multiply-add operations. This includes binary \texttt{XNOR} and \texttt{popcount} operations [], as well as the summation of shifted and masked scalars to approximate multiplication []. I.e., we are not merely approximating scalar multiplies at the bit manipulation level, but approximating matrix products at the algorithm level.
+Our proposed method, \ours\footnote{Multiply-ADDitioN-lESS}, instead employs a \textit{nonlinear} preprocessing function and reduces the problem to table lookups. Moreover, in the case that $\B$ is known ahead of time---which happens when applying a trained linear model to new data, among other situations---\oursp does not require any multiply-add operations. This includes binary \texttt{XNOR} and \texttt{popcount} operations \cite{xnornet,dorefanet}, as well as the summation of shifted and masked scalars to approximate multiplication \cite{hackyQuasiMultiplies}. I.e., we are not merely approximating scalar multiplies at the bit manipulation level, but approximating matrix products at the algorithm level.
 
 % An extension of this method common in the information retrieval literature is to define a nonlinear function $g(\cdot)$ such that
 % \begin{align}
@@ -55,7 +56,7 @@ Our proposed method, \ours\footnote{Multiply-ADDitioN-lESS}, instead employs a \
 % % Instead of performing dimensionality or bitwidth reduction,
 % In contrast, we introduce \ours, a method that can eliminate the multiply-add operations entirely when given time to preprocess $\B$. It does this by precomputing certain statistics about $\B$ and replacing the multiply-adds with table lookups. Crucially, these table lookups are not merely a different implementation of multiplication---as we discuss in section~\ref{sec:method}, they implement nonlinear functions. % that cannot be characterized as an algebraic ring.
 
-Our method is most closely related to the vector quantization methods used for similarity search []. However, instead of using an expensive quantization function that requires many multiplies, we introduce a family of quantization functions that require no multiplies. %, including binary \texttt{XNOR} and \texttt{popcount} operations (though excluding implementation-level multiplies to compute memory addresses).
+Our method is most closely related to vector quantization methods used for similarity search (e.g., \cite{bolt,quickAdc,quickerAdc,pq,opq}). However, instead of using an expensive quantization function that requires many multiplies, we introduce a family of quantization functions that require no multiplies. %, including binary \texttt{XNOR} and \texttt{popcount} operations (though excluding implementation-level multiplies to compute memory addresses).
 % TODO something about multiplication taking a lot of transistors vs table lookups.
 
 Our contributions can be summarized as follows:
@@ -80,7 +81,7 @@ for the smallest error $\eps(\tau)$ possible. The scalar $\alpha$ and bias matri
 
 % . Moreover, the computation time $\tau(\eps)$ to run these three functions should be much smaller than the comuputation time $\tau_0$ to compute $\A\B$ directly.
 
-We assume the existence of a training set $\tilde{\A}$, whose rows are drawn from the same distribution as the rows of $\A$. This is a natural assumption in the case that rows of $\A$ represent examples in training data, or structured subsets thereof (such as patches of images). This assumption is common in the information retrieval literature \cite{bolt, pairq}, but is a significant departure from most theoretical work.
+We assume the existence of a training set $\tilde{\A}$, whose rows are drawn from the same distribution as the rows of $\A$. This is a natural assumption in the case that rows of $\A$ represent examples in training data, or structured subsets thereof (such as patches of images). This assumption is common in the information retrieval literature \cite{bolt,pairq,quip}, but is a significant departure from most theoretical work.
 
 % We also assume that the cost of computing $h(\B)$ negligible provided that $h(\B) \in O(MD)$. One sufficient condition for this is $\B$ being provided ahead of time (as is the case when $\B$ represents fixed model weights). A second is that $\B$ has sufficiently few columns compared to the number of rows in $\A$ (i.e., $M \ll N$).
 

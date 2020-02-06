@@ -7,7 +7,7 @@ Traditional AMM methods construct matrices $\V_A, \V_B \in \R^{D \times d}, d \l
 \end{align}
 There are many options for choosing $\V_A$ and $\V_B$, depending on what assumptions one makes.
 
-The most common case studied is that in which $N$, $D$, and $M$ are large, but one has little or no prior knowledge about either matrix. One simple approach is to sketch each matrix individually. Most of these methods center on one of three basic approaches: deterministic sketching, random sketching, or random sampling. Deterministic sketching methods employ a fixed algorithm or projection matrix to obtain a low-rank approximation to the original matrix. The most prominent of these methods are the Frequent Directions algorithm \cite{liberty_simple_2012, ghashami_frequent_2016} and its many variations \cite{teng_fast_2019, francis_practical_2018, ye_frequent_2016, huang_near_2019, luo_robust_2019, francis_improvement_2018}. Random sketching methods typically design matrices with certain properties or structure, such as having entries composed of or multiplied by i.i.d. Rademacher random variables \cite{sarlos_improved_2006, kyrillidis_approximate_2014, pagh_compressed_2013} or having a particular sparse structure \cite{osnap}. Random sampling methods choose subsets of rows and/or columns, typically in accordance with some theoretically motivated sampling distribution \cite{drineas_fast_2006-1, drineas_fast_2006-2}.
+The most common case studied is that in which $N$, $D$, and $M$ are large, but one has little or no prior knowledge about either matrix. One simple approach is to sketch each matrix individually. Most of these methods center on one of three basic approaches: deterministic sketching, random sketching, or random sampling. Deterministic sketching methods employ a fixed algorithm or projection matrix to obtain a low-rank approximation to the original matrix. The most prominent of these methods are the Frequent Directions algorithm \cite{liberty_simple_2012, ghashami_frequent_2016} and its many variations \cite{teng_fast_2019, francis_practical_2018, ye_frequent_2016, huang_near_2019, luo_robust_2019, francis_improvement_2018}. Random sketching methods typically design matrices with certain properties or structure, such as having entries composed of or multiplied by i.i.d. Rademacher random variables \cite{sarlos_improved_2006, kyrillidis_approximate_2014, pagh_compressed_2013} or having a particular sparse structure \cite{hashjl,osnap}. Random sampling methods choose subsets of rows and/or columns, typically in accordance with some theoretically motivated sampling distribution \cite{drineas_fast_2006-1, drineas_fast_2006-2}.
 
 One weakness of the above approaches is that they consider each matrix individually, instead of the two of them jointly. The first authors to formally address AMM by considering both matrices were \citet{drineas_fast_2006}, who sampled columns of $\A$ and rows of $\B$ according to a sampling distribution dependent upon both matrices. Later work by \citet{manne_fast_2014} reduces approximation of the matrices to an optimization problem, which is solved by steepest descent. \citet{mroueh_co-occuring_2016}, \citet{ye_frequent_2016}, and \citet{francis_improvement_2018} introduce variations of the Frequent Directions algorithm that take into account both matrices simultaneously.
 
@@ -18,8 +18,8 @@ One weakness of the above approaches is that they consider each matrix individua
 
 While they are not traditionally considered related work for AMM methods, there are also a number of relevant approaches from the information retrieval literature. These approaches consider the tasks of nearest neighbor and maximum inner product search, not approximate matrix multiplication \textit{per se}; however, these methods either
 \begin{enumerate}
-    \item work by reducing the problems to approximate matrix multiplication \cite{cq, aq, otq, sq, stackedQuantizers, bolt}, or
-    \item could easily be applied to approximate matrix multiplication by replacing squared euclidean distance computations with dot product computations. \cite{pq, quckAdc, quickerAdc, pairq, grvq, opq, polysemous}
+    \item work by reducing the problems to approximate matrix multiplication \cite{cq, aq, otq, scq, stackedQuantizers, bolt}, or
+    \item could easily be applied to approximate matrix multiplication by replacing squared euclidean distance computations with dot product computations. \cite{pq, quickAdc, quickerAdc, pairq, grvq, opq, polysemous}
 \end{enumerate}
 Consequently, it is useful to cast them as AMM methods.
 
@@ -29,17 +29,15 @@ These methods almost exclusively consider the regime where $N, M \gg D$ and eith
 \end{align}
 The $g(\cdot)$ function binarizes and induces structured sparsity in the resulting matrix. Because all of the resulting coefficients of the matrix $g(\A \V_A)$ are either 0 or 1, this allows its product with $(\V_B^\top \B)$ to be computed using only additions, instead of multiply-adds. Moreover, if the sparsity is structured appropriately, dot products can be reduced to table lookups, with the indices into the tables given by the indices of the nonzeros. As several recent papers have observed \cite{bolt, quickAdc, quickerAdc}, these tables can be restricted in size and quantized such that the table lookups can be executed with CPU vector instructions.
 
-We discuss the most relevant of these vector quantization-based approaches in more detail in section~\ref{sec:background}, and refer the reader to \cite{learningToHashSurvey, hashingSimilaritySurvey} for detailed surveys of this area. % For now, we merely note that most of the AMM-relevant effort in the past decade has been devoted to finding better $\V_A$ and $\V_B$ matrices.
+We discuss the most relevant of these vector quantization-based approaches in more detail in Section~\ref{sec:background}, and refer the reader to \cite{learningToHashSurvey, hashingSimilaritySurvey} for detailed surveys of this area. % For now, we merely note that most of the AMM-relevant effort in the past decade has been devoted to finding better $\V_A$ and $\V_B$ matrices.
 % Because of the assumption that $N, M \gg D$, applying these linear transforms is nearly free
 
-Our method is also built on vector quantization, but instead of applying $g(\cdot)$ to a transformed matrix $\A \V_A$, we directly transform $\A$ itself. Because we use a $g(\cdot)$ function that does not require any multiply-adds, our overall procedure requires multiply-adds only if $\V_B^\top \B$ cannot be precomputed. We also depart from existing vector-quantization based AMM through the addition of several more algorithmic enhancements, but defer discussion of these to section~\ref{sec:method}.
+Our method is also built on vector quantization, but instead of applying $g(\cdot)$ to a transformed matrix $\A \V_A$, we directly transform $\A$ itself. Because we use a $g(\cdot)$ function that does not require any multiply-adds, our overall procedure requires multiply-adds only if $\V_B^\top \B$ cannot be precomputed. We also depart from existing vector-quantization based AMM through the addition of several more algorithmic enhancements, but defer discussion of these to Section~\ref{sec:method}.
 
 
 \subsection{Hashing to Avoid Linear Operators}
 
-TODO talk about Ryan Spring's DNNs + Hashing stuff somewhere. Also talk about idea of using LSH for clustering being an existing thing in the differential privacy literature.
-
-TODO talk about dp kmeans stuff.
+TODO talk about Ryan Spring's DNNs + Hashing stuff somewhere \cite{springScalable,slide}. Also other hashing methods to avoid computing most of the outputs \cite{wtaSoftmax,googleWtaCvpr}. Also talk about idea of using LSH for clustering being an existing thing in the differential privacy literature \cite{kmeansLshDp2017, kmeansLshDp2018, kmeansLshDp2020}.
 
 % There have been variations of this approach (see \cite{learningToHashSurvey, hashingSimilaritySurvey} for detailed surveys), with much of the effort aimed at developing better $\V_A$ and $\V_B$ matrices.
 

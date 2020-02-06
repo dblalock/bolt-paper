@@ -4,7 +4,7 @@
 Product Quantization and its variants yield a large speedup with $N, M \gg D$. However, we require an algorithm that only needs $N \gg M, D$. In this setting, the preprocessing time $g(\A)$ can be significant, since $ND$ may be similar to (or even larger than) $NM$.
 
 To address this case, we introduce a new $g(\A)$ function that yields large speedups even on much smaller matrices. %In this section, we describe how \oursp builds upon the foundation of PQ to achieve this. We also discuss aspects of \oursp that offer further enhancements that are applicable to vector quantization approaches in general.
-The main idea behind our function is to determine the ``most similar'' prototype through locality-sensitive hashing \cite{lsh}; i.e., rather than compute the Euclidean distance between the row $\a$ and each prototype, we hash $\a$ to one of $K$ buckets where similar vectors tend to hash to the same bucket. The prototypes are constructed as the means of all points hashing to the same bucket, rather than with K-means.
+The main idea behind our function is to determine the ``most similar'' prototype through locality-sensitive hashing \cite{lshOrig}; i.e., rather than compute the Euclidean distance between the row $\a$ and each prototype, we hash $\a$ to one of $K$ buckets where similar vectors tend to hash to the same bucket. The prototypes are constructed as the means of all points hashing to the same bucket, rather than with K-means.
 
 % Each bucket is associated with a prototype, defined to be the mean of all training vectors hashing to that bucket.
 
@@ -14,7 +14,7 @@ The main idea behind our function is to determine the ``most similar'' prototype
 
 The key question in this approach is how to choose the locality-sensitive hash function.
 % There are two types of these functions to choose from: data-independent and data-dependent []. The former assume no training set and are typically based on randomization []. The latter assume a training set, and most often involve training a neural network to produce binary codes []. We refer the reader to [] for a survey. As one might expect, data-dependent hash functions yield higher quality results, but tend to run more slowly and lack formal guarantees.
-Because we seek to exploit a training set while also doing far less work than even a single linear transform, we found that existing hash functions [] did not meet our requirements. Consequently, we designed our own family of trainable hash functions. This function family may be of independent interest, but we leave exploration of its efficacy in other contexts to future work. We do not claim that this method outperforms all possible alternatives---merely that it enables excellent results in our experiments.
+Because we seek to exploit a training set while also doing far less work than even a single linear transform, we found that existing hash functions did not meet our requirements. Consequently, we designed our own family of trainable hash functions. This function family may be of independent interest, but we leave exploration of its efficacy in other contexts to future work. We do not claim that this method outperforms all possible alternatives---merely that it enables excellent results in our experiments.
 
 The family of hash functions we choose is balanced binary trees with axis-aligned splits. Each leaf of the tree is one bucket, so hashing consists of determining the appropriate leaf for a vector. To enable the use of SIMD instructions, the tree is limited to sixteen leaves and all nodes at a given level of the tree are required to split on the same axis (though not the same value).
 
@@ -65,13 +65,16 @@ To describe this process more formally, it will be helpful to introduce the noti
 % I.e., this loss for each index is the sum of squared errors (SSE) when estimating each $x_j$ as equal to its mean value within the bucket, and the overall loss for a bucket is the sum of the values in each dimension. The overall loss can also be understood as the ``energy'' of the bucket [].
 Using this notation, it suffices to characterize the learning algorithm by describing the construction of level $t$ of the tree given buckets $\mathcal{B}^{t-1}_1,\ldots,\mathcal{B}^{t-1}_{2^{t-1}}$ from the previous level.
 
+% In line~\ref{line:dimHeuristic},
 The construction of level $t$ of the tree is given in Algorithm~\ref{algo:learnTree}.
-In line~\ref{line:dimHeuristic}, we select a certain number of indices to evaluate. Several heuristics are possible, including evaluating all indices. We found that simply selecting the top $n$ indices that contributed the most loss summed across all buckets was difficult to beat. In preliminary experiments, we found that using $n > 4$ indices offered little or no additional benefit (and even choosing $n = 1$ was nearly as good), so we hardcode $n = 4$.
+In line~2, we select a certain number of indices to evaluate. Several heuristics are possible, including evaluating all indices. We found that simply selecting the top $n$ indices that contributed the most loss summed across all buckets was difficult to beat. In preliminary experiments, we found that using $n > 4$ indices offered little or no additional benefit (and even choosing $n = 1$ was nearly as good), so we hardcode $n = 4$.
 % The loss associated with a given index in a given bucket is the variance within that dimension multiplied by the size of the bucket---i.e., the sum of squared errors compared to the bucket's mean.
 
-In lines~\ref{lines:dimEvalStart}-\ref{lines:dimEvalStart}, we find the minimal loss obtainable by splitting all buckets along that index, but with bucket-specific cutoffs. This loss is minimal not in the sense that it leads to the best overall tree, but that it minimizes the sum of the losses in the buckets produced in this iteration. To do this, we invoke the subroutine \texttt{optimal\_split\_value}, which takes in a bucket $\mathcal{B}$ and an index $j$ and tests all possible splits to find which minimizes $\mathcal{L}(j \text{, } \mathcal{B})$. This can be done in time $O(|\mathcal{B}| \log(|\mathcal{B}|))$. The pseudocode for this subroutine is given in Algorithm~\ref{algo:optimalSplitVal} and Algorithm~\ref{algo:cumSSE} in Appendix~\ref{sec:optimalSplitVal}. These algorithms exploit the fact that the sum of squared errors can be computed using only the sum of values and sum of squared values, both of which can be updated in $O(1)$ time when a vector is moved from one side of the split to the other.
+% In lines~\ref{line:dimEvalStart}-\ref{line:dimEvalEnd},
+In lines~4-15, we find the minimal loss obtainable by splitting all buckets along that index, but with bucket-specific cutoffs. This loss is minimal not in the sense that it leads to the best overall tree, but that it minimizes the sum of the losses in the buckets produced in this iteration. To do this, we invoke the subroutine \texttt{optimal\_split\_value}, which takes in a bucket $\mathcal{B}$ and an index $j$ and tests all possible splits to find which minimizes $\mathcal{L}(j \text{, } \mathcal{B})$. This can be done in time $O(|\mathcal{B}| \log(|\mathcal{B}|))$. The pseudocode for this subroutine is given in Algorithm~\ref{algo:optimalSplitVal} and Algorithm~\ref{algo:cumSSE} in Appendix~\ref{sec:optimalSplitVal}. These algorithms exploit the fact that the sum of squared errors can be computed using only the sum of values and sum of squared values, both of which can be updated in $O(1)$ time when a vector is moved from one side of the split to the other.
 
-Once a split index and array of split values are chosen, all that remains is to split the buckets to form the next level of the tree (lines~\ref{line:splitBucketsStart}-\ref{line:splitBucketsEnd}). This just entails forming two child buckets from each current bucket, where the first child has vectors whose elements $x_j$ are less than the bucket's split value and the second child has those whose elements are above the bucket's split value.
+% (lines~\ref{line:splitBucketsStart}-\ref{line:splitBucketsEnd})
+Once a split index and array of split values are chosen, all that remains is to split the buckets to form the next level of the tree (lines~16-21). This just entails forming two child buckets from each current bucket, where the first child has vectors whose elements $x_j$ are less than the bucket's split value and the second child has those whose elements are above the bucket's split value.
 
 Once the full tree has been constructed, the prototypes are set to the means of each bucket.
 
@@ -96,7 +99,7 @@ Once the full tree has been constructed, the prototypes are set to the means of 
             \STATE{$l^{min} \leftarrow l \text{, } j^{min} \leftarrow j \text{, } \vec{v}^{min} \leftarrow \vec{v} $}
             \COMMENT{new best split}
         \ENDIF
-    \ENDFOR \label{line:dimEvalStart}
+    \ENDFOR \label{line:dimEvalEnd}
 
     \LINECOMMENT{Create new buckets using chosen split}
     \STATE{$\bm{\mathcal{B}} \leftarrow $ [ ]} \label{line:splitBucketsStart}
@@ -116,7 +119,7 @@ Once the full tree has been constructed, the prototypes are set to the means of 
 
 At this point, we have a complete algorithm. We could simply drop our hash-based encoding function into PQ and approximate matrix products. However, we contribute two additional enhancements.
 
-First, we introduce a means of optimizing the prototypes given only the matrix $\tilde{\A}$. While several methods proposed prototype or table optimizations based on knowledge of $\B$ [] and others optimize them at the expense of slowing down the function $g(\cdot)$, we believe we are the first to introduce a means of optimizing the centroids that does not do either of these. The idea is to choose prototypes such that $\tilde{\A}$ can be reconstructed from its prototypes with as little squared error as possible---this improves results since less error means that less information about $\tilde{\A}$ is being lost.
+First, we introduce a means of optimizing the prototypes given only the matrix $\tilde{\A}$. While several methods proposed prototype or table optimizations based on knowledge of $\B$ \cite{pairq,optimizedDists} and others optimize them at the expense of slowing down the function $g(\cdot)$ \cite{cq,scq}, we believe we are the first to introduce a means of optimizing the centroids that does not do either of these. The idea is to choose prototypes such that $\tilde{\A}$ can be reconstructed from its prototypes with as little squared error as possible---this improves results since less error means that less information about $\tilde{\A}$ is being lost.
 % Our insight is that
 % \begin{enumerate}
 %     \item The quality of the matrix product approximation increases when the quantization error between each row of $\A$ and its corresponding prototypes decreases.
@@ -165,9 +168,9 @@ Given the quantized lookup tables $\mat{T}^{q}$ and encodings $\mat{G}$, the fun
 \end{align}
 However, because the entries of $\mat{T}$ are stored as 8-bit values, exact summation requires immediately upcasting each looked-up entry to 16 bits before performing any addition instructions \cite{bolt}. This not only imposes overhead directly, but also means that one must perform 16-bit additions, which have half the throughput of 8-bit additions.
 
-We propose an alternative that sacrifices a small amount of accuracy for a significant increase in speed. Instead of using \textit{addition} instructions, we use \textit{averaging} instructions, such as \texttt{vpavgb} on x86 or \texttt{vrhadd} on ARM. While non-saturating additions compute $a + b \text{ \% } 256$, these instructions compute $(a + b + 1) / 2$. This means that they lose information about the low bit instead of the high bit of the sum. We estimate the overall mean by averaging pairs of values, then pairs of pairs, and so on. One could reduce all $C$ values this way, but we find that one obtains a better speed-accuracy tradeoff by computing the average of blocks of $U$ values and then upcasting to obtain exact sums of these averages. One obtains an estimate of the sum by multiplying this sum of averages by $U$ and adding in a bias correction term. One could tune $U$ for a particular problem and hardware, but we simply set $U = 16$ in all our experiments.
+We propose an alternative that sacrifices a small amount of accuracy for a significant increase in speed. Instead of using \textit{addition} instructions, we use \textit{averaging} instructions, such as \texttt{vpavgb} on x86 or \texttt{vrhadd} on ARM. While non-saturating additions compute $(a + b) \text{ \% } 256$, these instructions compute $(a + b + 1) / 2$. This means that they lose information about the low bit instead of the high bit of the sum. We estimate the overall mean by averaging pairs of values, then pairs of pairs, and so on. One could reduce all $C$ values this way, but we find that one obtains a better speed-accuracy tradeoff by computing the average of blocks of $U$ values and then upcasting to obtain exact sums of these averages. One obtains an estimate of the sum by multiplying this sum of averages by $U$ and adding in a bias correction term. One could tune $U$ for a particular problem and hardware, but we simply set $U = 16$ in all our experiments.
 
-The challenging part of this approach is computing the bias in the estimated sum in order to correct for it. We found that this bias is equal to $C \log_2(U) / 4$, and the variance is $C \log_2(U) / 8$ under the realistic assumption that the low bits are equally likely to be 0 or 1. See section~\ref{sec:aggregateAnalysis} for details and proofs.
+The challenging part of this approach is computing the bias in the estimated sum in order to correct for it. We found that this bias is equal to $C \log_2(U) / 4$, and the variance is $C \log_2(U) / 8$ under the realistic assumption that the low bits are equally likely to be 0 or 1. See Appendix~\ref{sec:aggregateAnalysis} for details and proofs.
 
 % ------------------------------------------------
 \subsection{Complexity}
@@ -264,7 +267,7 @@ Our encoding function $g(\A), \A \in \R^{N \times D}$ has complexity $\Theta(NC)
 % Consequently, we designed a family of hash functions that yields high intra-bucket similarity and can run extremely quickly in modern CPUs. This function family may of independent interest, but we leave exploration of its efficacy in other contexts to future work. We do not claim that this method outperforms---merely that it enables excellent results in our experiments.
 
 
-% Specifically, in each of the $C$ subspaces, we learn a function $g^{(c)}: \R^{|\mathcal{J}^{(c)}|} \rightarrow \mathbb{Z}_K$ such that $Pr[g^{(c)}(\x) = g^{(c)}(\y)]$ is greater when $\norm{\x - \y}_2$ is smaller. % This is technically not equivalent to the traditional definition of locality sensitive hashing \cite{lsh}, in which
+% Specifically, in each of the $C$ subspaces, we learn a function $g^{(c)}: \R^{|\mathcal{J}^{(c)}|} \rightarrow \mathbb{Z}_K$ such that $Pr[g^{(c)}(\x) = g^{(c)}(\y)]$ is greater when $\norm{\x - \y}_2$ is smaller. % This is technically not equivalent to the traditional definition of locality sensitive hashing \cite{lshOrig}, in which
 
 %$g^{(c)}(\a)$
 
