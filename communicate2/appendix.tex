@@ -1,5 +1,21 @@
 
 % ================================================================
+\section{Quantizing Lookup Tables} \label{sec:lutQuantize}
+% ===============================================================
+
+% Existing work has shown that setting $K = 16$ and quantizing the lookup tables for a given column of $\B$ to 8 bits can offer enormous speedups compared to larger $K$ and/or floating-point tables \cite{bolt, quickAdc, quickerAdc}. This is because 16 1-byte entries can be stored in a SIMD register, allowing 16 or more table lookups to be performed in parallel in a single instruction.
+
+Since the lookup table entries naturally occupy more than 8 bits even for 8-bit data (since products of 8-bit values require 16 bits), some means of quantizing these entries is necessary to enable vectorization. Unfortunately, existing quantization methods are not applicable to our problem setting. The scheme of \citet{bolt} requires knowledge of $\B$ at training time, while the scheme of \citet{quickAdc} and \citet{quickerAdc} is only applicable for nearest-neighbor search. We instead use the following approach, where $\mat{T} \in \R^{M \times C \times K}$ is the tensor of lookup tables for all $M$ columns of $\B$, $\mat{T}^{q}$ is the quantized version of $\mat{T}$, $\vec{\delta} \in \R^C$ is a vector of table-specific offsets, and $\alpha^{-1}$ is an overall scale factor:
+\begin{align}
+    \vec{\delta}_c &\triangleq \min_{m,k} \text{ } \mat{T}_{m,c,k} \\
+    \alpha^{-1} \triangleq 2^l \cs l &= \max_c \floor{ \log_2 \left( \frac{255}{
+            \max_{m,k} (\mat{T}_{m,c,k} - \delta_{c})
+        } \right)}. \\
+    \mat{T}^{q}_{m,c,k} &\triangleq \alpha^{-1}(\mat{T}_{m,c,k} - \delta_{c})
+\end{align}
+This is similar to equations~\ref{eq:offset} and \ref{eq:scale}, but with the scale factor pooled across all codebooks instead of unique to each input column. The $\alpha$ used here is the same as that in equation~\ref{eq:objective}, and the matrix $\beta$ in equation~\ref{eq:objective} has entries equal to $\sum_c \vec{\delta}_c$ (plus the debiasing constant from our averaging-based aggregation).
+
+% ================================================================
 \section{Quantization and \oursHash} \label{sec:hashQuantize}
 % ================================================================
 
@@ -22,6 +38,12 @@ This restriction of $\gamma_j$ to powers of two allows one to quantize $x_{j^t}$
 \section{Subroutines for \oursHash} \label{sec:optimalSplitVal}
 % ================================================================
 
+The \texttt{optimal\_split\_value} algorithms finds the best threshold at which to split a bucket within a given dimension. To do this, it uses the \texttt{cumulative\_sse} function (\ref{algo:cumSSE}) to help evaluate the loss associated with the resulting child buckets.
+
+These algorithms exploit the fact that the sum of squared errors can be computed using only the sum of values and sum of squared values, both of which can be updated in $O(1)$ time when a vector is moved from one side of the split to the other.
+
+% ------------------------------------------------ optimalSplitVal
+
 \begin{algorithm}[h]
 \caption{Optimal Split Value Within a Bucket} \label{algo:optimalSplitVal}
 \begin{algorithmic}[1]
@@ -42,7 +64,7 @@ This restriction of $\gamma_j$ to powers of two allows one to quantize $x_{j^t}$
 \end{algorithmic}
 \end{algorithm}
 
-
+% ------------------------------------------------ cumSSE
 
 \begin{algorithm}[h]
 % \caption{Cumulative SSE Within Columns} \label{algo:cumSSE}
@@ -103,20 +125,41 @@ TODO
 % ================================================================
 
 % ------------------------------------------------
+\subsection{Choice of Matrix Multiplication Tasks}
+% ------------------------------------------------
+
+Because nearly all existing work on approximate matrix multiplication either focuses on special cases that do not satisfy our problem definition \cite{quickerAdc, pq, opq} or synthetic matrices, there is not a clear set of benchmark matrix multiply tasks to use. We therefore propose a collection of tasks that we believe are both reproducible and representative of many real-world matrices. To the best of our knowledge, our experiments use over an order of magnitude more matrices than any previous study.
+
+
+% ------------------------------------------------
 \subsection{SparsePCA details}
 % ------------------------------------------------
 
 We took steps to ensure that SparsePCA's results were not hampered by insufficient hyperparameter tuning. First, for each matrix product, we tried a range of lambda values which we found to encompass the full gamut of nearly 0\% to nearly 100\% sparsity: $\lambda \in 2^i, i \in \{-5, -4, -3, -2, -1, 0, 1, 2, 3\}$. Second, because different sparsity patterns may yield different exeuction times, we report not times from the single matrix SparsePCA produces for a given ($d, \lambda$) pair, but the best times from any of ten random matrices of the same size and at most the same sparsity. Finally and most importantly, we plot only the pareto frontier of (speed, quality) pairs produced for a given matrix multiply. I.e., we let SparsePCA cherrypick its best results on each individual matrix multiply.
 
 % ------------------------------------------------
-\subsection{Additional Baselines}
+\subsection{Exact Matrix Multiplication}
 % ------------------------------------------------
+
+We also implemented our own matrix product function specialized for tall, skinny matrices. In all cases, we report the timings based on the better of these two functions for a given matrix product.
+
+% % ------------------------------------------------
+% \subsection{Additional Baselines}
+% % ------------------------------------------------
+
+% TODO
 
 % ------------------------------------------------
 \subsection{UCR Time Series Archive}
 % ------------------------------------------------
 
+We omitted datasets with fewer than 128 training examples, since it is not possible for Stochastic Neighbor Compression to draw 128 samples without replacement in this case.
+
+In addition to being a large, public corpus of over a hundred datasets from a huge variety of different domains, UCR Time Series Archive also has the advantage that it can be used to produce matrix multiplication tasks of a fixed size. This is necessary for meaningful comparison of performance across datasets. We constructed training and test matrices $\tilde{\A}$ and $\A$ by resampling each time series in each dataset's train and test set to a length of $320$ (the closest multiple of 32 to the median length of 310). We obtained the matrix $\B$ for each dataset by running Stochastic Neighbor Compression \cite{snc} on the training set with an RBF kernel of bandwidth one. We set the number of returned neighbors to 128 (results with 64 and 256 were similar), yielding a $\B$ matrix of size $320 \times 128$. %See Appendix~\ref{sec:experimentDetails} for additional details.
+
 Since different datasets have different test set sizes, all results are for a standardized test set size of 1000 rows. We wanted the length to be a multiple of 32 since existing methods operate best with sizes that are either powers of two or, failing that, multiples of large powers of two.
+
+
 
 % since having a length that is a multiple of at least 8 is the best-case scenario for most existing methods, and 320 is a ``rounder'' number than 312.
 
@@ -128,4 +171,4 @@ We only extracted full windows---i.e., never past the edge of an image. We extra
 
 We used pairs of filters because using a single filter would mean timing a matrix-vector product instead of a matrix-matrix product.
 
-so that other methods could, theoretically, amortize their preprocessing costs and obtain a speedup. In practic
+To allow meaningful speed comparisons across images, we resized and center cropped each image to $224 \times 224$ as commonly done in image classification pipelines \cite{resNet,resnet2,densenet}. We then extracted sliding windows of the appropriate size and used each (flattened) window as one row of $\tilde{\A}$ or $\A$. We similarly flattened the filters, with each set of coefficients forming one column of $\B$. In both cases, $\B$ has two columns---this is because using a single filter would mean timing a matrix-vector product instead of a matrix-matrix product. Moreover, because Sobel filters are often used in horizontal and vertical pairings, and Gaussian filters are often used together to perform difference-of-Gaussians transforms.

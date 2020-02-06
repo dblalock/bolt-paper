@@ -1,48 +1,59 @@
 
-Recall that our task is to construct functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$ such that
-\begin{align}
-    \norm{f(g(\A), h(\B)) - \A\B}_F < \eps(\tau) \norm{\A\B}_F
-\end{align}
-for the smallest $\eps(\tau)$ possible.
+% Recall that our task is to construct functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$ such that
+% \begin{align}
+%     \norm{f(g(\A), h(\B)) - \A\B}_F < \eps(\tau) \norm{\A\B}_F
+% \end{align}
+% for the smallest $\eps(\tau)$ possible.
 
-In this section, we discuss the vector quantization (VQ) approach to approximate matrix multiplication. Because these methods approximate matrix products by approximating individual dot products between rows of $\A$ and columns of $\B$, we do so by examining how they approximate a single dot product $\a^\top \b$ between one row of $\A$ and one column of $\B$. For simplicity, we will also begin by focusing on Product Quantization (PQ) \cite{pq}, the classic algorithm on which most others are based.
+% In this section, we discuss the vector quantization (VQ) approach to approximate matrix multiplication. Because these methods approximate matrix products by approximating individual dot products between rows of $\A$ and columns of $\B$, we do so by examining how they approximate a single dot product $\a^\top \b$ between one row of $\A$ and one column of $\B$. For simplicity, we will also begin by focusing on Product Quantization (PQ) \cite{pq}, the classic algorithm on which most others are based.
+
+To lay the groundwork for our own method, we begin by reviewing Product Quantization (PQ) \cite{pq}. PQ is a classic vector quantization algorithm for approximating inner products and Euclidean distances and serves as the basis for nearly all vector quantization methods similar to our own. % This not only lays necessary groundwork for explaining our own method, but also affords the opportunity to discuss
+
+% to both lay the groundwork  the classic vector quantization algorithm for approximating inner products on which most others are based.
 
 The basic intuition behind PQ is that $\a^\top \b \approx \hat{\a}^\top \b$, where $\norm{\hat{\a} - \a}$ is small but $\hat{\a}$ has special structure allowing the product to be computed quickly. This structure consists of $\hat{\a}$ being formed by concatenating learned prototypes in disjoint subspaces; one obtains a speedup by precomputing the dot products between $\b$ and the prototypes once, and then reusing these values across many $\a$ vectors.
 
  % \cite{pq}, a classic approach to this problem that serves as a conceptual foundation for our own method. There are three basic steps behind PQ:
 In somewhat more detail, PQ consists of the following:
-\begin{enumerate}
+\vspace{-3mm}
+\begin{enumerate}\itemsep1mm
     % \item asdf
     % \item $g(\A)$
     % \item Replacing each row of $\A$ with a prototype chosen from a predefined set.%
     \item \textbf{Prototype Learning} - In an initial, offline training phase,  cluster the rows of $\A$ (or a training set $\tilde{\A}$) using K-means to create prototypes. A separate K-means is run in each of $C$ disjoint subspaces to produce $C$ sets of $K$ protypes. %The prototypes consist of the cartesian product of prototypes within disjoint subspaces.
     % \item $g(\A)$ - Replace each row of $\A$ with the most similar prototype.
     % \item $h(\B)$ - Precompute the dot products between each column of $\B$ and each prototype.
-    \item \textbf{Prototype Assignment}, $g(\a)$ - Determine the most similar prototype to $\a$ in each subspace. Store these assignments as integer indices using $C \log_2(K)$ bits.
+    \item \textbf{Encoding Function} $g(\a)$ - Determine the most similar prototype to $\a$ in each subspace. Store these assignments as integer indices using $C \log_2(K)$ bits.
     \item \textbf{Table Construction}, $h(\B)$ - Precompute the dot products between $\b$ and each prototype in each subspace. Store these partial dot products in $C$ lookup tables of size $K$.
     \item \textbf{Aggregation}, $f(\cdot,\cdot)$ - Use the indices and tables to \textit{lookup} the estimated partial $\a^\top \b$ in each subspace, then sum the results across all $C$ subspaces. %$A[i]^\top B[:, j]$\footnote{Because we will frequently need to refer to slices of rank-3 tensors and above, we employ Python-style slicing notation rather than traditional superscripts and subscripts.} rather than compute it with a series of multiply-adds.
 \end{enumerate}
-
+\vspace{-3mm}
 PQ is depicted for a single pair of vectors $\a$ and $\b$ in Figure~\ref{fig:pq}. We elaborate upon each of these steps below.
+% \vspace{-2mm}
 
-\begin{figure}[h]
+% ------------------------------------------------
+% \subsection{Prototype Learning}
+\vspace{-2mm}
+\paragraph{Prototype Learning}
+% ------------------------------------------------
+
+Let $\tilde{A} \in \R^{N \times D}$ be a training set, $K$ be a number of prototypes per subspace, $C$ be a number of subspaces, and $\{\mathcal{J}^{(c)}\}_{c=1}^C$ be the (mutually exclusive and collectively exhaustive) sets of indices associated with each subspace. The training-time task of PQ is to learn $C$ sets of prototypes $\mat{P}^{(c)} \in \R^{K \times |\mathcal{J}_c|}$ and assignments $\vec{z}^{(c)} \in \R^{N}$ such that:
+\vspace{-1mm}
+\begin{align}
+    \sum_{i=1}^N \sum_{c=1}^C \sum_{j\in \mathcal{J}_c} \tilde{\A}_{ij} - \mat{P}^{(c)}_{z^{(c)}},j
+\end{align}
+\vspace{-.5mm}
+is minimized. It does this by running K-means separately in each subspace $\mathcal{J}$ and using the resulting centroids and assignments to populate $\mat{P}$ and $\vec{z}$.
+
+\begin{figure}[t]
 \begin{center}
 \includegraphics[width=\linewidth]{amm/pq}
-\caption{Product Quantization, with prototype vectors already learned. The $g()$ function returns the index of the most similar prototype to the data vector a in each subspace. The $h(\cdot)$ function computes a lookup table of dot products between the query vector b and each protoype in each suspace. The aggregation function $f(\cdot,\cdot)$ sums the table entries in each subspace corresponding the the most similar prototype.}
+\caption{Product Quantization. The $g()$ function returns the index of the most similar prototype to the data vector a in each subspace. The $h(\cdot)$ function computes a lookup table of dot products between the query vector b and each protoype in each suspace. The aggregation function $f(\cdot,\cdot)$ sums the table entries corresponding to each index.}
 % $\vec{a}$
 \label{fig:pq}
 \end{center}
 \end{figure}
 
-% ------------------------------------------------
-\subsection{Prototype Learning}
-% ------------------------------------------------
-
-Let $\tilde{A} \in \R^{N \times D}$ be a training set, $K$ be a number of prototypes per subspace, $C$ be a number of subspaces, and $\{\mathcal{J}^{(c)}\}_{c=1}^C$ be the (mutually exclusive and collectively exhaustive) sets of indices associated with each subspace. The training-time task of PQ is to learn $C$ sets of prototypes $\mat{P}^{(c)} \in \R^{K \times |\mathcal{J}_c|}$ and assignments $\vec{z}^{(c)} \in \R^{N}$ such that:
-\begin{align}
-    \sum_{i=1}^N \sum_{c=1}^C \sum_{j\in \mathcal{J}_c} \tilde{\A}_{ij} - \mat{P}^{(c)}_{z^{(c)}},j
-\end{align}
-is minimized. It does this by running K-means separately in each subspace $\mathcal{J}$ and using the resulting centroids and assignments to populate $\mat{P}$ and $\vec{z}$.
 
 % Perhaps the simplest means of constructing prototypes would be to run a clustering algorithm like K-means on the rows of $\A$. This would be effective, but would require using a large number of prototypes in order to have each row closely match its prototype. What would be preferable is some means of having a huge number of prototypes without having to pay so large a time and space cost.
 
@@ -52,35 +63,50 @@ is minimized. It does this by running K-means separately in each subspace $\math
 %  If there are $K$ prototypes per subspace and $C$ subspaces, this results in $K^C$ possible combinations of prototype assignments for each vector. Viewed differently, this creates $K^C$ overall prototypes whose entries
 
 % ------------------------------------------------
-\subsection{Encoding Function - $g(\A)$}
+% \subsection{Encoding Function - $g(\A)$}
+\vspace{-2mm}
+\paragraph{Encoding Function, $g(\A)$}
 % ------------------------------------------------
 
 Given the learned prototypes, PQ replaces each row $\a$ of $\A$ with the concatenation of its $C$ K-means centroid assignments in each of the $C$ subspaces. Formally:
+\vspace{-.5mm}
 \begin{align} \label{eq:pqLoss}
     g(\a)^{(c)} \triangleq \argmin_k \sum_{j\in \mathcal{J}_c} (\a_j - \mat{P}^{(c)}_{k,j})^2
 \end{align}
-We will refer to the resulting sequence of indices as the \textit{encoding} of $\a$ and the set of $K$ centroids as a \textit{codebook}. This encoding function has complexity $\Theta(KD)$ for each $\a$, since there are $K$ centroids per subspace and the sum of the number of indices in all subspaces is $D$.
+\vspace{-.5mm}
+We will refer to the resulting sequence of indices as the \textit{encoding} of $\a$ and the set of $K$ centroids as a \textit{codebook}. %This encoding function has complexity $\Theta(KD)$ for each $\a$, since there are $K$ centroids per subspace and the sum of the number of indices in all subspaces is $D$.
 
 % ------------------------------------------------
-\subsection{Table Construction - $h(\B)$}
+% \subsection{Table Construction - $h(\B)$}
+\vspace{-2mm}
+\paragraph{Table Construction, $h(\B)$}
 % ------------------------------------------------
 
 Using these same prototypes, PQ constructs a lookup table $h(\b)^{(c)} \in \R^K$ in each of the $C$ subspaces for each column $\b$ of $\B$, where
+% \vspace{-.5mm}
 \begin{align}
     h(\b)^{(c)} \triangleq \sum_{j\in \mathcal{J}_c} \b_j \mat{P}^{(c)}_{k,j}
 \end{align}
-This has complexity $\Theta(KD)$ for each $\b$, since it is essentially the same as $g(\cdot)$ except without the $\argmin$ operation.
+
+Existing work has shown that setting $K = 16$ and quantizing the lookup tables to 8 bits can offer enormous speedups compared to larger $K$ and/or floating-point tables \cite{bolt, quickAdc, quickerAdc}. This is because 16 1-byte entries can be stored in a SIMD register, allowing 16 or more table lookups to be performed in parallel in a single instruction. Since the table entries naturally occupy more than 8 bits even for 8-bit data, some means of quantizing these entries is necessary. This can easily be done by subtracting off the minimum entry in each table and linearly rescaling such that the maximum entry in any table is at most 255. Ignoring rounding error, this affine transform is invertible, and is reflected by the constants $\alpha$ and $\beta$ in equation~\ref{eq:objective}. See Appendix~\ref{sec:lutQuantize} for additional details.
+
+% \vspace{-.5mm}
+%This has complexity $\Theta(KD)$ for each $\b$, since it is essentially the same as $g(\cdot)$ except without the $\argmin$ operation.
 
 % ------------------------------------------------
-\subsection{Aggregation - $f(\cdot,\cdot)$}
+% \subsection{Aggregation - $f(\cdot,\cdot)$}
+\vspace{-4mm}
+\paragraph{Aggregation, $f(\cdot,\cdot)$}
 % ------------------------------------------------
 
 Given the encoding of $\a$ and the lookup tables for $\b$, the product can be approximated as
+\vspace{-3mm}
 \begin{align}
     \a^\top \b \approx \sum_{c=1}^C h(\b)^{(c)}_k, \text{ }k = g(\a)^{(c)}
 \end{align}
+% \vspace{-.5mm}
 
-This has complexity $\Theta(C)$ for each pair of vectors, or $\Theta(NMC)$ for the full matrix product $\A\B$. Since $C \ll D$, this provides a large speedup when $N$ and $M$ are large enough to amortize the costs of $g(\cdot)$ and $h(\cdot)$.
+%This has complexity $\Theta(C)$ for each pair of vectors, or $\Theta(NMC)$ for the full matrix product $\A\B$. Since $C \ll D$, this provides a large speedup when $N$ and $M$ are large enough to amortize the costs of $g(\cdot)$ and $h(\cdot)$.
 
 % % ------------------------------------------------
 % \subsection{Complexity and Extensions}

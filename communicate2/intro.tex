@@ -16,19 +16,21 @@ In Figure~\ref{fig:fig1}, we see the results of approximating $\A\B$ using our m
 \label{fig:fig1}
 \end{center}
 \end{figure}
-
-Each method yields a curve whose points are specific speedups and associated levels of classification accuracy. More speedup and more accuracy (up and to the right) is better. While we defer detailed discussion to Section~\ref{sec:results}, it is clear that our proposed approach significantly outperforms alternatives.
+\vspace{-1mm}
+% Each method yields a curve whose points are specific speedups and associated levels of classification accuracy. More speedup and more accuracy (up and to the right) is better. While we defer detailed discussion to Section~\ref{sec:results}, it is clear that our proposed approach significantly outperforms alternatives.
 
 % In addition to achieving strong empirical performance, our method also has an
 
-In addition to achieving strong empirical performance, our method represents a significant methodological departure from most traditional approaches to this problem. Traditional AMM methods construct matrices $\V_A, \V_B \in \R^{D \times d}, d \ll D$ such that
+% In addition to achieving strong empirical performance,
+Our method represents a significant methodological departure from most traditional approaches to this problem. Traditional AMM methods construct matrices $\V_A, \V_B \in \R^{D \times d}, d \ll D$ such that
 \begin{align}
     \A \B \approx (\A \V_A) (\V_B^\top \B).
 \end{align}
 Often, $\V_A$ and $\V_B$ are sparse, embody some sort of sampling scheme, or have other structure such that these projection operations are faster than a dense matrix multiply. In short, these methods use linear functions to preprocess $\A$ and $\B$ and reduce the problem to exact matrix multiplication in a lower-dimensional space
 % reduce the AMM problem to exact matrix multiplication in a lower-dimensional space using linear functions to preprocess $\A$ and $\B$.
 
-Our proposed method, \ours\footnote{Multiply-ADDitioN-lESS}, instead employs a \textit{nonlinear} preprocessing function and reduces the problem to table lookups. Moreover, in the case that $\B$ is known ahead of time---which happens when applying a trained linear model to new data, among other situations---\oursp does not require any multiply-add operations. This includes binary \texttt{XNOR} and \texttt{popcount} operations \cite{xnornet,dorefanet}, as well as the summation of shifted and masked scalars to approximate multiplication \cite{hackyQuasiMultiplies}. I.e., we are not merely approximating scalar multiplies at the bit manipulation level, but approximating matrix products at the algorithm level.
+Our proposed method, \ours\footnote{Multiply-ADDitioN-lESS}, instead employs a \textit{nonlinear} preprocessing function and reduces the problem to table lookups. Moreover, in the case that $\B$ is known ahead of time---which happens when applying a trained linear model to new data, among other situations---\oursp does not require any multiply-add operations.
+% This includes binary \texttt{XNOR} and \texttt{popcount} operations \cite{xnornet,dorefanet}, as well as the summation of shifted and masked scalars to approximate multiplication \cite{hackyQuasiMultiplies}. I.e., we are not merely approximating scalar multiplies at the bit manipulation level, but approximating matrix products at the algorithm level.
 
 % An extension of this method common in the information retrieval literature is to define a nonlinear function $g(\cdot)$ such that
 % \begin{align}
@@ -56,16 +58,18 @@ Our proposed method, \ours\footnote{Multiply-ADDitioN-lESS}, instead employs a \
 % % Instead of performing dimensionality or bitwidth reduction,
 % In contrast, we introduce \ours, a method that can eliminate the multiply-add operations entirely when given time to preprocess $\B$. It does this by precomputing certain statistics about $\B$ and replacing the multiply-adds with table lookups. Crucially, these table lookups are not merely a different implementation of multiplication---as we discuss in section~\ref{sec:method}, they implement nonlinear functions. % that cannot be characterized as an algebraic ring.
 
-Our method is most closely related to vector quantization methods used for similarity search (e.g., \cite{bolt,quickAdc,quickerAdc,pq,opq}). However, instead of using an expensive quantization function that requires many multiplies, we introduce a family of quantization functions that require no multiplies. %, including binary \texttt{XNOR} and \texttt{popcount} operations (though excluding implementation-level multiplies to compute memory addresses).
+Our method is most closely related to vector quantization methods used for similarity search (e.g., \cite{bolt,quickAdc,quickerAdc,pq,opq}). However, instead of using an expensive quantization function that requires many multiply-adds, we introduce a family of quantization functions that require no multiply-adds. %, including binary \texttt{XNOR} and \texttt{popcount} operations (though excluding implementation-level multiplies to compute memory addresses).
 % TODO something about multiplication taking a lot of transistors vs table lookups.
 
 Our contributions can be summarized as follows:
-\begin{itemize}\itemsep0em
+\vspace{-3mm}
+\begin{itemize}\itemsep-1mm
     \item An efficient family of vector quantization functions that can encode over 100GB of data per second in a single CPU thread.
-    \item A provably good procedure for learning one of these functions from training data, in addition to other theoretical analysis.
-    \item A high-speed summation algorithm for low-bitwidth integers that optimally avoids loss of precision without upcasting.
+    % \item A provably good procedure for learning one of these functions from training data, in addition to other theoretical analysis.
+    \item A high-speed summation algorithm for low-bitwidth integers that avoids upcasting, saturation, and overflow.
     \item An algorithm based on these functions for approximate matrix multiplication. Experiments across hundreds of diverse matrices demonstrate that this algorithm significantly outperforms existing alternatives.
 \end{itemize}
+\vspace{-3mm}
 
 % ------------------------------------------------
 \subsection{Problem Formulation} \label{sec:problemStatement}

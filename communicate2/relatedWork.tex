@@ -3,13 +3,16 @@ Because our work draws on ideas from randomized algorithms, approximate matrix m
 
 \subsection{Linear Approximation}
 
-Most AMM methods work by constructing matrices $\V_A, \V_B \in \R^{D \times d}, d \ll D$ such that
-\begin{align}
-    \A \B \approx (\A \V_A) (\V_B^\top \B).
-\end{align}
-There are many options for choosing $\V_A$ and $\V_B$
+Most AMM methods work by projecting $\A$ and $\B$ into lower-dimensional spaces and then performing an exact matrix multiply.
+%  $\V_A, \V_B \in \R^{D \times d}, d \ll D$ such that
+% % \begin{align}
+% %     \A \B \approx (\A \V_A) (\V_B^\top \B).
+% % \end{align}
+% There are many options for choosing $\V_A$ and $\V_B$
 %, depending on what assumptions one makes. The most common case studied is that in which $N$, $D$, and $M$ are large, but one has little or no prior knowledge about either matrix.
-One simple approach is to choose them such that $(\A \V_A)$ and $(\V_B^\top \B)$ preserve certain structure in $\A$ and $\B$---i.e. to sketch each matrix independently. The most prominent deterministic matrix sketching methods are the Frequent Directions algorithm \cite{liberty_simple_2012, ghashami_frequent_2016} and its many variations \cite{teng_fast_2019, francis_practical_2018, ye_frequent_2016, huang_near_2019, luo_robust_2019, francis_improvement_2018}. There are also many randomized sketching methods \cite{sarlos_improved_2006, kyrillidis_approximate_2014, pagh_compressed_2013, hashjl,osnap} and random sampling-based methods \cite{drineas_fast_2006-1, drineas_fast_2006-2}.
+% One simple approach is to choose them such that $(\A \V_A)$ and $(\V_B^\top \B)$ preserve certain structure in $\A$ and $\B$---i.e. to sketch each matrix independently.
+
+One simple option for choosing the projection matrices is to use existing matrix sketching algorithms. The most prominent deterministic matrix sketching methods are the Frequent Directions algorithm \cite{liberty_simple_2012, ghashami_frequent_2016} and its many variations \cite{teng_fast_2019, francis_practical_2018, ye_frequent_2016, huang_near_2019, luo_robust_2019, francis_improvement_2018}. There are also many randomized sketching methods \cite{sarlos_improved_2006, kyrillidis_approximate_2014, pagh_compressed_2013, hashjl,osnap} and random sampling-based methods \cite{drineas_fast_2006-1, drineas_fast_2006-2}.
 
 A weakness of matrix sketching methods in the context of matrix multiplication is that they only consider each matrix in isolation. The first authors to formally address AMM by considering both matrices were \citet{drineas_fast_2006}, who sampled columns of $\A$ and rows of $\B$ according to a sampling distribution dependent upon both matrices. Later work by \citet{manne_fast_2014} reduces approximation of the matrices to an optimization problem, which is solved by steepest descent. \citet{mroueh_co-occuring_2016}, \citet{ye_frequent_2016}, and \citet{francis_improvement_2018} introduce variations of the Frequent Directions algorithm that take into account both matrices simultaneously.
 
