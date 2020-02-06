@@ -9,6 +9,7 @@ The main idea behind our function is to determine the ``most similar'' prototype
 % Each bucket is associated with a prototype, defined to be the mean of all training vectors hashing to that bucket.
 
 % ------------------------------------------------
+\vspace{-1mm}
 \subsection{Hash Function Family, $g(\cdot)$}
 % ------------------------------------------------
 
@@ -44,7 +45,7 @@ Formally, consider a set of four indices ${j^1,\ldots,j^4}$ and four arrays of s
     % \RETURN {$i$}
 \end{algorithmic}
 \end{algorithm}
-\vspace{-3mm}
+% \vspace{-3mm}
 This function is simple, only depends on a constant number of indices in the input vector, and can easily be vectorized, provided that the matrix whose rows are being encoded is stored in column-major order. The only subtlety in doing this vectorization is that one may need to convert floating point data to integers depending on one's processor; see Appendix~\ref{sec:hashQuantize} for further discussion.
 
 % TODO move below to appendix
@@ -52,6 +53,7 @@ This function is simple, only depends on a constant number of indices in the inp
 % first computing the minimum and maximum split value within each $\vec{v}$, subtracting the smallest value
 
 % ------------------------------------------------
+\vspace{-2mm}
 \subsection{Learning the Hash Function Parameters}
 % ------------------------------------------------
 
@@ -78,9 +80,10 @@ In lines~4-15, we find the minimal loss obtainable by splitting all buckets alon
 % (lines~\ref{line:splitBucketsStart}-\ref{line:splitBucketsEnd})
 Once a split index $j$ and array of split values $\vec{v}$ are chosen, all that remains is to split the buckets to form the next level of the tree (lines~16-21). This just entails forming two child buckets from each current bucket by grouping vectors whose $j$th entries are above or below the bucket's split value.% , where the first child has vectors whose elements $x_j$ are less than the bucket's split value and the second child has those whose elements are above the bucket's split value.
 
-Once the full tree has been constructed, the prototypes are set to the means of each bucket.
+% Once the full tree has been constructed, the prototypes are set to the means of each bucket.
 
-\begin{algorithm}[h]
+% \vspace{1mm}
+\begin{algorithm}[t]
 \caption{Adding The Next Level to the Hashing Tree} \label{algo:learnTree}
 \begin{algorithmic}[1]
     \STATE {\bfseries Input:} buckets $\mathcal{B}^{t-1}_1,\ldots,\mathcal{B}^{t-1}_{2^{t-1}}$, training matrix $\tilde{\A}$
@@ -132,6 +135,7 @@ Once the full tree has been constructed, the prototypes are set to the means of 
 % This is similar to equations~\ref{eq:offset} and \ref{eq:scale}, but with the scale factor pooled across all codebooks instead of unique to each input column. The $\alpha$ used here is the same as that in equation~\ref{eq:objective}, and the matrix $\beta$ in equation~\ref{eq:objective} has entries equal to $\sum_c \vec{\delta}_c$ (plus another constant we inroduce below).
 
 % ------------------------------------------------
+\vspace{-2mm}
 \subsection{Optimizing the Prototypes}
 % ------------------------------------------------
 
@@ -160,6 +164,7 @@ One could obtain better performance by cross-validating to find $\lambda$, but f
 In short, the initial prototypes are just used to produce an assignment matrix $\mat{G}$, and it is from this assignment matrix that the final prototypes are derived. This procedure allows the prototypes to be nonzero outside of their original subspaces. Thanks to our hashing procedure, we avoid the dramatically increased overhead faced by other methods with non-orthogonal prototypes (c.f. \cite{otq,aq,cq,grvq,lsq,stackedQuantizers}).
 
 % ------------------------------------------------
+\vspace{-1mm}
 \subsection{Fast 8-bit Aggregation, $f(\cdot,\cdot)$} \label{sec:aggregate}
 % ------------------------------------------------
 
@@ -175,6 +180,7 @@ We propose an alternative that sacrifices a small amount of accuracy for a signi
 The challenging part of this approach is computing the bias in the estimated sum in order to correct for it. We prove in Appendix~\ref{sec:aggregateAnalysis} that this bias is equal to $C \log_2(U) / 4$, and the variance is $C \log_2(U) / 8$ under the realistic assumption that the low bits are equally likely to be 0 or 1.
 
 % ------------------------------------------------
+\vspace{-1mm}
 \subsection{Complexity}
 % ------------------------------------------------
 
