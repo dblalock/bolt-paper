@@ -45,37 +45,8 @@
 
 \twocolumn[
 % ================================================================
-% \title{Have We Actually Learned Anything about \\ Pruning Neural Networks?}
-% \sysmltitle{Multiplying Matrices Without Multiplying}
 \icmltitle{Multiplying Matrices Without Multiplying}
-% \title{Have We Actually Learned Anything about Pruning Neural Networks?}
 % ================================================================
-
-% \sysmltitlerunning{Submission and Formatting Instructions for SysML 2019}
-% \begin{document}
-% \twocolumn[
-% \sysmltitle{Submission and Formatting Instructions for SysML 2019}
-
-% \author{Davis W. Blalock}
-% \affiliation{
-%   \institution{Computer Science and Artificial \\ Intelligence Laboratory}
-%   \institution{Massachusetts Institute of Technology}
-% }
-% \email{dblalock@mit.edu}
-
-% \author{Jose Javier Gonzalez Ortiz}
-% \affiliation{
-%   \institution{Computer Science and Artificial \\ Intelligence Laboratory}
-%   \institution{Massachusetts Institute of Technology}
-% }
-% \email{jjgo@mit.edu}
-
-% \author{John V. Guttag}
-% \affiliation{
-%   \institution{Computer Science and Artificial \\ Intelligence Laboratory}
-%   \institution{Massachusetts Institute of Technology}
-% }
-% \email{guttag@mit.edu}
 
 % \begin{sysmlauthorlist}
 \begin{icmlauthorlist}
@@ -94,7 +65,7 @@
 
 % apparently these only show up in pdf metadata, not document
 % \sysmlkeywords{Approximate Algorithms, Matrix Multiplication}
-\icmlkeywords{Approximate Algorithms, Matrix Multiplication}
+\icmlkeywords{Vector Quantization, Approximate Algorithms, Matrix Multiplication}
 
 \vskip 0.3in
 ] % end of icml 2 columnn
@@ -152,7 +123,7 @@ We introduce an approximate matrix multiplication algorithm that substantially o
 % \input{theory.tex}
 
 %================================================================
-\vspace{-1mm}
+\vspace{-1.5mm}
 \section{Experiments} \label{sec:results}
 %================================================================
 
@@ -160,10 +131,12 @@ We introduce an approximate matrix multiplication algorithm that substantially o
 
 
 %================================================================
+\vspace{-1.5mm}
 \section{Conclusion}
+\vspace{-.5mm}
 %================================================================
 
-We introduce an approximate matrix multiplication algorithm that achieves a significantly better speed-quality tradeoff than existing methods, as measured on hundreds of real-world matrices from various domains. Our method's performance stems from 1) its replacement of the bottleneck in existing methods with a learned locality-sensitive hash function, 2) its optimization of a quantity that other methods cannot optimize without a large slowdown, and 3) its use of an inexact estimator for computing sums. In future work, we plan to integrate our method into neural networks and specialize it for convolutions.
+We introduce an approximate matrix multiplication algorithm that achieves a significantly better speed-quality tradeoff than existing methods, as measured on various machine learning and other tasks using hundreds of real-world matrices from diverse domains. Our method's performance stems from 1) its replacement of the bottleneck in existing methods with a learned locality-sensitive hash function, 2) its optimization of a quantity that other methods cannot optimize without a large slowdown, and 3) its use of an inexact estimator for computing sums. In future work, we plan to integrate our method into neural networks and specialize it for convolutions.
 
 % ================================================================
 % References

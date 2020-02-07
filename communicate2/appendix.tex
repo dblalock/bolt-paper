@@ -19,6 +19,8 @@ This is similar to equations~\ref{eq:offset} and \ref{eq:scale}, but with the sc
 \section{Quantization and \oursHash} \label{sec:hashQuantize}
 % ================================================================
 
+The use of at most 16 leaves is so that the resulting codes use 4 bits. This allows the use of these same shuffle instructions to accelerate the table lookups as in \citet{bolt}.
+
 The only subtlety in vectorizing our hash function is that one must execute line 4 using shuffle instructions such as \texttt{vpshufb} on x86, \texttt{vtbl} on ARM, or \texttt{vtbl} on PowerPC. In order to do this, the split values and scalars $x_{j^t}$ must be 8-bit integers. We quantize them by learning for each split index $j$ a pair of scalars $(\gamma_j, \delta_j)$, where
 \begin{align}
     \delta_j &\triangleq \min_i \v^j_i \label{eq:offset} \\
@@ -35,17 +37,17 @@ This restriction of $\gamma_j$ to powers of two allows one to quantize $x_{j^t}$
 
 % ================================================================
 \vfill\break  % columnbreak
-\section{Subroutines for \oursHash} \label{sec:optimalSplitVal}
+\section{Subroutines for Training \oursHash} \label{sec:optimalSplitVal}
 % ================================================================
 
-The \texttt{optimal\_split\_value} algorithms finds the best threshold at which to split a bucket within a given dimension. To do this, it uses the \texttt{cumulative\_sse} function (\ref{algo:cumSSE}) to help evaluate the loss associated with the resulting child buckets.
+The \texttt{optimal\_split\_threshold} algorithm finds the best threshold at which to split a bucket within a given dimension. To do this, it uses the \texttt{cumulative\_sse} function (\ref{algo:cumSSE}) to help evaluate the loss associated with the resulting child buckets.
 
 These algorithms exploit the fact that the sum of squared errors can be computed using only the sum of values and sum of squared values, both of which can be updated in $O(1)$ time when a vector is moved from one side of the split to the other.
 
 % ------------------------------------------------ optimalSplitVal
 
 \begin{algorithm}[h]
-\caption{Optimal Split Value Within a Bucket} \label{algo:optimalSplitVal}
+\caption{Optimal Split Threshold Within a Bucket} \label{algo:optimalSplitVal}
 \begin{algorithmic}[1]
     \STATE {\bfseries Input:} bucket $\mathcal{B}$, index $j$
     \STATE {$\mat{X} \leftarrow \texttt{as\_2d\_array}(\mathcal{B})$ }

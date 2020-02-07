@@ -20,7 +20,7 @@ In somewhat more detail, PQ consists of the following:
     % \item asdf
     % \item $g(\A)$
     % \item Replacing each row of $\A$ with a prototype chosen from a predefined set.%
-    \item \textbf{Prototype Learning} - In an initial, offline training phase,  cluster the rows of $\A$ (or a training set $\tilde{\A}$) using K-means to create prototypes. A separate K-means is run in each of $C$ disjoint subspaces to produce $C$ sets of $K$ protypes. %The prototypes consist of the cartesian product of prototypes within disjoint subspaces.
+    \item \textbf{Prototype Learning} - In an initial, offline training phase,  cluster the rows of $\A$ (or a training set $\tilde{\A}$) using K-means to create prototypes. A separate K-means is run in each of $C$ disjoint subspaces to produce $C$ sets of $K$ protoypes. %The prototypes consist of the cartesian product of prototypes within disjoint subspaces.
     % \item $g(\A)$ - Replace each row of $\A$ with the most similar prototype.
     % \item $h(\B)$ - Precompute the dot products between each column of $\B$ and each prototype.
     \item \textbf{Encoding Function} $g(\a)$ - Determine the most similar prototype to $\a$ in each subspace. Store these assignments as integer indices using $C \log_2(K)$ bits.
@@ -40,10 +40,10 @@ PQ is depicted for a single pair of vectors $\a$ and $\b$ in Figure~\ref{fig:pq}
 Let $\tilde{A} \in \R^{N \times D}$ be a training set, $K$ be a number of prototypes per subspace, $C$ be a number of subspaces, and $\{\mathcal{J}^{(c)}\}_{c=1}^C$ be the (mutually exclusive and collectively exhaustive) sets of indices associated with each subspace. The training-time task of PQ is to learn $C$ sets of prototypes $\mat{P}^{(c)} \in \R^{K \times |\mathcal{J}_c|}$ and assignments $\vec{z}^{(c)} \in \R^{N}$ such that:
 \vspace{-1mm}
 \begin{align}
-    \sum_{i=1}^N \sum_{c=1}^C \sum_{j\in \mathcal{J}_c} \tilde{\A}_{ij} - \mat{P}^{(c)}_{z^{(c)}},j
+    \sum_{i=1}^N \sum_{c=1}^C \sum_{j\in \mathcal{J}_c} \left( \tilde{\A}_{ij} - \mat{P}^{(c)}_{z^{(c)},j} \right)^2
+\vspace*{-.5mm}
 \end{align}
-\vspace{-.5mm}
-is minimized. It does this by running K-means separately in each subspace $\mathcal{J}$ and using the resulting centroids and assignments to populate $\mat{P}$ and $\vec{z}$.
+is minimized. It does this by running K-means separately in each subspace $\mathcal{J}^{(c)}$ and using the resulting centroids and assignments to populate $\mat{P}$ and $\vec{z}$.
 
 \begin{figure}[t]
 \begin{center}
@@ -71,10 +71,10 @@ is minimized. It does this by running K-means separately in each subspace $\math
 Given the learned prototypes, PQ replaces each row $\a$ of $\A$ with the concatenation of its $C$ K-means centroid assignments in each of the $C$ subspaces. Formally:
 \vspace{-.5mm}
 \begin{align} \label{eq:pqLoss}
-    g(\a)^{(c)} \triangleq \argmin_k \sum_{j\in \mathcal{J}_c} (\a_j - \mat{P}^{(c)}_{k,j})^2
+    g(\a)^{(c)} \triangleq \argmin_k \sum_{j\in \mathcal{J}_c} \left( \a_j - \mat{P}^{(c)}_{k,j} \right)^2
+\vspace*{-.5mm}
 \end{align}
-\vspace{-.5mm}
-We will refer to the resulting sequence of indices as the \textit{encoding} of $\a$ and the set of $K$ centroids as a \textit{codebook}. %This encoding function has complexity $\Theta(KD)$ for each $\a$, since there are $K$ centroids per subspace and the sum of the number of indices in all subspaces is $D$.
+We will refer to the resulting sequence of indices as the \textit{encoding} of $\a$ and the set of $K$ centroids as a \textit{codebook}. For convenience, we will also refer to the vector $\a^{(c)} \triangleq \langle a_j \rangle, j \in J_{(c)}$ as the \textit{subvector} of $\a$ in subspace $c$. %This encoding function has complexity $\Theta(KD)$ for each $\a$, since there are $K$ centroids per subspace and the sum of the number of indices in all subspaces is $D$.
 
 % ------------------------------------------------
 % \subsection{Table Construction - $h(\B)$}
@@ -102,7 +102,7 @@ Existing work has shown that setting $K = 16$ and quantizing the lookup tables t
 Given the encoding of $\a$ and the lookup tables for $\b$, the product can be approximated as
 \vspace{-3mm}
 \begin{align}
-    \a^\top \b \approx \sum_{c=1}^C h(\b)^{(c)}_k, \text{ }k = g(\a)^{(c)}
+    \a^\top \b = \sum_{c=1}^C \a^{(c)\top} \b^{(c)} \approx \sum_{c=1}^C h(\b)^{(c)}_k, \text{ }k = g(\a)^{(c)}
 \end{align}
 % \vspace{-.5mm}
 

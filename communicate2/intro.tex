@@ -12,7 +12,7 @@ In Figure~\ref{fig:fig1}, we see the results of approximating $\A\B$ using our m
 \begin{figure}[h]
 \begin{center}
 \includegraphics[width=\linewidth]{amm/fig1}
-\caption{Our method achieves a dramatically better speed-accuracy tradeoff than existing methods when approximating two linear classifiers.}
+\caption{Our method achieves a dramatically better speed-accuracy tradeoff than the best existing methods when approximating two linear classifiers.}
 \label{fig:fig1}
 \end{center}
 \end{figure}
@@ -82,55 +82,4 @@ construct three functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$, along with con
 \end{align}
 for the smallest error $\eps(\tau)$ possible. The constants $\alpha$ and $\beta$ are separated from $f(\cdot,\cdot)$ so that $f(\cdot,\cdot)$ can produce low-bitwidth outputs (e.g., in the range $[0, 255]$) even when the entries of $\A\B$ do not fall in this range.
 
-% it produce low-bitwidth outputs
-
-% The scalar $\alpha$ and bias matrix $\mat{\beta}$ must be known constants. These constants are separated from $f(\cdot,\cdot)$ so that it produce low-bitwidth outputs.
-
-% , and are separated from $f(\cdot)$ so that it can produce low-bitwidth outputs that may not capture the range of values in $\A\B$. %Furthermore, $\alpha$ must be a power of $2$ so that multiplication can be replaced with bit shifting.\footnote{}
-% to allow $f(\cdot)$ to
-
-% . Moreover, the computation time $\tau(\eps)$ to run these three functions should be much smaller than the comuputation time $\tau_0$ to compute $\A\B$ directly.
-
 We assume the existence of a training set $\tilde{\A}$, whose rows are drawn from the same distribution as the rows of $\A$. This is a natural assumption in the case that rows of $\A$ represent examples in training data, or structured subsets thereof (such as patches of images). This assumption is common in the information retrieval literature \cite{bolt,pairq,quip}, but is a significant departure from most theoretical work.
-
-% We also assume that the cost of computing $h(\B)$ negligible provided that $h(\B) \in O(MD)$. One sufficient condition for this is $\B$ being provided ahead of time (as is the case when $\B$ represents fixed model weights). A second is that $\B$ has sufficiently few columns compared to the number of rows in $\A$ (i.e., $M \ll N$).
-
-
-% ================================================================
-
-% These methods transform the two matrices such that one becomes a collection of lookup tables and the other indices into those tables. Once transformed, the matrix multiplication \textit{per se} requires only table lookups. We adopt this same pattern, but replace the multiply-intensive transform with an efficient alternative. This replacement is enabled through our introduction of a fast and trainable family of quantization functions.
-
-%  which already compute matrix products \textit{per se} with no multiplies. However, they require many multiplies in
-
-% our key insight is that the quantization codebooks used by these methods
-
-
-% The basic insight behind our method is that vector quantization can be carried
-
-% In machine learning specifically, it is often the bottleneck in deep neural networks, which have emerged as an indispensible class of models for many tasks.
-
-
-
-% multiplications [] or reduces the cost of each multiplication [], with the most extreme case of the latter being multiplication of binary values [].
-
-% Most existing approaches to this task project $\mat{A}$ and $\mat{B}$ into a lower-dimensional space and then perform an exact matrix multiplication in this reduced space []. Concretely
-
-% Most existing approaches to this task project $\mat{A}$ and $\mat{B}$
-
- % They may also reduce the number of bits used to store elements of $\A$ and $\B$ or
-
-
-% We formalize these notions in the following section, but this corresponds to the common scenario in machine learning wherein one has a matrix whose
-
-% Tall and (relatively) dense arise naturally in machine learning,
-% real-world assumptions, such as matrices
-% We focus on approximate multiplication of tall, dense matrices that already reside in memory.
-% More specifically, consider two matrices $\mat{A} \in \R^{N \times D}$ and $\mat{B} \in \R^{D \times M}$, and their product $\mat{C} \triangleq \mat{A}\mat{B}$. We consider the setting in which $N \gg D, M$, and $M$ is not significantly larger than $D$. Furthermore, we focus on the typical real-world case in which $N$, $D$, and $M$ are all small enough that asymptotic complexity is not an adequate characterization of speed.
-% Such matrices arise naturally in machine learning, when $A$ is a matrix of data and $B$ is a matrix of model weights or some other sort of linear projection. % It is also common in this setting to have a matrix of training data $\mat{\tilde{A}}$ whose rows share the same distribution as those of $\mat{A}$, and we assume access to such a matrix.
-
-% By tall, we are referring to the typical real-world case in which asymptotic complexity is a poor definition of speed.
-
-% In contrast to most existing AMM work, we also consider various levels of prior knowledge about the distributions from which the matrices are drawn. In the least informed case, nothing is known about either matrix until the instant they are provided. In the most informed case, one matrix is known ahead of time and the other has rows drawn from a distribution from which we have numerous i.i.d. samples.
-
-% Provided that one matrix is known ahead of time, our method requires zero multiplication operations, aside from possible pointer arithmetic at the implementation level.
-%This is in contrast to existing work, which either reduces the number of multiplications [] or reduces the cost of each multiplication [], with the most extreme case of the latter being multiplication of binary values [].
