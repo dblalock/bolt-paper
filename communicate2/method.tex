@@ -4,13 +4,13 @@
 Product Quantization and its variants yield a large speedup with $N, M \gg D$. However, we require an algorithm that only needs $N \gg M, D$. In this setting, the preprocessing time $g(\A)$ can be significant, since $ND$ may be similar to (or even larger than) $NM$.
 
 To address this case, we introduce a new $g(\A)$ function that yields large speedups even on much smaller matrices. %In this section, we describe how \oursp builds upon the foundation of PQ to achieve this. We also discuss aspects of \oursp that offer further enhancements that are applicable to vector quantization approaches in general.
-The main idea behind our function is to determine the ``most similar'' prototype through locality-sensitive hashing \cite{lshOrig}; i.e., rather than compute the Euclidean distance between a subvector $\a^{(c)}$ and each prototype, we hash $\a^{(c)}$ to one of $K$ buckets where similar subvectors tend to hash to the same bucket. The prototypes are the means of the subvectors hashing to each bucket.%, rather than with K-means.
+The main idea behind our function is to determine the ``most similar'' prototype through locality-sensitive hashing \cite{lshOrig}; i.e., rather than compute the Euclidean distance between a subvector $\a^{(c)}$ and each prototype, we hash $\a^{(c)}$ to one of $K$ buckets where similar subvectors tend to hash to the same bucket. The prototypes are set to the means of the subvectors hashing to each bucket.%, rather than with K-means.
 
 % Each bucket is associated with a prototype, defined to be the mean of all training vectors hashing to that bucket.
 
 % ------------------------------------------------
 \vspace{-1mm}
-\subsection{Hash Function Family, $g(\cdot)$}
+\subsection{Hash Function Family, $\bm{g(\cdot)}$}
 % ------------------------------------------------
 
 % A key question in this approach is how to choose the locality-sensitive hash function.
@@ -63,7 +63,7 @@ The split indices ${j^1,\ldots,j^4}$ and split thresholds $\vec{v}^1,\ldots,\vec
 % it will be helpful to
 To describe this algorithm, we introduce the notion of a \textit{bucket} $\mathcal{B}^t_i$, which is the set of vectors mapped to node $i$ in level $t$ of the tree. The root of the tree is level 0 and $\mathcal{B}^0_1$ contains all the vectors. It will also be helpful to define the sum of squared errors (SSE) loss associated with a bucket, or a specific (index, bucket) pair:
 \begin{align}
-    \mathcal{L}(j \text{, } \mathcal{B}) &\triangleq \sum_{\x \in \mathcal{B}} \left( x_j - \frac{1}{|\mathcal{B}|}\sum_{\x^\prime \in \mathcal{B}} x^\prime_j \right)^.  \\
+    \mathcal{L}(j \text{, } \mathcal{B}) &\triangleq \sum_{\x \in \mathcal{B}} \left( x_j - \frac{1}{|\mathcal{B}|}\sum_{\x^\prime \in \mathcal{B}} x^\prime_j \right)^2  \\
     \mathcal{L}(\mathcal{B}) &\triangleq \sum_j \mathcal{L}(j \text{, } \mathcal{B}).
 \end{align}
 % I.e., this loss for each index is the sum of squared errors (SSE) when estimating each $x_j$ as equal to its mean value within the bucket, and the overall loss for a bucket is the sum of the values in each dimension. The overall loss can also be understood as the ``energy'' of the bucket [].
@@ -75,7 +75,7 @@ In line~2, we select a fixed number of indices to evaluate. Several heuristics a
 % The loss associated with a given index in a given bucket is the variance within that dimension multiplied by the size of the bucket---i.e., the sum of squared errors compared to the bucket's mean.
 
 % In lines~\ref{line:dimEvalStart}-\ref{line:dimEvalEnd},
-In lines~4-15, we find the minimal loss obtainable by splitting all buckets along that index, but with bucket-specific cutoffs. This loss is minimal not in the sense that it leads to the best overall tree, but in that it minimizes the sum of the losses in the buckets produced in this iteration. To do this, we invoke the subroutine \texttt{optimal\_split\_threshold}, which takes in a bucket $\mathcal{B}$ and an index $j$ and tests all possible splits to find which minimizes $\mathcal{L}(j \text{, } \mathcal{B})$. This can be done in time $O(|\mathcal{B}| \log(|\mathcal{B}|))$. The pseudocode for this subroutine is given in Algorithms~\ref{algo:optimalSplitVal}~and~\ref{algo:cumSSE} in Appendix~\ref{sec:optimalSplitVal}.
+In lines~4-15, we find the minimal loss obtainable by splitting all buckets along that index, but with bucket-specific cutoffs. This loss is minimal not in the sense that it leads to the best overall tree, but in that it minimizes the sum of the losses in the buckets produced in this iteration. To do this, we invoke the subroutine \texttt{optimal\_split\_threshold}, which takes in a bucket $\mathcal{B}$ and an index $j$ and tests all possible thresholds to find one minimizing $\mathcal{L}(j \text{, } \mathcal{B})$. This can be done in time $O(|\mathcal{J}^{(c)}||\mathcal{B}| \log(|\mathcal{B}|))$. The pseudocode for this subroutine is given in Algorithms~\ref{algo:optimalSplitVal}~and~\ref{algo:cumSSE} in Appendix~\ref{sec:optimalSplitVal}.
 
 % (lines~\ref{line:splitBucketsStart}-\ref{line:splitBucketsEnd})
 Once a split index $j$ and array of split thresholds $\vec{v}$ are chosen, all that remains is to split the buckets to form the next level of the tree (lines~16-21). This just entails forming two child buckets from each current bucket by grouping vectors whose $j$th entries are above or below the bucket's split threshold.% , where the first child has vectors whose elements $x_j$ are less than the bucket's split value and the second child has those whose elements are above the bucket's split value.
@@ -156,7 +156,8 @@ Let $\mat{P} \in \R^{KC \times D}$ be a matrix whose diagonal blocks of size $K 
 \begin{align}
     \tilde{\A} \approx \mat{G}\mat{P}
 \end{align}
-$\mat{G}$ serves to select the appropriate prototype in each subspace. Rows of $\mat{G}$ are formed by concatenating the one-hot encoded representations of each assignment for the corresponding row of $\tilde{\A}$. For example, if a row were assigned prototypes $\langle$\texttt{3 1 2}$\rangle$ with $K = 4$, $C = 3$, its row in $\mat{G}$ would be $\langle$\texttt{0010 1000 0100}$\rangle$. Essentially, $\mat{G}$ serves to select the appropriate prototype in each subspace. Our idea is to optimize $\mat{P}$ conditioned on $\mat{G}$ and $\tilde{\A}$. This is an ordinary least squares problem, and we solve it with ridge regression:
+where $\mat{G}$ serves to select the appropriate prototype in each subspace. Rows of $\mat{G}$ are formed by concatenating the one-hot encoded representations of each assignment for the corresponding row of $\tilde{\A}$. For example, if a row were assigned prototypes $\langle$\texttt{3 1 2}$\rangle$ with $K = 4$, $C = 3$, its row in $\mat{G}$ would be $\langle$\texttt{0010 1000 0100}$\rangle \in \R^{12}$. Our idea is to optimize $\mat{P}$ conditioned on $\mat{G}$ and $\tilde{\A}$. This is an ordinary least squares problem, and we solve it with ridge regression:
+% Essentially, $\mat{G}$ serves to select the appropriate prototype in each subspace.
 \begin{align}
 \vspace*{-1mm}
     \mat{P} \triangleq (\mat{G}^\top \mat{G} + \lambda \mat{I}) \mat{G}^\top \tilde{\A}.
@@ -168,14 +169,14 @@ In short, the initial prototypes are just used to produce an assignment matrix $
 
 % ------------------------------------------------
 \vspace{-1.5mm}
-\subsection{Fast 8-bit Aggregation, $f(\cdot,\cdot)$} \label{sec:aggregate}
+\subsection{Fast 8-bit Aggregation, $\bm{f(\cdot,\cdot)}$} \label{sec:aggregate}
 \vspace{-.5mm}
 % ------------------------------------------------
-
-Given the quantized lookup tables $\mat{T}^{q}$ and encodings $\mat{G}$, the function $f(\cdot,\cdot)$ is defined as
+Let $\mat{T} \in \R^{M \times C \times K}$ be the tensor of lookup tables for all $M$ columns of $\B$.
+Given the encodings $\mat{G}$, the function $f(\cdot,\cdot)$ is defined as
 \begin{align}
     % f(g(\A), h(\B))_{n,m} \triangleq \sum_{c=1}^C \sum_{k=1}^K \mat{T}^{q}_{m,c,k} I\{\mat{G}_{n,c} = k \}
-    f(g(\A), h(\B))_{n,m} \triangleq \sum_{c=1}^C \mat{T}^{q}_{m,c,\mat{G}_{n,c}}.
+    f(g(\A), h(\B))_{n,m} \triangleq \sum_{c=1}^C \mat{T}_{m,c,k} \cs\text{ } k = g^{(c)}(\a_n).
 \end{align}
 Because the entries of $\mat{T}$ are stored as 8-bit values, exact summation requires immediately upcasting each looked-up entry to 16 bits before performing any addition instructions \cite{bolt}. This not only imposes overhead directly, but also means that one must perform 16-bit additions, which have half the throughput of 8-bit additions.
 

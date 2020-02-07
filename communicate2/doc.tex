@@ -76,7 +76,7 @@
 \begin{abstract}
 % ------------------------------------------------
 
-Multiplying matrices is among the most fundamental and most computationally demanding operations in machine learning and numerical computing. Consequently, the task of efficiently approximating matrix products has received significant attention.
+Multiplying matrices is among the most fundamental and most computationally demanding operations in machine learning and scientific computing. Consequently, the task of efficiently approximating matrix products has received significant attention.
 
 We introduce an approximate matrix multiplication algorithm that substantially outperforms existing methods. Experiments using hundreds of matrices from diverse domains show that it runs far faster than current approaches for a given amount of error, often obtaining more than a $10\times$ relative speedup. In the common case that one matrix is known ahead of time, our method also has the interesting property that it requires \textit{zero} multiply-add operations. The key idea behind our approach is to replace the expensive encoding step common in vector quantization methods with a learned locality-sensitive hash function.
 
@@ -124,17 +124,18 @@ We introduce an approximate matrix multiplication algorithm that substantially o
 % \input{theory.tex}
 
 %================================================================
-\vspace{-1.5mm}
+% \vspace{-2mm}
 \section{Experiments} \label{sec:results}
+% \vspace{-.5mm}
 %================================================================
 
 \input{results.tex}
 
 
 %================================================================
-% \vspace{-1.5mm}
+\vspace{-2.5mm}
 \section{Conclusion}
-% \vspace{-.5mm}
+\vspace{-.5mm}
 %================================================================
 
 We introduce an approximate matrix multiplication algorithm that achieves a significantly better speed-quality tradeoff than existing methods, as measured on various machine learning and other tasks using hundreds of real-world matrices from diverse domains. Our method's performance stems from 1) its replacement of the bottleneck in existing methods with a learned locality-sensitive hash function, 2) its optimization of a quantity that other methods cannot optimize without a large slowdown, and 3) its use of an inexact estimator for computing sums.
