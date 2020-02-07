@@ -17,7 +17,7 @@ The main idea behind our function is to determine the ``most similar'' prototype
 % There are two types of these functions to choose from: data-independent and data-dependent []. The former assume no training set and are typically based on randomization []. The latter assume a training set, and most often involve training a neural network to produce binary codes []. We refer the reader to [] for a survey. As one might expect, data-dependent hash functions yield higher quality results, but tend to run more slowly and lack formal guarantees.
 Because we seek to exploit a training set while also doing far less work than even a single linear transform, we found that existing hash functions did not meet our requirements. Consequently, we designed our own family of trainable hash functions. This function family may be of independent interest, but we leave exploration of its efficacy in other contexts to future work. %We do not claim that this method outperforms all possible alternatives---merely that it enables excellent results in our experiments.
 
-The family of hash functions we choose is balanced binary regression trees, with each leaf of the tree acting as one hash bucket. The leaf for a vector $\x$ is chosen by traversing the tree from the root and moving to the left child if the value $x_j$ at some index $j$ is below a node-specific threshold $v$, and to the right child otherwise. To enable the use of SIMD instructions, the tree is limited to sixteen leaves and all nodes at a given level of the tree are required to split on the same index $j$. The number sixteen holds across many processors, and we refer the reader to Appendix~\ref{sec:hashQuantize} for further discussion of vectorization details.
+The family of hash functions we choose is balanced binary regression trees, with each leaf of the tree acting as one hash bucket. The leaf for a vector $\x$ is chosen by traversing the tree from the root and moving to the left child if the value $x_j$ at some index $j$ is below a node-specific threshold $v$, and to the right child otherwise. To enable the use of SIMD instructions, the tree is limited to sixteen leaves and all nodes at a given level of the tree are required to split on the same index $j$. The number sixteen holds across many processor architectures, and we refer the reader to Appendix~\ref{sec:hashQuantize} for further vectorization details.
 
 % hack to get perfect spacing
 % \algnewcommand{\COMMENTT}[2][.5\linewidth]{\leavevmode\hfill\makebox[#1][l]{\hphantom{a} // ~#2}}
@@ -46,7 +46,7 @@ Formally, consider a set of four indices ${j^1,\ldots,j^4}$ and four arrays of s
 \end{algorithmic}
 \end{algorithm}
 % \vspace{-3mm}
-This function is simple, only depends on a constant number of indices in the input vector, and can easily be vectorized, provided that the matrix whose rows are being encoded is stored in column-major order. % The only subtlety in doing this vectorization is that one may need to convert floating point data to integers depending on one's processor; see Appendix~\ref{sec:hashQuantize} for further discussion.
+This function is simple, only depends on a constant number of indices in the input vector, and can easily be vectorized provided that the matrix whose rows are being encoded is stored in column-major order. % The only subtlety in doing this vectorization is that one may need to convert floating point data to integers depending on one's processor; see Appendix~\ref{sec:hashQuantize} for further discussion.
 
 % TODO move below to appendix
 % (though in practice, $\gamma_j$ and $\delta_j$ are applied using a fused-multiply-add.
@@ -63,11 +63,11 @@ The split indices ${j^1,\ldots,j^4}$ and split thresholds $\vec{v}^1,\ldots,\vec
 % it will be helpful to
 To describe this algorithm, we introduce the notion of a \textit{bucket} $\mathcal{B}^t_i$, which is the set of vectors mapped to node $i$ in level $t$ of the tree. The root of the tree is level 0 and $\mathcal{B}^0_1$ contains all the vectors. It will also be helpful to define the sum of squared errors (SSE) loss associated with a bucket, or a specific (index, bucket) pair:
 \begin{align}
-    \mathcal{L}(j \text{, } \mathcal{B}) &\triangleq \sum_{\x \in \mathcal{B}} \left( x_j - \frac{1}{|\mathcal{B}|}\sum_{\x^\prime \in \mathcal{B}} x^\prime_j \right)^2.  \\
-    \mathcal{L}(\mathcal{B}) &\triangleq \sum_j \mathcal{L}(j \text{, } \mathcal{B})
+    \mathcal{L}(j \text{, } \mathcal{B}) &\triangleq \sum_{\x \in \mathcal{B}} \left( x_j - \frac{1}{|\mathcal{B}|}\sum_{\x^\prime \in \mathcal{B}} x^\prime_j \right)^.  \\
+    \mathcal{L}(\mathcal{B}) &\triangleq \sum_j \mathcal{L}(j \text{, } \mathcal{B}).
 \end{align}
 % I.e., this loss for each index is the sum of squared errors (SSE) when estimating each $x_j$ as equal to its mean value within the bucket, and the overall loss for a bucket is the sum of the values in each dimension. The overall loss can also be understood as the ``energy'' of the bucket [].
-Using this notation, it suffices to characterize the learning algorithm by describing the construction of level $t$ of the tree given buckets $\mathcal{B}^{t-1}_1,\ldots,\mathcal{B}^{t-1}_{2^{t-1}}$ from the previous level. This procedure is given in Algorithm~\ref{algo:learnTree}.
+Using this notation, it suffices to characterize the learning algorithm by describing the construction of level $t$ of the tree given the buckets $\mathcal{B}^{t-1}_1,\ldots,\mathcal{B}^{t-1}_{2^{t-1}}$ from the previous level. This procedure is given in Algorithm~\ref{algo:learnTree}.
 
 % In line~\ref{line:dimHeuristic},
 % The construction of level $t$ of the tree is given in Algorithm~\ref{algo:learnTree}.
@@ -75,7 +75,7 @@ In line~2, we select a fixed number of indices to evaluate. Several heuristics a
 % The loss associated with a given index in a given bucket is the variance within that dimension multiplied by the size of the bucket---i.e., the sum of squared errors compared to the bucket's mean.
 
 % In lines~\ref{line:dimEvalStart}-\ref{line:dimEvalEnd},
-In lines~4-15, we find the minimal loss obtainable by splitting all buckets along that index, but with bucket-specific cutoffs. This loss is minimal not in the sense that it leads to the best overall tree, but in that it minimizes the sum of the losses in the buckets produced in this iteration. To do this, we invoke the subroutine \texttt{optimal\_split\_threshold}, which takes in a bucket $\mathcal{B}$ and an index $j$ and tests all possible splits to find which minimizes $\mathcal{L}(j \text{, } \mathcal{B})$. This can be done in time $O(|\mathcal{B}| \log(|\mathcal{B}|))$. The pseudocode for this subroutine is given in Algorithm~\ref{algo:optimalSplitVal} and Algorithm~\ref{algo:cumSSE} in Appendix~\ref{sec:optimalSplitVal}.
+In lines~4-15, we find the minimal loss obtainable by splitting all buckets along that index, but with bucket-specific cutoffs. This loss is minimal not in the sense that it leads to the best overall tree, but in that it minimizes the sum of the losses in the buckets produced in this iteration. To do this, we invoke the subroutine \texttt{optimal\_split\_threshold}, which takes in a bucket $\mathcal{B}$ and an index $j$ and tests all possible splits to find which minimizes $\mathcal{L}(j \text{, } \mathcal{B})$. This can be done in time $O(|\mathcal{B}| \log(|\mathcal{B}|))$. The pseudocode for this subroutine is given in Algorithms~\ref{algo:optimalSplitVal}~and~\ref{algo:cumSSE} in Appendix~\ref{sec:optimalSplitVal}.
 
 % (lines~\ref{line:splitBucketsStart}-\ref{line:splitBucketsEnd})
 Once a split index $j$ and array of split thresholds $\vec{v}$ are chosen, all that remains is to split the buckets to form the next level of the tree (lines~16-21). This just entails forming two child buckets from each current bucket by grouping vectors whose $j$th entries are above or below the bucket's split threshold.% , where the first child has vectors whose elements $x_j$ are less than the bucket's split value and the second child has those whose elements are above the bucket's split value.
@@ -159,12 +159,12 @@ Let $\mat{P} \in \R^{KC \times D}$ be a matrix whose diagonal blocks of size $K 
 $\mat{G}$ serves to select the appropriate prototype in each subspace. Rows of $\mat{G}$ are formed by concatenating the one-hot encoded representations of each assignment for the corresponding row of $\tilde{\A}$. For example, if a row were assigned prototypes $\langle$\texttt{3 1 2}$\rangle$ with $K = 4$, $C = 3$, its row in $\mat{G}$ would be $\langle$\texttt{0010 1000 0100}$\rangle$. Essentially, $\mat{G}$ serves to select the appropriate prototype in each subspace. Our idea is to optimize $\mat{P}$ conditioned on $\mat{G}$ and $\tilde{\A}$. This is an ordinary least squares problem, and we solve it with ridge regression:
 \begin{align}
 \vspace*{-1mm}
-    \mat{P} \triangleq (\mat{G}^\top \mat{G} + \lambda \mat{I}) \mat{G}^\top \tilde{\A}
+    \mat{P} \triangleq (\mat{G}^\top \mat{G} + \lambda \mat{I}) \mat{G}^\top \tilde{\A}.
 % \vspace*{-.5mm}
 \end{align}
 One could obtain better performance by cross-validating to find $\lambda$, but for simplicity, we hardcode $\lambda = 1$. %, which corresponds to adding the minimum sensible pseudocount to the assignment cooccurrence matrix $\mat{G}^\top \mat{G}$.
 
-In short, the initial prototypes are just used to produce an assignment matrix $\mat{G}$, and it is from this assignment matrix that the final prototypes are derived. This procedure allows the prototypes to be nonzero outside of their original subspaces. Thanks to our hashing procedure, we avoid the dramatically increased overhead faced by other methods with non-orthogonal prototypes (c.f. \cite{otq,aq,cq,grvq,lsq,stackedQuantizers}).
+In short, the initial prototypes are just used to produce an assignment matrix $\mat{G}$, and it is from this assignment matrix that the final prototypes are derived. This procedure allows the prototypes to be nonzero outside of their original subspaces. Because of our hashing procedure, we avoid the dramatically increased overhead faced by other methods with non-orthogonal prototypes (c.f. \cite{otq,aq,cq,grvq,lsq,stackedQuantizers}).
 
 % ------------------------------------------------
 \vspace{-1.5mm}
@@ -175,7 +175,7 @@ In short, the initial prototypes are just used to produce an assignment matrix $
 Given the quantized lookup tables $\mat{T}^{q}$ and encodings $\mat{G}$, the function $f(\cdot,\cdot)$ is defined as
 \begin{align}
     % f(g(\A), h(\B))_{n,m} \triangleq \sum_{c=1}^C \sum_{k=1}^K \mat{T}^{q}_{m,c,k} I\{\mat{G}_{n,c} = k \}
-    f(g(\A), h(\B))_{n,m} \triangleq \sum_{c=1}^C \mat{T}^{q}_{m,c,\mat{G}_{n,c}}
+    f(g(\A), h(\B))_{n,m} \triangleq \sum_{c=1}^C \mat{T}^{q}_{m,c,\mat{G}_{n,c}}.
 \end{align}
 Because the entries of $\mat{T}$ are stored as 8-bit values, exact summation requires immediately upcasting each looked-up entry to 16 bits before performing any addition instructions \cite{bolt}. This not only imposes overhead directly, but also means that one must perform 16-bit additions, which have half the throughput of 8-bit additions.
 

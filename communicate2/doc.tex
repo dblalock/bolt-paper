@@ -103,6 +103,7 @@ We introduce an approximate matrix multiplication algorithm that substantially o
 %================================================================
 \vspace{-1.5mm}
 \section{Background - Product Quantization} \label{sec:background}
+\vspace{-.5mm}
 %================================================================
 
 \input{background.tex}
@@ -111,7 +112,7 @@ We introduce an approximate matrix multiplication algorithm that substantially o
 % \vspace{-5mm}
 \vspace{-3mm}
 \section{Our Method} \label{sec:method}
-\vspace{-1mm}
+\vspace{-.5mm}
 %================================================================
 
 \input{method.tex}
@@ -131,12 +132,14 @@ We introduce an approximate matrix multiplication algorithm that substantially o
 
 
 %================================================================
-\vspace{-1.5mm}
+% \vspace{-1.5mm}
 \section{Conclusion}
-\vspace{-.5mm}
+% \vspace{-.5mm}
 %================================================================
 
-We introduce an approximate matrix multiplication algorithm that achieves a significantly better speed-quality tradeoff than existing methods, as measured on various machine learning and other tasks using hundreds of real-world matrices from diverse domains. Our method's performance stems from 1) its replacement of the bottleneck in existing methods with a learned locality-sensitive hash function, 2) its optimization of a quantity that other methods cannot optimize without a large slowdown, and 3) its use of an inexact estimator for computing sums. In future work, we plan to integrate our method into neural networks and specialize it for convolutions.
+We introduce an approximate matrix multiplication algorithm that achieves a significantly better speed-quality tradeoff than existing methods, as measured on various machine learning and other tasks using hundreds of real-world matrices from diverse domains. Our method's performance stems from 1) its replacement of the bottleneck in existing methods with a learned locality-sensitive hash function, 2) its optimization of a quantity that other methods cannot optimize without a large slowdown, and 3) its use of an inexact estimator for computing sums.
+In future work, we plan to specialize our method for convolutions, implement it on GPUs, and integrate it into neural networks.
+% In future work, we plan to integrate our method into neural networks, specialize it for convolutions, and implement it on GPUs.
 
 % ================================================================
 % References

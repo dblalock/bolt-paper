@@ -163,7 +163,7 @@ In addition to being a large, public corpus of over a hundred datasets from a hu
 
 Since different datasets have different test set sizes, all results are for a standardized test set size of 1000 rows. We wanted the length to be a multiple of 32 since existing methods operate best with sizes that are either powers of two or, failing that, multiples of large powers of two.
 
-
+We approximate Euclidean distances using the identity $\norm{\vec{x} - \vec{y}}_2^2 = \norm{\vec{x}}_2^2 - 2\vec{x}^\top \vec{y} + \norm{\vec{y}}_2^2$ and approximating the inner products $\vec{x}^\top \vec{y}$, since $\norm{\vec{y}}_2^2$ can be precomputed for fixed exemplars $\vec{y}$ and $\norm{\vec{x}}_2^2$ doesn't affect the class prediction since it is constant across all exemplars for a given input $\vec{x}$.
 
 % since having a length that is a multiple of at least 8 is the best-case scenario for most existing methods, and 320 is a ``rounder'' number than 312.
 

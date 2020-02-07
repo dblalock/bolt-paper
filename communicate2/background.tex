@@ -11,12 +11,12 @@ To lay the groundwork for our own method, we begin by reviewing Product Quantiza
 
 % to both lay the groundwork  the classic vector quantization algorithm for approximating inner products on which most others are based.
 
-The basic intuition behind PQ is that $\a^\top \b \approx \hat{\a}^\top \b$, where $\norm{\hat{\a} - \a}$ is small but $\hat{\a}$ has special structure allowing the product to be computed quickly. This structure consists of $\hat{\a}$ being formed by concatenating learned prototypes in disjoint subspaces; one obtains a speedup by precomputing the dot products between $\b$ and the prototypes once, and then reusing these values across many $\a$ vectors.
+The basic intuition behind PQ is that $\a^\top \b \approx \hat{\a}^\top \b$, where $\norm{\hat{\a} - \a}$ is small but $\hat{\a}$ has special structure allowing the product to be computed quickly. This structure consists of $\hat{\a}$ being formed by concatenating learned prototypes in disjoint subspaces; one obtains a speedup by precomputing the dot products between $\b$ and the prototypes once, and then reusing these values across many $\a$ vectors. The $\a$ vectors are the (transposed) rows of $\A$ and the $\b$ vectors are the columns of $\B$.
 
  % \cite{pq}, a classic approach to this problem that serves as a conceptual foundation for our own method. There are three basic steps behind PQ:
 In somewhat more detail, PQ consists of the following:
 \vspace{-3mm}
-\begin{enumerate}\itemsep1mm
+\begin{enumerate}\itemsep.5mm
     % \item asdf
     % \item $g(\A)$
     % \item Replacing each row of $\A$ with a prototype chosen from a predefined set.%
@@ -34,11 +34,11 @@ PQ is depicted for a single pair of vectors $\a$ and $\b$ in Figure~\ref{fig:pq}
 % ------------------------------------------------
 % \subsection{Prototype Learning}
 \vspace{-2mm}
-\paragraph{Prototype Learning}
+\paragraph{Prototype Learning:}
 % ------------------------------------------------
 
 Let $\tilde{A} \in \R^{N \times D}$ be a training set, $K$ be a number of prototypes per subspace, $C$ be a number of subspaces, and $\{\mathcal{J}^{(c)}\}_{c=1}^C$ be the (mutually exclusive and collectively exhaustive) sets of indices associated with each subspace. The training-time task of PQ is to learn $C$ sets of prototypes $\mat{P}^{(c)} \in \R^{K \times |\mathcal{J}_c|}$ and assignments $\vec{z}^{(c)} \in \R^{N}$ such that:
-\vspace{-1mm}
+\vspace{-2mm}
 \begin{align}
     \sum_{i=1}^N \sum_{c=1}^C \sum_{j\in \mathcal{J}_c} \left( \tilde{\A}_{ij} - \mat{P}^{(c)}_{z^{(c)},j} \right)^2
 \vspace*{-.5mm}
@@ -48,7 +48,7 @@ is minimized. It does this by running K-means separately in each subspace $\math
 \begin{figure}[t]
 \begin{center}
 \includegraphics[width=\linewidth]{amm/pq}
-\caption{Product Quantization. The $g()$ function returns the index of the most similar prototype to the data vector a in each subspace. The $h(\cdot)$ function computes a lookup table of dot products between the query vector b and each protoype in each suspace. The aggregation function $f(\cdot,\cdot)$ sums the table entries corresponding to each index.}
+\caption{Product Quantization. The $g()$ function returns the index of the most similar prototype to the data vector a in each subspace. The $h(\cdot)$ function computes a lookup table of dot products between the query vector b and each protoype in each subspace. The aggregation function $f(\cdot,\cdot)$ sums the table entries corresponding to each index in each subspace.}
 % $\vec{a}$
 \label{fig:pq}
 \end{center}
@@ -64,28 +64,28 @@ is minimized. It does this by running K-means separately in each subspace $\math
 
 % ------------------------------------------------
 % \subsection{Encoding Function - $g(\A)$}
-\vspace{-2mm}
-\paragraph{Encoding Function, $g(\A)$}
+\vspace{-2.5mm}
+\paragraph{Encoding Function, $g(\A)$:}
 % ------------------------------------------------
 
 Given the learned prototypes, PQ replaces each row $\a$ of $\A$ with the concatenation of its $C$ K-means centroid assignments in each of the $C$ subspaces. Formally:
 \vspace{-.5mm}
 \begin{align} \label{eq:pqLoss}
-    g(\a)^{(c)} \triangleq \argmin_k \sum_{j\in \mathcal{J}_c} \left( \a_j - \mat{P}^{(c)}_{k,j} \right)^2
+    g(\a)^{(c)} \triangleq \argmin_k \sum_{j\in \mathcal{J}_c} \left( \a_j - \mat{P}^{(c)}_{k,j} \right)^2.
 \vspace*{-.5mm}
 \end{align}
-We will refer to the resulting sequence of indices as the \textit{encoding} of $\a$ and the set of $K$ centroids as a \textit{codebook}. For convenience, we will also refer to the vector $\a^{(c)} \triangleq \langle a_j \rangle, j \in J_{(c)}$ as the \textit{subvector} of $\a$ in subspace $c$. %This encoding function has complexity $\Theta(KD)$ for each $\a$, since there are $K$ centroids per subspace and the sum of the number of indices in all subspaces is $D$.
+We will refer to the resulting sequence of indices as the \textit{encoding} of $\a$ and the set of $K$ centroids as a \textit{codebook}. For convenience, we will also refer to the vector $\a^{(c)} \triangleq \langle a_j \rangle, j \in J^{(c)}$ as the \textit{subvector} of $\a$ in subspace $c$. %This encoding function has complexity $\Theta(KD)$ for each $\a$, since there are $K$ centroids per subspace and the sum of the number of indices in all subspaces is $D$.
 
 % ------------------------------------------------
 % \subsection{Table Construction - $h(\B)$}
-\vspace{-2mm}
-\paragraph{Table Construction, $h(\B)$}
+\vspace{-2.5mm}
+\paragraph{Table Construction, $h(\B)$:}
 % ------------------------------------------------
 
 Using these same prototypes, PQ constructs a lookup table $h(\b)^{(c)} \in \R^K$ in each of the $C$ subspaces for each column $\b$ of $\B$, where
 % \vspace{-.5mm}
 \begin{align}
-    h(\b)^{(c)} \triangleq \sum_{j\in \mathcal{J}_c} \b_j \mat{P}^{(c)}_{k,j}
+    h(\b)^{(c)} \triangleq \sum_{j\in \mathcal{J}_c} \b_j \mat{P}^{(c)}_{k,j}.
 \end{align}
 
 Existing work has shown that setting $K = 16$ and quantizing the lookup tables to 8 bits can offer enormous speedups compared to larger $K$ and/or floating-point tables \cite{bolt, quickAdc, quickerAdc}. This is because 16 1-byte entries can be stored in a SIMD register, allowing 16 or more table lookups to be performed in parallel in a single instruction. Since the table entries naturally occupy more than 8 bits even for 8-bit data, some means of quantizing these entries is necessary. This can easily be done by subtracting off the minimum entry in each table and linearly rescaling such that the maximum entry in any table is at most 255. Ignoring rounding error, this affine transform is invertible, and is reflected by the constants $\alpha$ and $\beta$ in equation~\ref{eq:objective}. See Appendix~\ref{sec:lutQuantize} for additional details.
@@ -96,13 +96,13 @@ Existing work has shown that setting $K = 16$ and quantizing the lookup tables t
 % ------------------------------------------------
 % \subsection{Aggregation - $f(\cdot,\cdot)$}
 \vspace{-2mm}
-\paragraph{Aggregation, $f(\cdot,\cdot)$}
+\paragraph{Aggregation, $f(\cdot,\cdot)$:}
 % ------------------------------------------------
 
 Given the encoding of $\a$ and the lookup tables for $\b$, the product can be approximated as
-\vspace{-3mm}
+\vspace*{-4mm}
 \begin{align}
-    \a^\top \b = \sum_{c=1}^C \a^{(c)\top} \b^{(c)} \approx \sum_{c=1}^C h(\b)^{(c)}_k, \text{ }k = g(\a)^{(c)}
+    \a^\top \b = \sum_{c=1}^C \a^{(c)\top} \b^{(c)} \approx \sum_{c=1}^C h(\b)^{(c)}_k, \text{ }k = g(\a)^{(c)}.
 \end{align}
 % \vspace{-.5mm}
 
