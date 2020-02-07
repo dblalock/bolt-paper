@@ -160,7 +160,7 @@ where $\mat{G}$ serves to select the appropriate prototype in each subspace. Row
 % Essentially, $\mat{G}$ serves to select the appropriate prototype in each subspace.
 \begin{align}
 \vspace*{-1mm}
-    \mat{P} \triangleq (\mat{G}^\top \mat{G} + \lambda \mat{I}) \mat{G}^\top \tilde{\A}.
+    \mat{P} \triangleq (\mat{G}^\top \mat{G} + \lambda \mat{I})^{-1} \mat{G}^\top \tilde{\A}.
 % \vspace*{-.5mm}
 \end{align}
 One could obtain better performance by cross-validating to find $\lambda$, but for simplicity, we hardcode $\lambda = 1$. %, which corresponds to adding the minimum sensible pseudocount to the assignment cooccurrence matrix $\mat{G}^\top \mat{G}$.
