@@ -192,7 +192,7 @@ The proof then follows by again considering the four equiprobable cases as in Le
 
 
 
-\begin{theorem}[Bias and squared error of Averaging Integer Sum Estimator within a subspace]
+\begin{lemma}[Bias and squared error of Averaging Integer Sum Estimator within a subspace] \label{thm:avgSubspace}
 % Let $\hat{s}(\x), \x \in \R^C, C \text{ \% } U = 0$ be the sum estimator described in section~\ref{sec:aggregate} and let $s(\x) \triangleq \sum_c x_c$.
 % Let $s(\x)$ be defined as
 Suppose that the scalars $x_i$ are drawn from independent Bernoulli(.5) distributions. Then
@@ -200,7 +200,7 @@ Suppose that the scalars $x_i$ are drawn from independent Bernoulli(.5) distribu
     E[s(\x) - \hat{s}(\x)] &= U \log_2(U) / 4 \\
     E[(s_U(\x) - \hat{s}_U(\x))^2] &= U \log_2(U) / 8.
 \end{align}
-\end{theorem}
+\end{lemma}
 \begin{proof}
 Observe that the computation graph can be cast as a balanced binary tree with $U$ leaves and each parent equal to the integer average of its children. Consider the bias introduced at each level $t$ of the tree, where $t=0$ corrsponds to the leaves and $t = \log_2(U)$ corresponds to the root. The expected error $E[\eps(t, n)]$ introduced at a node $n$ in level $t > 0$ is given by:
 \begin{align}
@@ -222,7 +222,7 @@ Suppose that the scalars $x_i$ are drawn from independent Bernoulli(.5) distribu
 \end{align}
 \end{theorem}
 \begin{proof}
-This follows immediately from the fact that the overall sum is estimated within each of $C / U$ subspaces of size $U$, and the errors in each subspace are assumed independent.
+This follows immediately from Lemma~\ref{thm:avgSubspace} the fact that the overall sum is estimated within each of $C / U$ subspaces of size $U$, and the errors in each subspace are assumed independent.
 \end{proof}
 
 
