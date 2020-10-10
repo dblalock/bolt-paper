@@ -1,0 +1,218 @@
+
+@article{zeldaDivNets,
+	title = {Diversity {Networks}: {Neural} {Network} {Compression} {Using} {Determinantal} {Point} {Processes}},
+	shorttitle = {Diversity {Networks}},
+	url = {http://arxiv.org/abs/1511.05077},
+	abstract = {We introduce Divnet, a ﬂexible technique for learning networks with diverse neurons. Divnet models neuronal diversity by placing a Determinantal Point Process (DPP) over neurons in a given layer. It uses this DPP to select a subset of diverse neurons and subsequently fuses the redundant neurons into the selected ones. Compared with previous approaches, Divnet oﬀers a more principled, ﬂexible technique for capturing neuronal diversity and thus implicitly enforcing regularization. This enables eﬀective auto-tuning of network architecture and leads to smaller network sizes without hurting performance. Moreover, through its focus on diversity and neuron fusing, Divnet remains compatible with other procedures that seek to reduce memory footprints of networks. We present experimental results to corroborate our claims: for pruning neural networks, Divnet is seen to be notably superior to competing approaches.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1511.05077 [cs]},
+	author = {Mariet, Zelda and Sra, Suvrit},
+	month = nov,
+	year = {2015},
+	note = {arXiv: 1511.05077},
+	keywords = {Computer Science - Machine Learning, Computer Science - Neural and Evolutionary Computing},
+	file = {Mariet and Sra - 2015 - Diversity Networks Neural Network Compression Usi.pdf:~/Zotero/storage/DBKU3HMA/Mariet and Sra - 2015 - Diversity Networks Neural Network Compression Usi.pdf:application/pdf}
+}
+
+@article{applePFA,
+	title = {Network {Compression} using {Correlation} {Analysis} of {Layer} {Responses}},
+	url = {http://arxiv.org/abs/1807.10585},
+	abstract = {Principal Filter Analysis (PFA) is an easy to implement, yet effective method for neural network compression. PFA exploits the intrinsic correlation between ﬁlter responses within network layers to recommend a smaller network footprint. We propose two compression algorithms: the ﬁrst allows a user to specify the proportion of the original spectral energy that should be preserved in each layer after compression, while the second is a heuristic that leads to a parameter-free approach that automatically selects the compression used at each layer. Both algorithms are evaluated against several architectures and datasets, and we show considerable compression rates without compromising accuracy, e.g., for VGG-16 on CIFAR-10 and CIFAR-100 PFA achieves a compression rate of 8x and 3x with an accuracy gain of 0.4\% points and 1.4\% points, respectively. In our tests we also demonstrate that networks compressed with PFA achieve an accuracy that is very close to the empirical upper bound for a given compression ratio. Finally, we show how PFA is an effective tool for simultaneous compression and domain adaptation.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1807.10585 [cs]},
+	author = {Suau, Xavier and Zappella, Luca and Apostoloff, Nicholas},
+	month = jul,
+	year = {2018},
+	note = {arXiv: 1807.10585},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {Suau et al. - 2018 - Network Compression using Correlation Analysis of .pdf:~/Zotero/storage/4ATKB3TD/Suau et al. - 2018 - Network Compression using Correlation Analysis of .pdf:application/pdf}
+}
+
+@article{pruningFilters,
+	title = {Pruning {Filters} for {Efficient} {ConvNets}},
+	url = {http://arxiv.org/abs/1608.08710},
+	abstract = {The success of CNNs in various applications is accompanied by a signiﬁcant increase in the computation and parameter storage costs. Recent efforts toward reducing these overheads involve pruning and compressing the weights of various layers without hurting original accuracy. However, magnitude-based pruning of weights reduces a signiﬁcant number of parameters from the fully connected layers and may not adequately reduce the computation costs in the convolutional layers due to irregular sparsity in the pruned networks. We present an acceleration method for CNNs, where we prune ﬁlters from CNNs that are identiﬁed as having a small effect on the output accuracy. By removing whole ﬁlters in the network together with their connecting feature maps, the computation costs are reduced signiﬁcantly. In contrast to pruning weights, this approach does not result in sparse connectivity patterns. Hence, it does not need the support of sparse convolution libraries and can work with existing efﬁcient BLAS libraries for dense matrix multiplications. We show that even simple ﬁlter pruning techniques can reduce inference costs for VGG-16 by up to 34\% and ResNet-110 by up to 38\% on CIFAR10 while regaining close to the original accuracy by retraining the networks.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1608.08710 [cs]},
+	author = {Li, Hao and Kadav, Asim and Durdanovic, Igor and Samet, Hanan and Graf, Hans Peter},
+	month = aug,
+	year = {2016},
+	note = {arXiv: 1608.08710},
+	keywords = {Computer Science - Machine Learning, Computer Science - Computer Vision and Pattern Recognition},
+	file = {Li et al. - 2016 - Pruning Filters for Efficient ConvNets.pdf:~/Zotero/storage/HHXPBXG9/Li et al. - 2016 - Pruning Filters for Efficient ConvNets.pdf:application/pdf}
+}
+
+@article{sparseConv,
+	title = {The {Power} of {Sparsity} in {Convolutional} {Neural} {Networks}},
+	url = {http://arxiv.org/abs/1702.06257},
+	abstract = {Deep convolutional networks are well-known for their high computational and memory demands. Given limited resources, how does one design a network that balances its size, training time, and prediction accuracy? A surprisingly effective approach to trade accuracy for size and speed is to simply reduce the number of channels in each convolutional layer by a ﬁxed fraction and retrain the network. In many cases this leads to signiﬁcantly smaller networks with only minimal changes to accuracy. In this paper, we take a step further by empirically examining a strategy for deactivating connections between ﬁlters in convolutional layers in a way that allows us to harvest savings both in run-time and memory for many network architectures. More speciﬁcally, we generalize 2D convolution to use a channel-wise sparse connection structure and show that this leads to signiﬁcantly better results than the baseline approach for large networks including VGG and Inception V3.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1702.06257 [cs]},
+	author = {Changpinyo, Soravit and Sandler, Mark and Zhmoginov, Andrey},
+	month = feb,
+	year = {2017},
+	note = {arXiv: 1702.06257},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {Changpinyo et al. - 2017 - The Power of Sparsity in Convolutional Neural Netw.pdf:~/Zotero/storage/XUJU4IZW/Changpinyo et al. - 2017 - The Power of Sparsity in Convolutional Neural Netw.pdf:application/pdf}
+}
+
+@article{blockSparseRNN,
+	title = {Block-{Sparse} {Recurrent} {Neural} {Networks}},
+	url = {http://arxiv.org/abs/1711.02782},
+	abstract = {Recurrent Neural Networks (RNNs) are used in state-of-the-art models in domains such as speech recognition, machine translation, and language modelling. Sparsity is a technique to reduce compute and memory requirements of deep learning models. Sparse RNNs are easier to deploy on devices and high-end server processors. Even though sparse operations need less compute and memory relative to their dense counterparts, the speed-up observed by using sparse operations is less than expected on different hardware platforms. In order to address this issue, we investigate two different approaches to induce block sparsity in RNNs: pruning blocks of weights in a layer and using group lasso regularization to create blocks of weights with zeros. Using these techniques, we demonstrate that we can create block-sparse RNNs with sparsity ranging from 80\% to 90\% with small loss in accuracy. This allows us to reduce the model size by roughly 10×. Additionally, we can prune a larger dense network to recover this loss in accuracy while maintaining high block sparsity and reducing the overall parameter count. Our technique works with a variety of block sizes up to 32×32. Block-sparse RNNs eliminate overheads related to data storage and irregular memory accesses while increasing hardware efﬁciency compared to unstructured sparsity.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1711.02782 [cs, stat]},
+	author = {Narang, Sharan and Undersander, Eric and Diamos, Gregory},
+	month = nov,
+	year = {2017},
+	note = {arXiv: 1711.02782},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning, Computer Science - Artificial Intelligence},
+	file = {Narang et al. - 2017 - Block-Sparse Recurrent Neural Networks.pdf:~/Zotero/storage/TG3K7K2W/Narang et al. - 2017 - Block-Sparse Recurrent Neural Networks.pdf:application/pdf}
+}
+
+@article{sparseLSTM,
+	title = {Learning {Intrinsic} {Sparse} {Structures} within {Long} {Short}-{Term} {Memory}},
+	url = {http://arxiv.org/abs/1709.05027},
+	abstract = {Model compression is signiﬁcant for the wide adoption of Recurrent Neural Networks (RNNs) in both user devices possessing limited resources and business clusters requiring quick responses to large-scale service requests. This work aims to learn structurally-sparse Long Short-Term Memory (LSTM) by reducing the sizes of basic structures within LSTM units, including input updates, gates, hidden states, cell states and outputs. Independently reducing the sizes of basic structures can result in inconsistent dimensions among them, and consequently, end up with invalid LSTM units. To overcome the problem, we propose Intrinsic Sparse Structures (ISS) in LSTMs. Removing a component of ISS will simultaneously decrease the sizes of all basic structures by one and thereby always maintain the dimension consistency. By learning ISS within LSTM units, the obtained LSTMs remain regular while having much smaller basic structures. Based on group Lasso regularization, our method achieves 10.59× speedup without losing any perplexity of a language modeling of Penn TreeBank dataset. It is also successfully evaluated through a compact model with only 2.69M weights for machine Question Answering of SQuAD dataset. Our approach is successfully extended to nonLSTM RNNs, like Recurrent Highway Networks (RHNs). Our source code is publicly available1.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1709.05027 [cs]},
+	author = {Wen, Wei and He, Yuxiong and Rajbhandari, Samyam and Zhang, Minjia and Wang, Wenhan and Liu, Fang and Hu, Bin and Chen, Yiran and Li, Hai},
+	month = sep,
+	year = {2017},
+	note = {arXiv: 1709.05027},
+	keywords = {Computer Science - Machine Learning, Computer Science - Computation and Language, Computer Science - Neural and Evolutionary Computing, Computer Science - Artificial Intelligence},
+	file = {Wen et al. - 2017 - Learning Intrinsic Sparse Structures within Long S.pdf:~/Zotero/storage/2YF34U4B/Wen et al. - 2017 - Learning Intrinsic Sparse Structures within Long S.pdf:application/pdf}
+}
+
+@article{hardConcrete,
+	title = {Learning {Sparse} {Neural} {Networks} through \${L}\_0\$ {Regularization}},
+	url = {http://arxiv.org/abs/1712.01312},
+	abstract = {We propose a practical method for L0 norm regularization for neural networks: pruning the network during training by encouraging weights to become exactly zero. Such regularization is interesting since (1) it can greatly speed up training and inference, and (2) it can improve generalization. AIC and BIC, well-known model selection criteria, are special cases of L0 regularization. However, since the L0 norm of weights is non-differentiable, we cannot incorporate it directly as a regularization term in the objective function. We propose a solution through the inclusion of a collection of non-negative stochastic gates, which collectively determine which weights to set to zero. We show that, somewhat surprisingly, for certain distributions over the gates, the expected L0 norm of the resulting gated weights is differentiable with respect to the distribution parameters. We further propose the hard concrete distribution for the gates, which is obtained by “stretching” a binary concrete distribution and then transforming its samples with a hard-sigmoid. The parameters of the distribution over the gates can then be jointly optimized with the original network parameters. As a result our method allows for straightforward and efﬁcient learning of model structures with stochastic gradient descent and allows for conditional computation in a principled way. We perform various experiments to demonstrate the effectiveness of the resulting approach and regularizer.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1712.01312 [cs, stat]},
+	author = {Louizos, Christos and Welling, Max and Kingma, Diederik P.},
+	month = dec,
+	year = {2017},
+	note = {arXiv: 1712.01312},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning},
+	file = {Louizos et al. - 2017 - Learning Sparse Neural Networks through \$L_0\$ Regu.pdf:~/Zotero/storage/GX5UASBL/Louizos et al. - 2017 - Learning Sparse Neural Networks through \$L_0\$ Regu.pdf:application/pdf}
+}
+
+@inproceedings{energyAwarePruning,
+	address = {Honolulu, HI},
+	title = {Designing {Energy}-{Efficient} {Convolutional} {Neural} {Networks} {Using} {Energy}-{Aware} {Pruning}},
+	isbn = {978-1-5386-0457-1},
+	url = {http://ieeexplore.ieee.org/document/8100126/},
+	doi = {10.1109/CVPR.2017.643},
+	abstract = {Deep convolutional neural networks (CNNs) are indispensable to state-of-the-art computer vision algorithms. However, they are still rarely deployed on battery-powered mobile devices, such as smartphones and wearable gadgets, where vision algorithms can enable many revolutionary real-world applications. The key limiting factor is the high energy consumption of CNN processing due to its high computational complexity. While there are many previous efforts that try to reduce the CNN model size or the amount of computation, we ﬁnd that they do not necessarily result in lower energy consumption. Therefore, these targets do not serve as a good metric for energy cost estimation.},
+	language = {en},
+	urldate = {2018-11-07},
+	booktitle = {2017 {IEEE} {Conference} on {Computer} {Vision} and {Pattern} {Recognition} ({CVPR})},
+	publisher = {IEEE},
+	author = {Yang, Tien-Ju and Chen, Yu-Hsin and Sze, Vivienne},
+	month = jul,
+	year = {2017},
+	pages = {6071--6079},
+	file = {Yang et al. - 2017 - Designing Energy-Efficient Convolutional Neural Ne.pdf:~/Zotero/storage/2VJCTJ7G/Yang et al. - 2017 - Designing Energy-Efficient Convolutional Neural Ne.pdf:application/pdf}
+}
+
+@article{bayesianCompress,
+	title = {Bayesian {Compression} for {Deep} {Learning}},
+	abstract = {Compression and computational efﬁciency in deep learning have become a problem of great signiﬁcance. In this work, we argue that the most principled and effective way to attack this problem is by adopting a Bayesian point of view, where through sparsity inducing priors we prune large parts of the network. We introduce two novelties in this paper: 1) we use hierarchical priors to prune nodes instead of individual weights, and 2) we use the posterior uncertainties to determine the optimal ﬁxed point precision to encode the weights. Both factors signiﬁcantly contribute to achieving the state of the art in terms of compression rates, while still staying competitive with methods designed to optimize for speed or energy efﬁciency.},
+	language = {en},
+	author = {Louizos, Christos and Ullrich, Karen and Welling, Max},
+	pages = {11},
+	year = {2017},
+	file = {Louizos et al. - Bayesian Compression for Deep Learning.pdf:~/Zotero/storage/JI67H4W9/Louizos et al. - Bayesian Compression for Deep Learning.pdf:application/pdf}
+}
+
+@article{netTrim,
+	title = {Net-{Trim}: {Convex} {Pruning} of {Deep} {Neural} {Networks} with {Performance} {Guarantee}},
+	language = {en},
+	author = {Aghasi, Alireza and Abdi, Afshin and Nguyen, Nam and Romberg, Justin},
+	pages = {10},
+	year = {2016},
+	file = {Aghasi et al. - Net-Trim Convex Pruning of Deep Neural Networks w.pdf:~/Zotero/storage/T7MG85SU/Aghasi et al. - Net-Trim Convex Pruning of Deep Neural Networks w.pdf:application/pdf}
+}
+
+@article{smallify,
+	title = {Smallify: {Learning} {Network} {Size} while {Training}},
+	shorttitle = {Smallify},
+	url = {http://arxiv.org/abs/1806.03723},
+	abstract = {As neural networks become widely deployed in different applications and on different hardware, it has become increasingly important to optimize inference time and model size along with model accuracy. Most current techniques optimize model size, model accuracy and inference time in different stages, resulting in suboptimal results and computational inefﬁciency. In this work, we propose a new technique called Smallify that optimizes all three of these metrics at the same time. Speciﬁcally we present a new method to simultaneously optimize network size and model performance by neuron-level pruning during training. Neuron-level pruning not only produces much smaller networks but also produces dense weight matrices that are amenable to efﬁcient inference. By applying our technique to convolutional as well as fully connected models, we show that Smallify can reduce network size by 35X with a 6X improvement in inference time with similar accuracy as models found by traditional training techniques.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1806.03723 [cs, stat]},
+	author = {Leclerc, Guillaume and Vartak, Manasi and Fernandez, Raul Castro and Kraska, Tim and Madden, Samuel},
+	month = jun,
+	year = {2018},
+	note = {arXiv: 1806.03723},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning},
+	file = {Leclerc et al. - 2018 - Smallify Learning Network Size while Training.pdf:~/Zotero/storage/7XSUHXP7/Leclerc et al. - 2018 - Smallify Learning Network Size while Training.pdf:application/pdf}
+}
+
+@article{_optimalBrainDamage,
+	title = {Optimal {Brain} {Damage}},
+	abstract = {We have used information-theoretic ideas to derive a class of practical and nearly optimal schemes for adapting the size of a neural network. By removing unimportant weights from a network, several improvements can be expected: better generalization, fewer training examples required, and improved speed of learning and/or classification. The basic idea is to use second-derivative information to make a tradeoff between network complexity and training set error. Experiments confirm the usefulness of the methods on a real-world application.},
+	language = {en},
+	author = {LeCun, Yann and Denker, John S and Solla, Sara A},
+	pages = {8},
+	file = {LeCun et al. - Optimal Brain Damage.pdf:~/Zotero/storage/KQELKIRP/LeCun et al. - Optimal Brain Damage.pdf:application/pdf}
+}
+
+@article{deepIHT,
+	title = {Training {Skinny} {Deep} {Neural} {Networks} with {Iterative} {Hard} {Thresholding} {Methods}},
+	url = {http://arxiv.org/abs/1607.05423},
+	abstract = {Deep neural networks have achieved remarkable success in a wide range of practical problems. However, due to the inherent large parameter space, deep models are notoriously prone to overﬁtting and diﬃcult to be deployed in portable devices with limited memory. In this paper, we propose an iterative hard thresholding (IHT) approach to train Skinny Deep Neural Networks (SDNNs). An SDNN has much fewer parameters yet can achieve competitive or even better performance than its full CNN counterpart. More concretely, the IHT approach trains an SDNN through following two alternative phases: (I) perform hard thresholding to drop connections with small activations and ﬁne-tune the other signiﬁcant ﬁlters; (II) re-activate the frozen connections and train the entire network to improve its overall discriminative capability. We verify the superiority of SDNNs in terms of eﬃciency and classiﬁcation performance on four benchmark object recognition datasets, including CIFAR-10, CIFAR-100, MNIST and ImageNet. Experimental results clearly demonstrate that IHT can be applied for training SDNN based on various CNN architectures such as NIN and AlexNet.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1607.05423 [cs]},
+	author = {Jin, Xiaojie and Yuan, Xiaotong and Feng, Jiashi and Yan, Shuicheng},
+	month = jul,
+	year = {2016},
+	note = {arXiv: 1607.05423},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {Jin et al. - 2016 - Training Skinny Deep Neural Networks with Iterativ.pdf:~/Zotero/storage/SA25KL6G/Jin et al. - 2016 - Training Skinny Deep Neural Networks with Iterativ.pdf:application/pdf}
+}
+
+@article{weightsAndConns,
+	title = {Learning both {Weights} and {Connections} for {Efficient} {Neural} {Network}},
+	abstract = {Neural networks are both computationally intensive and memory intensive, making them difﬁcult to deploy on embedded systems. Also, conventional networks ﬁx the architecture before training starts; as a result, training cannot improve the architecture. To address these limitations, we describe a method to reduce the storage and computation required by neural networks by an order of magnitude without affecting their accuracy by learning only the important connections. Our method prunes redundant connections using a three-step method. First, we train the network to learn which connections are important. Next, we prune the unimportant connections. Finally, we retrain the network to ﬁne tune the weights of the remaining connections. On the ImageNet dataset, our method reduced the number of parameters of AlexNet by a factor of 9×, from 61 million to 6.7 million, without incurring accuracy loss. Similar experiments with VGG-16 found that the total number of parameters can be reduced by 13×, from 138 million to 10.3 million, again with no loss of accuracy.},
+	language = {en},
+	author = {Han, Song and Pool, Jeff and Tran, John and Dally, William},
+	pages = {9},
+	year = {2015},
+	file = {Han et al. - Learning both Weights and Connections for Efficien.pdf:~/Zotero/storage/6ZFKV7SY/Han et al. - Learning both Weights and Connections for Efficien.pdf:application/pdf}
+}
+
+@article{blockSparseOpenAI,
+	title = {{GPU} {Kernels} for {Block}-{Sparse} {Weights}},
+	abstract = {We’re releasing highly optimized GPU kernels for an underexplored class of neural network architectures: networks with block-sparse weights. The kernels allow for efﬁcient evaluation and differentiation of linear layers, including convolutional layers, with ﬂexibly conﬁgurable block-sparsity patterns in the weight matrix. We ﬁnd that depending on the sparsity, these kernels can run orders of magnitude faster than the best available alternatives such as cuBLAS. Using the kernels we improve upon the state-of-the-art in text sentiment analysis and generative modeling of text and images. By releasing our kernels in the open we aim to spur further advancement in model and algorithm design.},
+	language = {en},
+	author = {Gray, Scott and Radford, Alec and Kingma, Diederik P},
+	pages = {12},
+	year = {2017},
+	file = {Gray et al. - GPU Kernels for Block-Sparse Weights.pdf:~/Zotero/storage/4NZVFXX4/Gray et al. - GPU Kernels for Block-Sparse Weights.pdf:application/pdf}
+}
+
+@article{coarsePrune,
+	title = {Compact {Deep} {Convolutional} {Neural} {Networks} {With} {Coarse} {Pruning}},
+	url = {http://arxiv.org/abs/1610.09639},
+	abstract = {The learning capability of a neural network improves with increasing depth at higher computational costs. Wider layers with dense kernel connectivity patterns furhter increase this cost and may hinder real-time inference. We propose feature map and kernel level pruning for reducing the computational complexity of a deep convolutional neural network. Pruning feature maps reduces the width of a layer and hence does not need any sparse representation. Further, kernel pruning converts the dense connectivity pattern into a sparse one. Due to coarse nature, these pruning granularities can be exploited by GPUs and VLSI based implementations. We propose a simple and generic strategy to choose the least adversarial pruning masks for both granularities. The pruned networks are retrained which compensates the loss in accuracy. We obtain the best pruning ratios when we prune a network with both granularities. Experiments with the CIFAR-10 dataset show that more than 85\% sparsity can be induced in the convolution layers with less than 1\% increase in the missclassiﬁcation rate of the baseline network.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1610.09639 [cs]},
+	author = {Anwar, Sajid and Sung, Wonyong},
+	month = oct,
+	year = {2016},
+	note = {arXiv: 1610.09639},
+	keywords = {Computer Science - Machine Learning, Computer Science - Neural and Evolutionary Computing},
+	file = {Anwar and Sung - 2016 - Compact Deep Convolutional Neural Networks With Co.pdf:~/Zotero/storage/Q82KKMTA/Anwar and Sung - 2016 - Compact Deep Convolutional Neural Networks With Co.pdf:application/pdf}
+}

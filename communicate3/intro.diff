@@ -1,0 +1,44 @@
+4c4
+< We focus on the AMM task under the assumptions that the matrices are tall, relatively dense, and resident in a single machine's memory. In this setting, the primary challenge is minimization of the amount of CPU time required to approximate linear operations with a given level of fidelity.
+---
+> We focus on the AMM task under the assumptions that the matrices are tall, too dense to merit use of sparsity-exploiting kernels, and resident in a single machine's memory. In this setting, the primary challenge is minimization of the amount of CPU time required to approximate linear operations with a given level of fidelity.
+9,19c9,19
+< As a concrete example, consider the task of approximating a softmax classifier trained to predict image labels given embeddings derived from a neural network. Here, the rows of $\A$ are the embeddings for each image, and the columns of $\B$ are the weight vectors for each class. Classification is performed by computing the product $\A\B$ and taking the argmax within each row of the result.
+< In Figure~\ref{fig:fig1}, we see the results of approximating $\A\B$ using our method and its best-performing rivals \cite{hashjl, sparsePCA} on the CIFAR-10 and CIFAR-100 datasets.
+< \vspace{1mm}
+< \begin{figure}[h]
+< \begin{center}
+< \includegraphics[width=\linewidth]{amm/fig1}
+< \caption{Our method achieves a dramatically better speed-accuracy tradeoff than the best existing methods when approximating two linear classifiers.}
+< \label{fig:fig1}
+< \end{center}
+< \end{figure}
+< \vspace{-1mm}
+---
+> As a concrete example, consider the task of approximating a softmax classifier trained to predict image labels given embeddings derived from a neural network. Here, the rows of $\A$ are the embeddings for each image, and the columns of $\B$ are the weight vectors for each class. Classification is performed by computing the product $\A\B$ and taking the argmax within each row of the result. Because taking the argmax is inexpensive, the bottleneck is computing the matrix product.
+> % In Figure~\ref{fig:fig1}, we see the results of approximating $\A\B$ using our method and its best-performing rivals \cite{hashjl, sparsePCA} on the CIFAR-10 and CIFAR-100 datasets.
+> % \vspace{1mm}
+> % \begin{figure}[h]
+> % \begin{center}
+> % \includegraphics[width=\linewidth]{amm/fig1}
+> % \caption{Our method achieves a dramatically better speed-accuracy tradeoff than the best existing methods when approximating two linear classifiers.}
+> % \label{fig:fig1}
+> % \end{center}
+> % \end{figure}
+> % \vspace{-1mm}
+61c61
+< Our method is most closely related to vector quantization methods used for similarity search (e.g., \cite{bolt,quickAdc,quickerAdc,pq,opq}). However, instead of using an expensive quantization function that requires many multiply-adds, we introduce a family of quantization functions that require no multiply-adds. %, including binary \texttt{XNOR} and \texttt{popcount} operations (though excluding implementation-level multiplies to compute memory addresses).
+---
+> Our method is most closely related to vector quantization methods used for similarity search (e.g., \cite{quickAdc,quickerAdc,pq,opq} and Chapter~\ref{chap:bolt}). However, instead of using an expensive quantization function that requires many multiply-adds, we introduce a fast family of quantization functions that require no multiply-adds. %, including binary \texttt{XNOR} and \texttt{popcount} operations (though excluding implementation-level multiplies to compute memory addresses).
+70c70
+<     \item An algorithm based on these functions for approximate matrix multiplication. Experiments across hundreds of diverse matrices demonstrate that this algorithm significantly outperforms existing alternatives.
+---
+>     \item An algorithm based on these functions for approximate matrix multiplication. Experiments across hundreds of diverse matrices demonstrate that this algorithm significantly outperforms existing methods.
+78c78
+< Let $\A \in \R^{N \times D}$ and $\B \in \R^{D \times M}$ be two matrices, with $N \gg D, M$, and $M$ not significantly larger than $D$. Given a computation time budget $\tau$, our task is to
+---
+> Let $\A \in \R^{N \times D}$ and $\B \in \R^{D \times M}$ be two matrices, with $N \gg D \ge M$. Given a computation time budget $\tau$, our task is to
+85c85
+< We assume the existence of a training set $\tilde{\A}$, whose rows are drawn from the same distribution as the rows of $\A$. This is a natural assumption in the case that rows of $\A$ represent examples in training data, or structured subsets thereof (such as patches of images). This assumption is common in the information retrieval literature \cite{bolt,pairq,quip}, but is a significant departure from most theoretical work.
+---
+> We assume the existence of a training set $\tilde{\A}$, whose rows are drawn from the same distribution as the rows of $\A$. This is a natural assumption in the case that rows of $\A$ represent examples in training data, or structured subsets thereof (such as patches of images). This assumption is common when using vector quantization for information retrieval \cite{bolt,pairq,quip}, but is a significant departure from most theoretical work.

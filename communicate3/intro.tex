@@ -1,0 +1,88 @@
+
+Matrix multiplication is among the most fundamental subroutines used in machine learning and scientific computing. As a result, there has been a great deal of work on implementing high-speed matrix multiplication libraries \cite{pytorch,eigen,tensorflow}, designing custom hardware to accelerate multiplication of certain classes of matrices \cite{eie,eyeriss,scnn,tpu}, scaling matrix multiplication across many machines \cite{distributedCoded, shortDot, entangledPolynomial, matmulCommunicationBounds}, and designing efficient Approximate Matrix Multiplication (AMM) algorithms under various assumptions and problem settings \cite{drineas_fast_2006,manne_fast_2014,ye_frequent_2016,mroueh_co-occuring_2016,bolt}.
+
+We focus on the AMM task under the assumptions that the matrices are tall,
+% relatively dense,
+too dense to merit the use of sparsity-exploiting kernels,
+and resident in a single machine's memory. In this setting, the primary challenge is minimization of the amount of CPU time required to approximate linear operations with a given level of fidelity.
+%not reduction of disk or network usage [], efficient coordination between distributed workers [], maximization of a space-distortion tradeoff [], or reduction of asymptotic complexity []. Instead, it is minimization of the amount of CPU time required to approximate linear operations with a given level of fidelity.
+
+This setting arises naturally in machine learning and data mining when one has a data matrix $\mat{A}$ whose rows are samples and a linear operator $\mat{B}$ one wishes to apply to these samples. $\mat{B}$ could be a linear classifier, linear regressor, or an embedding matrix, among other possibilities.
+
+As a concrete example, consider the task of approximating a softmax classifier trained to predict image labels given embeddings derived from a neural network. Here, the rows of $\A$ are the embeddings for each image, and the columns of $\B$ are the weight vectors for each class. Classification is performed by computing the product $\A\B$ and taking the argmax within each row of the result. Because taking the argmax is inexpensive, the bottleneck is computing the matrix product.
+In Figure~\ref{fig:fig1}, we see the results of approximating $\A\B$ using our method and its best-performing rivals \cite{hashjl, sparsePCA} on the CIFAR-10 and CIFAR-100 datasets.
+\vspace{1mm}
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=\linewidth]{amm/fig1}
+\caption{Our method achieves a dramatically better speed-accuracy tradeoff than the best existing methods when approximating two linear classifiers.}
+\label{fig:fig1}
+\end{center}
+\end{figure}
+\vspace{-1.5mm}
+% Each method yields a curve whose points are specific speedups and associated levels of classification accuracy. More speedup and more accuracy (up and to the right) is better. While we defer detailed discussion to Section~\ref{sec:results}, it is clear that our proposed approach significantly outperforms alternatives.
+% In addition to achieving strong empirical performance, our method also has an
+% \vspace{-1mm}
+% In addition to achieving strong empirical performance,
+
+Our method represents a significant methodological departure from most traditional approaches to this problem. Traditional AMM methods construct matrices $\V_A, \V_B \in \R^{D \times d}, d \ll D$ such that
+\begin{align}
+    \A \B \approx (\A \V_A) (\V_B^\top \B).
+\end{align}
+Often, $\V_A$ and $\V_B$ are sparse, embody some sort of sampling scheme, or have other structure such that these projection operations are faster than a dense matrix multiply. In short, these methods use linear functions to preprocess $\A$ and $\B$ and reduce the problem to exact matrix multiplication in a lower-dimensional space.
+% reduce the AMM problem to exact matrix multiplication in a lower-dimensional space using linear functions to preprocess $\A$ and $\B$.
+
+Our proposed method, \ours\footnote{Multiply-ADDitioN-lESS}, instead employs a \textit{nonlinear} preprocessing function and reduces the problem to table lookups. Moreover, in the case that $\B$ is known ahead of time---which happens when applying a trained linear model to new data, among other situations---\oursp does not require any multiply-add operations.
+% This includes binary \texttt{XNOR} and \texttt{popcount} operations \cite{xnornet,dorefanet}, as well as the summation of shifted and masked scalars to approximate multiplication \cite{hackyQuasiMultiplies}. I.e., we are not merely approximating scalar multiplies at the bit manipulation level, but approximating matrix products at the algorithm level.
+
+% An extension of this method common in the information retrieval literature is to define a nonlinear function $g(\cdot)$ such that
+% \begin{align}
+%     \A \B \approx g(\A \V_A) (\V_B^\top \B).
+% \end{align}
+% The $g(\cdot)$ function typically binarizes and induces structured sparsity in the resulting matrix. This allows the product of this matrix and $(\V_B^\top \B)$ to be computed using only additions, instead of multiply-adds. Moreover, if the sparsity is structured appropriately, dot products can be reduced to table lookups, with the indices into the tables given by the indices of the nonzeros.
+
+
+
+
+% Our proposed method, \ours, instead preprocesses $\A$ and $\B$ with \textit{nonlinear} functions and reduce the problem to table lookups.
+
+
+% These methods may also attempt to reduce the cost of each multiply-add by reducing the number of bits used to store each scalar. This works b
+
+
+
+% Existing approaches to this task attempt to reduce the CPU time by performing fewer multiply-add operations or by reducing the cost of each such operation. The former typically entails projecting $\A$ and $\B$ into a lower dimensional space before multiplying them, and the latter typically entails reducing the number of bits used to store each scalar element.
+% % This typically entails constructing a matrix $\V \in \R^{D \times d}, d < D$ such that
+% % \begin{align}
+% %     \A \B \approx (\A \V) (\V^\top \B).
+% % \end{align}
+% % Often, $\V$ is sparse or has structure such that these projection operations are faster than a dense matrix multiply. These methods may also attempt to reduce the cost of each multiply-add by reducing the number of bits used to store each scalar.
+
+% % Instead of performing dimensionality or bitwidth reduction,
+% In contrast, we introduce \ours, a method that can eliminate the multiply-add operations entirely when given time to preprocess $\B$. It does this by precomputing certain statistics about $\B$ and replacing the multiply-adds with table lookups. Crucially, these table lookups are not merely a different implementation of multiplication---as we discuss in section~\ref{sec:method}, they implement nonlinear functions. % that cannot be characterized as an algebraic ring.
+
+Our method is most closely related to vector quantization methods used for similarity search (e.g., \cite{bolt,quickAdc,quickerAdc,pq,opq}). However, instead of using an expensive quantization function that requires many multiply-adds, we introduce a family of quantization functions that require no multiply-adds. %, including binary \texttt{XNOR} and \texttt{popcount} operations (though excluding implementation-level multiplies to compute memory addresses).
+% TODO something about multiplication taking a lot of transistors vs table lookups.
+
+Our contributions can be summarized as follows:
+\vspace{-3mm}
+\begin{itemize}\itemsep-1mm
+    \item An efficient family of vector quantization functions that can encode over 100GB of data per second in a single CPU thread.
+    % \item A provably good procedure for learning one of these functions from training data, in addition to other theoretical analysis.
+    \item A high-speed summation algorithm for low-bitwidth integers that avoids upcasting, saturation, and overflow.
+    \item An algorithm based on these functions for approximate matrix multiplication. Experiments across hundreds of diverse matrices demonstrate that this algorithm significantly outperforms existing methods. We also prove a guarantee on the magnitude of its errors.
+\end{itemize}
+\vspace{-3mm}
+
+% ------------------------------------------------
+\subsection{Problem Formulation} \label{sec:problemStatement}
+% ------------------------------------------------
+
+Let $\A \in \R^{N \times D}$ and $\B \in \R^{D \times M}$ be two matrices, with $N \gg D \ge M$. Given a computation time budget $\tau$, our task is to
+construct three functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$, along with constants $\alpha$ and $\beta$, such that
+\begin{align} \label{eq:objective}
+    \norm{\alpha f(g(\A), h(\B)) + \mat{\beta} - \A\B}_F < \eps(\tau) \norm{\A\B}_F
+\end{align}
+for the smallest error $\eps(\tau)$ possible. The constants $\alpha$ and $\beta$ are separated from $f(\cdot,\cdot)$ so that $f(\cdot,\cdot)$ can produce low-bitwidth outputs (e.g., in the range $[0, 255]$) even when the entries of $\A\B$ do not fall in this range.
+
+We assume the existence of a training set $\tilde{\A}$, whose rows are drawn from the same distribution as the rows of $\A$. This is a natural assumption in the case that rows of $\A$ represent examples in training data, or structured subsets thereof (such as patches of images). This assumption is common in the information retrieval literature \cite{bolt,pairq,quip}, but is a significant departure from most theoretical work.

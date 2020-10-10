@@ -1,0 +1,187 @@
+2c2
+< To assess \ours's effectiveness, we implemented both it and existing algorithms in C++ and Python. All of our code and raw numerical results are publicly available at \texttt{https://smarturl.it/Maddness}. All experiments use a single thread on a Macbook Pro with a 2.6GHz Intel Core i7-4960HQ processor. Unless stated otherwise, all timing results use five trials, with each trial reporting the fastest among 20 executions. We use the best, rather than average, since this is standard practice in performance benchmarking and is robust to the purely additive noise introduced by competing CPU tasks. Standard deviations are shown for all curves as shaded areas, but are often too small to see. Since training can be performed offline and all methods except \cite{sparsePCA} train in at most a few minutes, we omit profiling of training times. We also do not profile the time to preprocess $\B$, since 1) this time is inconsequential in most cases, and 2) $\B$ is fixed and could be processed offline in all the problems we consider.
+---
+> To assess \ours's effectiveness, we implemented both it and existing algorithms in C++ and Python. All of our code and raw numerical results are publicly available at \texttt{https://smarturl.it/Maddness}. All experiments use a single thread on a Macbook Pro with a 2.6GHz Intel Core i7-4960HQ processor. Unless stated otherwise, all timing results use five trials, with each trial reporting the fastest among 20 executions. We use the best, rather than average, since this is standard practice in performance benchmarking and is robust to the purely additive noise introduced by competing CPU tasks. Standard deviations are shown for all curves as shaded areas, but are often too small to see. Since training can be performed offline and all methods except SparsePCA \cite{sparsePCA} train in at most a few minutes, we omit profiling of training times. We also do not profile the time to preprocess $\B$, since 1) this time is inconsequential in most cases, and 2) $\B$ is fixed and could be processed offline in all the problems we consider.
+6,8c6
+< % The metrics and baselines shown below are only a subset of those evaluated. In particular, we also measured squared errors, correlations, cosine similarities, etc, in addition to classification accuracies, but omit these since they are similar. See Appendix~\ref{sec:experimentDetails} for more results.
+< 
+< Additional details about data cleaning, hyperparameter tuning, and other minutiae can be found in Appendix~\ref{sec:experimentDetails}. We do not need to tune any hyperparameters for our own method, but to ensure that other methods are not hindered by insufficient hyperparameter tuning, we allow them to tune their parameters on the test data and select the best results at a given speed \textit{post-hoc}.
+---
+> % The metrics and baselines shown below are only a subset of those evaluated. In particular, we also measured squared errors, correlations, cosine similarities, etc, in addition to classification accuracies, but omit these since they are similar. See Section~\ref{sec:experimentDetails} for more results.
+9a8,11
+> % We do tune hyperparameters
+> We do not need to tune any hyperparameters for \ours, but we do take steps to ensure that other methods are not hindered by insufficient hyperparameter tuning. Concretely, we sweep a wide range of hyperparameter values and allow them to cherrypick their best hyperparameters on each test matrix.
+> % We do not need to tune any hyperparameters for \ours, but to ensure that other methods are not hindered by insufficient hyperparameter tuning, we allow them to tune their hyperparameters on the test data and select the best results at a given speed \textit{post-hoc}.
+> Additional details about data cleaning, hyperparameter tuning, and other minutiae can be found in Section~\ref{sec:experimentDetails}.
+12c14
+< % Because nearly all existing work on approximate matrix multiplication either focuses on special cases that do not satisfy our problem definition \cite{quickerAdc, pq, opq} or synthetic matrices, there is not a clear set of benchmark matrix multiply tasks to use. We therefore propose a collection of tasks that we believe are both reproducible and representative of many real-world matrices. To the best of our knowledge, our experiments use over an order of magnitude more matrices than any previous study.
+---
+> Because nearly all existing work on approximate matrix multiplication either focuses on special cases that do not satisfy our problem definition \cite{quickerAdc, pq, opq} or synthetic matrices, there is not a clear set of benchmark matrix multiply tasks to use. We therefore use a collection of tasks that we believe are both reproducible and representative of many real-world matrices. To the best of our knowledge, our experiments use over an order of magnitude more matrices than any previous study.
+15c17,18
+< \vspace{-1mm}
+---
+> % \vspace{-1mm}
+> \newpage
+17c20
+< \vspace{-.5mm}
+---
+> \vspace{-2mm}
+19c22
+< Recall that most baselines take the form of selecting a matrix $\V \in \R^{D \times d}, d < D$ such that $\A \B \approx (\A \V) (\V^\top \B)$. Here $d$ is a free parameter that adjusts the quality vs speed tradeoff. We therefore characterize these methods by how they set $\V$.
+---
+> Recall that most baselines take the form of selecting a matrix $\V \in \R^{D \times d}, d < D$ such that $\A \B \approx (\A \V) (\V^\top \B)$. Here $d$ is a free parameter that adjusts the quality versus speed tradeoff. We therefore characterize most of these methods by how they set $\V$.
+21,22c24,25
+< % \begin{itemize}\itemsep-.5mm
+< \begin{itemize}\itemsep0mm
+---
+> \begin{itemize}\itemsep-1mm
+> % \begin{itemize}\itemsep0mm
+25,27c28,31
+<     \item \textbf{SparsePCA} \cite{sparsePCA}. Set $\V = \argmin_{\V} \min_{\mat{U}} \frac{1}{2 N_{train}} \norm{ \tilde{\A} - \mat{U}\mat{V}^\top }^2_F + \lambda \norm{\V}_1$, where $\mat{U}^\top \mat{U} = \mat{I}$. This is not the only dictionary learning formulation referred to as SparsePCA \cite{spcaSurvey1,spcaSurvey2}, but it is a good representative and is the only one with support in a major Python library.%\footnote{https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.SparsePCA.html}.
+< 
+<     % Because SparsePCA requires the tuning of both $d$ and $\lambda$ for each matrix, we allowed it tune these parameters \textit{on the test set} to ensure that insufficient hyperparameter tuning did not hamper its performance. See Appendix~\ref{sec:experimentDetails} for more information.
+---
+>     \item \textbf{SparsePCA} \cite{sparsePCA}. Set $\V = \argmin_{\V} \min_{\mat{U}} \norm{ \tilde{\A} - \mat{U}\mat{V}^\top }^2_F + \lambda \norm{\V}_1$, where $\mat{U}^\top \mat{U} = \mat{I}$. This is not the only dictionary learning formulation referred to as SparsePCA \cite{spcaSurvey1,spcaSurvey2}, but it is a good representative and is the only one with support in a major Python library.%\footnote{https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.SparsePCA.html}.
+>     % \item \textbf{SparsePCA} \cite{sparsePCA}. Set $\V = \argmin_{\V} \min_{\mat{U}} \frac{1}{2 N_{train}} \norm{ \tilde{\A} - \mat{U}\mat{V}^\top }^2_F + \lambda \norm{\V}_1$, where $\mat{U}^\top \mat{U} = \mat{I}$. This is not the only dictionary learning formulation referred to as SparsePCA \cite{spcaSurvey1,spcaSurvey2}, but it is a good representative and is the only one with support in a major Python library.%\footnote{https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.SparsePCA.html}.
+>     % Because SparsePCA requires the tuning of two hyperparameters, we allow it to cherrypick its best result on each matrix multiply to avoid .
+>     % Because SparsePCA requires the tuning of both $d$ and $\lambda$ for each matrix, we allowed it tune these parameters \textit{on each matrix in the test set} to ensure that insufficient hyperparameter tuning did not hamper its performance. See Section~\ref{sec:experimentDetails} for more information.
+32c36
+<     \item \textbf{FastJL} \cite{fastjl}. $\V$ is set to Rademacher random variables composed with a Fast Hadamard Transform (FHT). For simplicity, we don't include the FHT in the timing.
+---
+>     \item \textbf{FastJL} \cite{fastjl}. $\V$ is set to Rademacher random variables composed with a Fast Hadamard Transform (FHT). For simplicity, we do not include the FHT in the timing.
+35,36c39,42
+<     \item \textbf{RandGauss} \cite{lshOrig,E2LSH}. The entries of $\V$ are drawn i.i.d. from $\mathcal{N}(0, \frac{1}{D}\mat{I})$.
+<     % \item OrthoGauss \cite{superbitLSH}. The entries of $\V$ initialized as in RandGauss, and then $\V$ is set to the $\mat{Q}$ matrix in a QR decomposition of a RandGauss matrix.
+---
+>     % \item \textbf{RandGauss} \cite{lshOrig,E2LSH}. The entries of $\V$ are drawn i.i.d. from $\mathcal{N}(0, \frac{1}{D}\mat{I})$.
+>     \item \textbf{ScalarQuantize}. The matrices are not projected, but instead linearly quantized to eight bits such that the largest and smallest entries map to 0 and 255.\footnote{FBGEMM requires one unsigned eight bit input and one signed eight bit input, so one matrix's values are actually mapped from -128 to 127}.
+>     We use FBGEMM \cite{fbgemm} to perform the quantized matrix multiplies. We neglect the time required to convert from other formats to eight bits, reflecting the optimistic scenario in which the matrices are already of the appropriate types.
+>     % \item OrthoGauss \cite{superBitLSH}. The entries of $\V$ initialized as in RandGauss, and then $\V$ is set to the $\mat{Q}$ matrix in a QR decomposition of a RandGauss matrix.
+38c44
+<     \item \textbf{Bolt} \cite{bolt}. Bolt is an extension of PQ that uses quantized lookup tables and a reduced number of codebooks to obtain $10\times$ speedups over traditional PQ. It is the most similar method to our own, differing only in the encoding function, the use of averaging instead of upcasting, and the optimization of centroids. % It is not optimized for small $M$, however, effectively performing a preliminary matrix product with $M=16$ as a preprocessing step.
+---
+>     \item \textbf{\bolt} (Chapter~\ref{chap:bolt}). \boltsp is an extension of PQ that uses quantized lookup tables and a reduced number of codebooks to obtain $10\times$ speedups over traditional PQ. It is the most similar method to \ours, differing only in the encoding function, the use of averaging instead of upcasting, and the optimization of centroids. % It is not optimized for small $M$, however, effectively performing a preliminary matrix product with $M=16$ as a preprocessing step.
+54c60
+< We also compared to many additional methods (see Appendix~\ref{sec:experimentDetails}), but omit their results since they were not competitive with those listed here.
+---
+> We also compared to many additional methods (see Section~\ref{sec:experimentDetails}), but omit their results since they were not competitive with those listed here.
+58c64
+< \subsection{How fast is \ours?}
+---
+> \subsection{How Fast is \ours?}
+62c68
+< We begin by profiling the raw speed of our method. In Figure~\ref{fig:encodeSpeed}, we time the $g(\A)$ functions for various vector quantization methods. The $\A$ matrices have $2^{14}$ rows and varying numbers of columns $D$. Following \citet{bolt}, we also vary the number of codebooks $C$, profiling 8-, 16-, and 32-byte encodings. We measure in bytes rather than codebooks since PQ and OPQ use eight bits per codebook while Bolt and \oursp use four.
+---
+> We begin by profiling the raw speed of \ours. In Figure~\ref{fig:encodeSpeed}, we time the $g(\A)$ functions for various vector quantization methods. The $\A$ matrices have $2^{14}$ rows and varying numbers of columns $D$. Following Chapter~\ref{chap:bolt}, we also vary the number of codebooks $C$, profiling 8-, 16-, and 32-byte encodings. We measure in bytes rather than codebooks since PQ and OPQ use eight bits per codebook while \boltsp and \oursp use four.
+66c72,73
+< \begin{figure}[h]
+---
+> \vspace{4mm}
+> \begin{figure}[h!]
+68c75
+< \includegraphics[width=\linewidth]{amm/encode_speed}
+---
+> \includegraphics[width=.67\linewidth]{amm/encode_speed}
+76,78c83,85
+< \vspace{-1mm}
+< We also profile the speed of our aggregation function $f(\cdot, \cdot)$ using the same baselines as \citet{bolt}. As Figure~\ref{fig:scanSpeed} shows, our average-based aggregation is significantly faster than the upcasting-based method of Bolt, its nearest rival.
+< \vspace{2mm}
+---
+> % \vspace{-1mm}
+> We also profile the speed of our aggregation function $f(\cdot, \cdot)$ using the same baselines as Chapter~\ref{chap:bolt}. As Figure~\ref{fig:scanSpeed} shows, our average-based, matrix-aware aggregation is significantly faster than the upcasting-based (and one-vector-at-a-time) method of \bolt.
+> % \vspace{2mm}
+80,81c87,88
+< 
+< \begin{figure}[h]
+---
+> \vspace{4mm}
+> \begin{figure}[h!]
+83c90
+< \includegraphics[width=\linewidth]{amm/scan_speed}
+---
+> \includegraphics[width=.67\linewidth]{amm/scan_speed}
+90a98
+> \newpage
+96,99c104,108
+< As described in Section~\ref{sec:intro}, we approximated linear classifiers on the widely used CIFAR-10 and CIFAR-100 datasets \cite{cifarDsets}. The classifiers use as input features the 512-dimensional activations of open-source, VGG-like neural networks trained on each dataset \cite{cifarVgg}. The matrices $\A$ are the $10000 \times 512$-dimensional floating point activations for the full test sets, and the matrices $\B$ are each network's final dense layer. The $50000 \times 512$-dimensional activations from the training set serve as the training matrices $\tilde{\A}$.
+< As shown in Figure~\ref{fig:cifar}, \oursp significantly outperforms all existing methods, achieving virtually the same accuracy as exact multiplication more than an order of magnitude faster.
+< 
+< \begin{figure}[h]
+---
+> % As described in Section~\ref{sec:intro}, w
+> We approximated linear classifiers on the widely used CIFAR-10 and CIFAR-100 datasets \cite{cifarDsets}. The classifiers use as input features the 512-dimensional activations of open-source, VGG-like neural networks trained on each dataset \cite{cifarVgg}. The matrices $\A$ are the $10000 \times 512$-dimensional floating point activations for the full test sets, and the matrices $\B$ are each network's final dense layer. The $50000 \times 512$-dimensional activations from the training set serve as the training matrices $\tilde{\A}$.
+> As shown in Figure~\ref{fig:cifar}, \oursp significantly outperforms all existing methods. Moreover, \oursp achieves virtually the same accuracy as exact multiplication more than an order of magnitude faster.
+> \vspace{4mm}
+> \begin{figure}[h!]
+101c110
+< \includegraphics[width=\linewidth]{amm/cifar_Speedup_Accuracy}
+---
+> \includegraphics[width=.67\linewidth]{amm/cifar_Speedup_Accuracy}
+107a117,118
+> \vspace{-5mm}
+> \subsection{Kernel-Based Classification}
+109,110d119
+< \subsection{Kernel-based classification}
+< \vspace{-.5mm}
+114c123
+< To assess the efficacy of our method on a larger and more diverse set of datasets than simply CIFAR-10 and CIFAR-100, we trained kernel classifiers on the datasets from the UCR Time Series Archive \cite{UCRArchive2018}. To enable meaningful speed comparison across datasets, we resampled the time series in all datasets to the median length and obtained the matrix $\B$ for each dataset by running Stochastic Neighbor Compression \cite{snc} on the training set with an RBF kernel of bandwidth one. We set the number of returned neighbors to 128 (results with 64 and 256 were similar). We approximate the Euclidean distances used by the kernel via the identity $\norm{\vec{x} - \vec{y}}_2^2 = \norm{\vec{x}}_2^2 - 2\vec{x}^\top \vec{y} + \norm{\vec{y}}_2^2$, which consists only of dot products.
+---
+> To assess the efficacy of our method on a larger and more diverse set of datasets than simply CIFAR-10 and CIFAR-100, we trained kernel classifiers on the datasets from the UCR Time Series Archive \cite{UCRArchive2018}. To enable meaningful speed comparison across datasets, we resampled the time series in all datasets to the median length and obtained the matrix $\B$ for each dataset by running Stochastic Neighbor Compression \cite{snc} on the training set with an RBF kernel of bandwidth one. We set the number of returned neighbors to 128 (results with 64 and 256 were similar). We approximated the Euclidean distances used by the kernel via the identity $\norm{\vec{x} - \vec{y}}_2^2 = \norm{\vec{x}}_2^2 - 2\vec{x}^\top \vec{y} + \norm{\vec{y}}_2^2$, which consists only of dot products.
+118,124c127,128
+< 
+< As shown in Figure~\ref{fig:ucr}, \oursp is significantly faster at a given level of accuracy. A counter-intuitive result, however, is that optimization of the prototypes occasionally reduces accuracy (see the red line dipping below the blue one in the lowest subplot). Since the optimization strictly increases the expressive power, we believe that this is a product of overfitting and could be corrected were we to tune the ridge regression's parameter (instead of always using $\lambda = 1$).
+< % This subplot also shows that even \oursp cannot satisfy the most stringent accuracy requirements on many datasets, since the \oursp curves never approach 1.
+< This subplot also reveals that the most stringent degredation requirements can sometimes only be met using PCA at a low speedup (and not \ours), since this is the only curve approaching $1$.
+< % , at high accuracy preservation thresholds,  % However as indicated by \oursp never approaching a fraction of 1 on the bottom subplot, \oursp does not consistently preserve the full accuracy. This suggests that, for difficult classification problems in which almost no accuracy can be sacrificed, \outsp is often not the best choice. The only methods that reliably preserve nearly the full original accuracy are PCA with a small speedup and, with certain parameter settings, Bolt.
+< 
+< \begin{figure}[h]
+---
+> % \vspace{4mm}
+> \begin{figure}[t]
+126,127c130,131
+< \includegraphics[width=\linewidth]{amm/ucr2_Speedup_Relative Accuracy_rbf}
+< \caption{Fraction of UCR datasets for which each method preserves a given fraction of the original accuracy, versus the method's degree of speedup. \oursp enables much greater speedups for a given level of accuracy degredation.}
+---
+> \includegraphics[width=.67\linewidth]{amm/ucr2_Speedup_Relative Accuracy_rbf}
+> \caption{Fraction of UCR datasets for which each method preserves a given fraction of the original accuracy versus the method's degree of speedup. \oursp enables much greater speedups for a given level of accuracy degradation.}
+130a135,139
+> As shown in Figure~\ref{fig:ucr}, \oursp is significantly faster at a given level of accuracy. A counter-intuitive result, however, is that optimization of the prototypes occasionally reduces accuracy (see the red line dipping below the blue one in the lowest subplot). Since the optimization strictly increases the expressive power, we believe that this is a product of overfitting and could be corrected were we to tune the ridge regression's parameter (instead of always using $\lambda = 1$).
+> % This subplot also shows that even \oursp cannot satisfy the most stringent accuracy requirements on many datasets, since the \oursp curves never approach 1.
+> This subplot also reveals that the most stringent degradation requirements can sometimes only be met using PCA at a low speedup (and not \ours), since this is the only curve approaching $1$.
+> % , at high accuracy preservation thresholds,  % However as indicated by \oursp never approaching a fraction of 1 on the bottom subplot, \oursp does not consistently preserve the full accuracy. This suggests that, for difficult classification problems in which almost no accuracy can be sacrificed, \outsp is often not the best choice. The only methods that reliably preserve nearly the full original accuracy are PCA with a small speedup and, with certain parameter settings, Bolt.
+> 
+133c142,143
+< \vspace{-2mm}
+---
+> % \vspace{-2mm}
+> \newpage
+135c145
+< \vspace{-.5mm}
+---
+> % \vspace{-.5mm}
+140,146c150
+<  %See Appendix~\ref{sec:experimentDetails} for additional details.
+< 
+< We report the normalized mean-squared error (NMSE), defined as $\norm{\mat{\hat{C}}_{i,j} - \A\B}^2_F / \norm{\A\B}^2_F$, where $\hat{\mat{C}}$ is the method's estimate of $\A\B$. An NMSE of 0 is perfect and an NMSE of 1 corresponds to always predicting 0.
+< 
+< In Figure~\ref{fig:caltech}, we see that it is only \oursp that offers any advantage over exact matrix products. This is likely because two columns afford almost no time to preprocess $\A$; indeed, rival vector quantization methods cannot logically do less work than brute force in this setting, and dense linear methods can only save work by embedding rows of $\A$ in one-dimensional space.
+< 
+< \oursp performs much worse on the high-pass filters (top) than the low-pass filters (bottom). This is likely because the former produce outputs with variance that is orders of magnitude lower than that of the original image; this means that the NMSE denominator, $\norm{\A\B}^2_F$ is tiny.  % relative to $\norm{\A}_F$ and $\norm{\B}_F$.
+---
+>  %See Section~\ref{sec:experimentDetails} for additional details.
+147a152,157
+> We report the normalized mean-squared error (NMSE), defined as
+> \begin{align}
+>     \norm{\mat{\hat{C}}_{i,j} - \A\B}^2_F / \norm{\A\B}^2_F
+> \end{align}
+> where $\hat{\mat{C}}$ is the method's estimate of $\A\B$. An NMSE of 0 is perfect and an NMSE of 1 corresponds to always predicting 0.
+> \vspace{4mm}
+150c160
+< \includegraphics[width=\linewidth]{amm/caltech_Speedup_1 - NMSE}
+---
+> \includegraphics[width=.67\linewidth]{amm/caltech_Speedup_1 - NMSE}
+155a166,169
+> In Figure~\ref{fig:caltech}, we see that it is only \oursp that offers any advantage over exact matrix products. This is likely because two columns afford almost no time to preprocess $\A$; indeed, rival vector quantization methods cannot logically do less work than brute force in this setting, and dense linear methods can only save work by embedding rows of $\A$ in one-dimensional space.
+> 
+> \oursp performs much worse on the high-pass filters \textit{(top)} than the low-pass filters \textit{(bottom)}. This is likely because the former produce outputs with variance that is orders of magnitude lower than that of the original image; this means that the NMSE denominator, $\norm{\A\B}^2_F$, is tiny.  % relative to $\norm{\A}_F$ and $\norm{\B}_F$.
+> 

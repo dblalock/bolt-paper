@@ -1,0 +1,141 @@
+
+@article{l2lbgdbgd,
+	title = {Learning to learn by gradient descent by gradient descent},
+	abstract = {The move from hand-designed features to learned features in machine learning has been wildly successful. In spite of this, optimization algorithms are still designed by hand. In this paper we show how the design of an optimization algorithm can be cast as a learning problem, allowing the algorithm to learn to exploit structure in the problems of interest in an automatic way. Our learned algorithms, implemented by LSTMs, outperform generic, hand-designed competitors on the tasks for which they are trained, and also generalize well to new tasks with similar structure. We demonstrate this on a number of tasks, including simple convex problems, training neural networks, and styling images with neural art.},
+	language = {en},
+	author = {Andrychowicz, Marcin and Denil, Misha and Gómez, Sergio and Hoffman, Matthew W and Pfau, David and Schaul, Tom},
+	pages = {9},
+	year = {2016},
+	file = {Andrychowicz et al. - Learning to learn by gradient descent by gradient .pdf:~/Zotero/storage/NBGC6GFU/Andrychowicz et al. - Learning to learn by gradient descent by gradient .pdf:application/pdf}
+}
+
+@article{adam,
+  title={Adam: A method for stochastic optimization},
+  author={Kingma, Diederik P and Ba, Jimmy},
+  journal={arXiv preprint arXiv:1412.6980},
+  year={2014}
+}
+
+@article{adamw,
+	title = {Fixing {Weight} {Decay} {Regularization} in {Adam}},
+	url = {http://arxiv.org/abs/1711.05101},
+	abstract = {L\$\_2\$ regularization and weight decay regularization are equivalent for standard stochastic gradient descent (when rescaled by the learning rate), but as we demonstrate this is {\textbackslash}emph\{not\} the case for adaptive gradient algorithms, such as Adam. While common deep learning frameworks of these algorithms implement L\$\_2\$ regularization (often calling it "weight decay" in what may be misleading due to the inequivalence we expose), we propose a simple modification to recover the original formulation of weight decay regularization by decoupling the weight decay from the optimization steps taken w.r.t. the loss function. We provide empirical evidence that our proposed modification (i) decouples the optimal choice of weight decay factor from the setting of the learning rate for both standard SGD and Adam, and (ii) substantially improves Adam's generalization performance, allowing it to compete with SGD with momentum on image classification datasets (on which it was previously typically outperformed by the latter). We also propose a version of Adam with warm restarts (AdamWR) that has strong anytime performance while achieving state-of-the-art results on CIFAR-10 and ImageNet32x32. Our source code is available at https://github.com/loshchil/AdamW-and-SGDW},
+	language = {en},
+	urldate = {2018-11-09},
+	journal = {arXiv:1711.05101 [cs, math]},
+	author = {Loshchilov, Ilya and Hutter, Frank},
+	month = nov,
+	year = {2017},
+	note = {arXiv: 1711.05101},
+	keywords = {Computer Science - Machine Learning, Computer Science - Neural and Evolutionary Computing, Mathematics - Optimization and Control},
+	file = {Loshchilov and Hutter - 2017 - Fixing Weight Decay Regularization in Adam.pdf:~/Zotero/storage/5FX6GSHY/Loshchilov and Hutter - 2017 - Fixing Weight Decay Regularization in Adam.pdf:application/pdf}
+}
+
+@article{resnetBoosting,
+	title = {Learning {Deep} {ResNet} {Blocks} {Sequentially} using {Boosting} {Theory}},
+	abstract = {We prove a multi-channel telescoping sum boosting theory for the ResNet architectures which simultaneously creates a new technique for boosting over features (in contrast to labels) and provides a new algorithm for ResNet-style architectures. Our proposed training algorithm, BoostResNet, is particularly suitable in non-differentiable architectures. Our method only requires the relatively inexpensive sequential training of T “shallow ResNets”. We prove that the training error decays exponentially with the depth T if the weak module classiﬁers that we train perform slightly better than some weak baseline. In other words, we propose a weak learning condition and prove a boosting theory for ResNet under the weak learning condition. A generalization error bound based on margin theory is proved and suggests that ResNet could be resistant to overﬁtting using a network with l1 norm bounded weights.},
+	language = {en},
+	author = {Huang, Furong and Ash, Jordan T and Langford, John and Schapire, Robert E},
+	pages = {10},
+	year = {2017},
+	file = {Huang et al. - Learning Deep ResNet Blocks Sequentially using Boo.pdf:~/Zotero/storage/SPQK7P9W/Huang et al. - Learning Deep ResNet Blocks Sequentially using Boo.pdf:application/pdf}
+}
+
+@article{signSGD,
+	title = {{signSGD}: {Compressed} {Optimisation} for {Non}-{Convex} {Problems}},
+	abstract = {Training large neural networks requires distributing learning across multiple workers, where the cost of communicating gradients can be a significant bottleneck. SIGNSGD alleviates this problem by transmitting just the sign of each minibatch stochastic gradient. We prove that it can get the best of both worlds: compressed gradients and SGD-level convergence rate. The relative `1/`2 geometry of gradients, noise and curvature informs whether SIGNSGD or SGD is theoretically better suited to a particular problem. On the practical side we ﬁnd that the momentum counterpart of SIGNSGD is able to match the accuracy and convergence speed of ADAM on deep Imagenet models. We extend our theory to the distributed setting, where the parameter server uses majority vote to aggregate gradient signs from each worker enabling 1-bit compression of worker-server communication in both directions. Using a theorem by Gauss (1823) we prove that majority vote can achieve the same reduction in variance as full precision distributed SGD. Thus, there is great promise for sign-based optimisation schemes to achieve fast communication and fast convergence. Code to reproduce experiments is to be found at https://github.com/jxbz/signSGD.},
+	language = {en},
+	author = {Bernstein, Jeremy and Wang, Yu-Xiang and Azizzadenesheli, Kamyar and Anandkumar, Anima},
+	pages = {10},
+	year = {2018},
+	file = {Bernstein et al. - signSGD Compressed Optimisation for Non-Convex Pr.pdf:~/Zotero/storage/QKWMLFZM/Bernstein et al. - signSGD Compressed Optimisation for Non-Convex Pr.pdf:application/pdf}
+}
+
+@article{importanceBatches,
+	title = {Not {All} {Samples} {Are} {Created} {Equal}:  {Deep} {Learning} with {Importance} {Sampling}},
+	abstract = {Deep neural network training spends most of the computation on examples that are properly handled, and could be ignored. We propose to mitigate this phenomenon with a principled importance sampling scheme that focuses computation on “informative” examples, and reduces the variance of the stochastic gradients during training. Our contribution is twofold: ﬁrst, we derive a tractable upper bound to the per-sample gradient norm, and second we derive an estimator of the variance reduction achieved with importance sampling, which enables us to switch it on when it will result in an actual speedup. The resulting scheme can be used by changing a few lines of code in a standard SGD procedure, and we demonstrate experimentally, on image classiﬁcation, CNN ﬁne-tuning, and RNN training, that for a ﬁxed wall-clock time budget, it provides a reduction of the train losses of up to an order of magnitude and a relative improvement of test errors between 5\% and 17\%.},
+	language = {en},
+	author = {Katharopoulos, Angelos and Fleuret, François},
+	pages = {10},
+	year = {2018},
+	file = {Katharopoulos and Fleuret - Not All Samples Are Created Equal  Deep Learning .pdf:~/Zotero/storage/T5GLXKTD/Katharopoulos and Fleuret - Not All Samples Are Created Equal  Deep Learning .pdf:application/pdf}
+}
+
+@article{imgnet18min,
+	title = {Now anyone can train {Imagenet} in 18 minutes},
+	language = {en},
+	author = {Howard, Jeremy},
+	pages = {8},
+	year = {2018},
+	file = {Howard - Now anyone can train Imagenet in 18 minutes.pdf:~/Zotero/storage/5LP49BQV/Howard - Now anyone can train Imagenet in 18 minutes.pdf:application/pdf}
+}
+
+@article{terngrad,
+	title = {{TernGrad}: {Ternary} {Gradients} to {Reduce} {Communication} in {Distributed} {Deep} {Learning}},
+	abstract = {High network communication cost for synchronizing gradients and parameters is the well-known bottleneck of distributed training. In this work, we propose TernGrad that uses ternary gradients to accelerate distributed deep learning in data parallelism. Our approach requires only three numerical levels \{−1, 0, 1\}, which can aggressively reduce the communication time. We mathematically prove the convergence of TernGrad under the assumption of a bound on gradients. Guided by the bound, we propose layer-wise ternarizing and gradient clipping to improve its convergence. Our experiments show that applying TernGrad on AlexNet doesn’t incur any accuracy loss and can even improve accuracy. The accuracy loss of GoogLeNet induced by TernGrad is less than 2\% on average. Finally, a performance model is proposed to study the scalability of TernGrad. Experiments show signiﬁcant speed gains for various deep neural networks. Our source code is available 1.},
+	language = {en},
+	author = {Wen, Wei and Xu, Cong and Yan, Feng and Wu, Chunpeng and Wang, Yandan and Chen, Yiran and Li, Hai},
+	pages = {11},
+	year = {2017},
+	file = {Wen et al. - TernGrad Ternary Gradients to Reduce Communicatio.pdf:~/Zotero/storage/8LQ5ZFBA/Wen et al. - TernGrad Ternary Gradients to Reduce Communicatio.pdf:application/pdf}
+}
+
+@article{largeBatch,
+	title = {Train longer, generalize better: closing the generalization gap in large batch training of neural networks},
+	abstract = {Background: Deep learning models are typically trained using stochastic gradient descent or one of its variants. These methods update the weights using their gradient, estimated from a small fraction of the training data. It has been observed that when using large batch sizes there is a persistent degradation in generalization performance - known as the "generalization gap" phenomenon. Identifying the origin of this gap and closing it had remained an open problem.},
+	language = {en},
+	author = {Hoffer, Elad and Hubara, Itay and Soudry, Daniel},
+	pages = {11},
+	year = {2017},
+	file = {Hoffer et al. - Train longer, generalize better closing the gener.pdf:~/Zotero/storage/47SQHJM2/Hoffer et al. - Train longer, generalize better closing the gener.pdf:application/pdf}
+}
+
+@article{canDecentral,
+	title = {Can {Decentralized} {Algorithms} {Outperform} {Centralized} {Algorithms}? {A} {Case} {Study} for {Decentralized} {Parallel} {Stochastic} {Gradient} {Descent}},
+	abstract = {Most distributed machine learning systems nowadays, including TensorFlow and CNTK, are built in a centralized fashion. One bottleneck of centralized algorithms lies on high communication cost on the central node. Motivated by this, we ask, can decentralized algorithms be faster than its centralized counterpart? Although decentralized PSGD (D-PSGD) algorithms have been studied by the control community, existing analysis and theory do not show any advantage over centralized PSGD (C-PSGD) algorithms, simply assuming the application scenario where only the decentralized network is available. In this paper, we study a DPSGD algorithm and provide the ﬁrst theoretical analysis that indicates a regime in which decentralized algorithms might outperform centralized algorithms for distributed stochastic gradient descent. This is because D-PSGD has comparable total computational complexities to C-PSGD but requires much less communication cost on the busiest node. We further conduct an empirical study to validate our theoretical analysis across multiple frameworks (CNTK and Torch), different network conﬁgurations, and computation platforms up to 112 GPUs. On network conﬁgurations with low bandwidth or high latency, D-PSGD can be up to one order of magnitude faster than its well-optimized centralized counterparts.},
+	language = {en},
+	author = {Lian, Xiangru and Zhang, Ce and Zhang, Huan and Hsieh, Cho-Jui and Zhang, Wei and Liu, Ji},
+	pages = {11},
+	year = {2017},
+	file = {Lian et al. - Can Decentralized Algorithms Outperform Centralize.pdf:~/Zotero/storage/M578YPQU/Lian et al. - Can Decentralized Algorithms Outperform Centralize.pdf:application/pdf}
+}
+
+@article{superConvergence,
+	title = {Super-{Convergence}: {Very} {Fast} {Training} of {Neural} {Networks} {Using} {Large} {Learning} {Rates}},
+	shorttitle = {Super-{Convergence}},
+	url = {http://arxiv.org/abs/1708.07120},
+	abstract = {In this paper, we describe a phenomenon, which we named “super-convergence”, where neural networks can be trained an order of magnitude faster than with standard training methods. The existence of super-convergence is relevant to understanding why deep networks generalize well. One of the key elements of super-convergence is training with one learning rate cycle and a large maximum learning rate. A primary insight that allows super-convergence training is that large learning rates regularize the training, hence requiring a reduction of all other forms of regularization in order to preserve an optimal regularization balance. We also derive a simpliﬁcation of the Hessian Free optimization method to compute an estimate of the optimal learning rate. Experiments demonstrate super-convergence for Cifar-10/100, MNIST and Imagenet datasets, and resnet, wide-resnet, densenet, and inception architectures. In addition, we show that super-convergence provides a greater boost in performance relative to standard training when the amount of labeled training data is limited. The architectures to replicate this work will be made available upon publication.},
+	language = {en},
+	urldate = {2018-11-09},
+	journal = {arXiv:1708.07120 [cs, stat]},
+	author = {Smith, Leslie N. and Topin, Nicholay},
+	month = aug,
+	year = {2017},
+	note = {arXiv: 1708.07120},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning, Computer Science - Computer Vision and Pattern Recognition, Computer Science - Neural and Evolutionary Computing},
+	file = {Smith and Topin - 2017 - Super-Convergence Very Fast Training of Neural Ne.pdf:~/Zotero/storage/7DSYIP5Y/Smith and Topin - 2017 - Super-Convergence Very Fast Training of Neural Ne.pdf:application/pdf}
+}
+
+@article{fastAIsuperConverge,
+	title = {{AdamW} and {Super}-convergence is now the fastest way to train neural nets},
+	language = {en},
+	author = {Gugger, Sylvain and Howard, Jeremy},
+	pages = {12},
+	file = {Gugger and Howard - AdamW and Super-convergence is now the fastest way.pdf:~/Zotero/storage/5HVALESE/Gugger and Howard - AdamW and Super-convergence is now the fastest way.pdf:application/pdf}
+}
+
+@article{dontDecay,
+	title = {{DON}’{T} {DECAY} {THE} {LEARNING} {RATE}, {INCREASE} {THE} {BATCH} {SIZE}},
+	abstract = {It is common practice to decay the learning rate. Here we show one can usually obtain the same learning curve on both training and test sets by instead increasing the batch size during training. This procedure is successful for stochastic gradient descent (SGD), SGD with momentum, Nesterov momentum, and Adam. It reaches equivalent test accuracies after the same number of training epochs, but with fewer parameter updates, leading to greater parallelism and shorter training times. We can further reduce the number of parameter updates by increasing the learning rate and scaling the batch size B ∝ . Finally, one can increase the momentum coefﬁcient m and scale B ∝ 1/(1 − m), although this tends to slightly reduce the test accuracy. Crucially, our techniques allow us to repurpose existing training schedules for large batch training with no hyper-parameter tuning. We train ResNet-50 on ImageNet to 76.1\% validation accuracy in under 30 minutes.},
+	language = {en},
+	author = {Smith, Samuel L and Kindermans, Pieter-Jan and Ying, Chris and Le, Quoc V},
+	year = {2018},
+	pages = {11},
+	file = {Smith et al. - 2018 - DON’T DECAY THE LEARNING RATE, INCREASE THE BATCH .pdf:~/Zotero/storage/QVM8LMYB/Smith et al. - 2018 - DON’T DECAY THE LEARNING RATE, INCREASE THE BATCH .pdf:application/pdf}
+}
+@article{tencentImgnet4min,
+  title={Highly Scalable Deep Learning Training System with Mixed-Precision: Training ImageNet in Four Minutes},
+  author={Jia, Xianyan and Song, Shutao and He, Wei and Wang, Yangzihao and Rong, Haidong and Zhou, Feihu and Xie, Liqiang and Guo, Zhenyu and Yang, Yuanzhou and Yu, Liwei and others},
+  journal={arXiv preprint arXiv:1807.11205},
+  year={2018}
+}

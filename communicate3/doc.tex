@@ -1,0 +1,154 @@
+%!TEX output_directory = aux
+
+\documentclass{article}  % sysml
+
+\usepackage{booktabs}
+\usepackage{hyperref}
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+% \usepackage{icml2020}
+\usepackage{mlsys2020}
+% If accepted, instead use the following line for the camera-ready submission:
+% \usepackage[accepted]{mlsys2020}
+
+% \newcommand{\oursp}{\textsc{HashMul}\text{ }}
+% \newcommand{\ours}{\textsc{HashMul}}
+% \newcommand{\oursp}{\textsc{MADDNESS}\text{ }}
+% \newcommand{\ours}{\textsc{MADDNESS}}
+\newcommand{\oursp}{\textsc{Maddness}\text{ }}
+\newcommand{\ours}{\textsc{Maddness}}
+\newcommand{\oursHash}{\textsc{MaddnessHash}}
+
+% \usepackage{flafter}  %
+
+% \usepackage[sorting=ynt]{biblatex}
+% \usepackage[sorting=ynt]{natbib}
+% \usepackage[sort]{natbib}
+% \DeclareSortingScheme{noneyear}{
+%  \sort{\citeorder}
+%  \sort{\field{year}}
+% }
+
+% \usepackage[sorting=ynt]{natbib}
+
+\input{setup.tex}
+
+% optional custom title for header
+% \icmltitlerunning{Multiplying Matrices Without Multiplying}
+\mlsystitlerunning{Multiplying Matrices Without Multiplying}
+
+\begin{document}
+
+\twocolumn[
+% ================================================================
+% \icmltitle{Multiplying Matrices Without Multiplying}
+\mlsystitle{Multiplying Matrices Without Multiplying}
+% ================================================================
+
+% % \begin{icmlauthorlist}
+% \icmlauthor{Batman}{WayneEnterprises}
+% \end{icmlauthorlist}
+% \icmlaffiliation{WayneEnterprises}{Wayne Enterprises, Gotham, USA}
+% \icmlcorrespondingauthor{Batman}{batman@batman.batman}
+
+\mlsyssetsymbol{equal}{*}
+\begin{mlsysauthorlist}
+\mlsysauthor{Davis Blalock}{csail}
+\mlsysauthor{John Guttag}{csail}
+\end{mlsysauthorlist}
+
+\mlsysaffiliation{csail}{MIT CSAIL, Cambridge, MA, USA}
+\mlsyscorrespondingauthor{Davis Blalock}{dblalock@mit.edu}
+
+\mlsyskeywords{Vector Quantization, Approximate Algorithms, Matrix Multiplication}
+
+\vskip 0.3in
+% ] % end of icml 2 columnn
+
+\printAffiliationsAndNotice{}
+
+% ------------------------------------------------
+\begin{abstract}
+% ------------------------------------------------
+\vspace*{1mm}
+Multiplying matrices is among the most fundamental and most computationally demanding operations in machine learning and scientific computing. Consequently, the task of efficiently approximating matrix products has received significant attention.
+
+We introduce an approximate matrix multiplication algorithm that both substantially outperforms existing methods in practice and offers theoretical guarantees. Experiments using hundreds of matrices from diverse domains show that our method runs far faster than current approaches for a given amount of error, often obtaining more than a $10\times$ relative speedup. In the common case that one matrix is known ahead of time, our method also has the interesting property that it requires \textit{zero} multiply-add operations. The key idea behind our approach is to replace the expensive encoding step common in vector quantization methods with a learned locality-sensitive hash function.
+\vspace*{3mm}
+\end{abstract}
+] % end of mlsys 2 columnn
+
+% ================================================================
+\section{Introduction} \label{sec:intro}
+% ================================================================
+
+\input{intro.tex}
+
+% ================================================================
+% \section{Background and Related Work}
+\section{Related Work} \label{sec:relatedWork}
+% ================================================================
+
+\input{relatedWork.tex}
+% \input{bg.tex}
+
+%================================================================
+\vspace{-1.5mm}
+\section{Background - Product Quantization} \label{sec:background}
+\vspace{-.5mm}
+%================================================================
+
+\input{background.tex}
+
+%================================================================
+% \vspace{-5mm}
+\vspace{-3mm}
+\section{Our Method} \label{sec:method}
+\vspace{-.5mm}
+%================================================================
+
+\input{method.tex}
+
+%================================================================
+% \vspace{-2mm}
+\section{Experiments} \label{sec:results}
+% \vspace{-.5mm}
+%================================================================
+
+\input{results.tex}
+
+%================================================================
+\vspace{-2.5mm}
+\section{Conclusion}
+\vspace{-.5mm}
+%================================================================
+
+We introduce an approximate matrix multiplication algorithm that achieves a significantly better speed-quality tradeoff than existing methods, as measured on various machine learning and other tasks using hundreds of real-world matrices from diverse domains. We also prove theoretical guarantees regarding our method's errors. Our method's performance stems from 1) its replacement of the bottleneck in existing methods with a learned locality-sensitive hash function, 2) its optimization of a quantity that other methods cannot optimize without a large slowdown, and 3) its use of an inexact estimator for computing sums.
+
+In future work, we plan to specialize our method for convolutions, implement it on GPUs, and integrate it into neural networks. Moreoever, because the bottleneck operations in our method are simple table lookups and elementwise comparisons, rather than traditional multiply-adds, it would also be interesting to explore implementing this approach in hardware.
+
+
+
+% In future work, we plan to integrate our method into neural networks, specialize it for convolutions, and implement it on GPUs.
+
+% ================================================================
+% References
+% ================================================================
+
+% \IEEEtriggeratref{27} % trigger column break to make cols even
+% \bibliographystyle{ACM-Reference-Format}
+% \bibliographystyle{abbrev}
+% \bibliographystyle{sysml2019}
+% \bibliographystyle{icml2020}
+\bibliographystyle{mlsys2020}
+% \bibliography{prune,architectures,misc,understandDnn,classic,datasets,compress,science,metapapers}
+
+
+% TODO uncomment
+
+\bibliography{architectures,datasets,misc,sprintz,extract,bolt,backprop-alternatives,distillation,fast-dnn-runtime-stuff,fast-optimize,nets-theory,small-fast-arch,sparseAndPrune,scalarQuantize,vectorQuantize,combo,hashing,shrink+prune,binarize,ternary,automl,zero-shot,few-shot,amm,ammMore,lsh,adversarial,libs,math}
+\clearpage
+\newpage  % so we can cut the pdf
+\appendix
+\input{appendix.tex}
+
+\end{document}

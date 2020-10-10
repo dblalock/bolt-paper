@@ -1,0 +1,247 @@
+4c4
+< Product Quantization and its variants yield a large speedup with $N, M \gg D$. However, we require an algorithm that only needs $N \gg M, D$. In this setting, the preprocessing time $g(\A)$ can be significant, since $ND$ may be similar to (or even larger than) $NM$.
+---
+> Product Quantization and its variants yield a large speedup with $N, M \gg D$. However, we require an algorithm that only needs $N \gg M, D$, a more relaxed scenario common when using linear models and transforms. In this setting, the preprocessing time $g(\A)$ can be significant, since $ND$ may be similar to, or even larger than, $NM$.
+7c7,8
+< The main idea behind our function is to determine the ``most similar'' prototype through locality-sensitive hashing \cite{lshOrig}; i.e., rather than compute the Euclidean distance between a subvector $\a^{(c)}$ and each prototype, we hash $\a^{(c)}$ to one of $K$ buckets where similar subvectors tend to hash to the same bucket. The prototypes are set to the means of the subvectors hashing to each bucket.%, rather than with K-means.
+---
+> The main idea behind our function is to determine the ``most similar'' prototype through locality-sensitive hashing \cite{lshOrig}; i.e., rather than compute the Euclidean distance between a subvector $\a^{(c)}$ and each prototype, we hash $\a^{(c)}$ to one of $K$ buckets where similar subvectors tend to hash to the same bucket. The prototypes are set to the means of the subvectors hashing to each bucket.
+> 
+12d12
+< \vspace{-1mm}
+20c20
+< The family of hash functions we choose is balanced binary regression trees, with each leaf of the tree acting as one hash bucket. The leaf for a vector $\x$ is chosen by traversing the tree from the root and moving to the left child if the value $x_j$ at some index $j$ is below a node-specific threshold $v$, and to the right child otherwise. To enable the use of SIMD instructions, the tree is limited to sixteen leaves and all nodes at a given level of the tree are required to split on the same index $j$. The number sixteen holds across many processor architectures, and we refer the reader to Appendix~\ref{sec:hashQuantize} for further vectorization details.
+---
+> The family of hash functions we choose is balanced binary regression trees, with each leaf of the tree acting as one hash bucket. The leaf for a vector $\x$ is chosen by traversing the tree from the root and moving to the left child if the value $x_j$ at some index $j$ is below a node-specific threshold $v$, and to the right child otherwise. To enable the use of SIMD instructions, the tree is limited to 16 leaves and all nodes at a given level of the tree are required to split on the same index $j$. The number 16 holds across many processor architectures, and we refer the reader to Section~\ref{sec:hashQuantize} for further vectorization details.
+27c27,31
+< \begin{algorithm}[t]
+---
+> 
+> This function is simple, only depends on a constant number of indices in the input vector, and can easily be vectorized provided that the matrix whose rows are being encoded is stored in column-major order. % The only subtlety in doing this vectorization is that one may need to convert floating point data to integers depending on one's processor; see Section~\ref{sec:hashQuantize} for further discussion.
+> % \newpage
+> \vspace{4mm}
+> \begin{algorithm}[h]
+30,34c34,39
+<     \STATE {\bfseries Input:} vector $\x$, split indices ${j^1,\ldots,j^4}$, split thresholds $\vec{v}^1,\ldots,\vec{v}^4$
+<     % \STATE {$i \leftarrow 0$}  \COMMENT{Node Index Within Level (Zero-Indexed)}
+<     \STATE {$i \leftarrow 1$}  \COMMENT{node index within level of tree}
+<     % \STATE {$i \leftarrow 1$}  \bgroup\hfill//~Foo\egroup
+<     \FOR{$t \leftarrow 1 \textbf{ to } 4$}
+---
+>     % \State {\bfseries Input:} vector $\x$, split indices ${j^1,\ldots,j^4}$, split thresholds $\vec{v}^1,\ldots,\vec{v}^4$
+>     \State {Input:} vector $\x$, split indices ${j^1,\ldots,j^4}$, split thresholds $\vec{v}^1,\ldots,\vec{v}^4$
+>     % \State {$i \leftarrow 0$}  \COMMENT{Node Index Within Level (Zero-Indexed)}
+>     \State {$i \leftarrow 1$}  \COMMENT{node index within level of tree}
+>     % \State {$i \leftarrow 1$}  \bgroup\hfill//~Foo\egroup
+>     \For{$t \leftarrow 1 \textbf{ to } 4$}
+36,43c41,48
+<     % \STATE{$v \leftarrow \vec{v}^t_i$}   %\phantom{    }// lookup split value based on current $i$
+<     % \STATE{$b \leftarrow a_{j^t} \ge v \text{ ? } 1 \text{ : } 0$}  %\phantom{  }// above split value?
+<     \STATE{$v \leftarrow \vec{v}^t_i$}   \COMMENT{lookup split threshold for node $i$ at level $t$}
+<     \STATE{$b \leftarrow x_{j^t} \ge v \text{ ? } 1 \text{ : } 0$}  \COMMENT{above split threshold?}
+<     % \STATE{$i \leftarrow 2i - 1 + b$}  %\phantom{    }// node index in next tree level
+<     \STATE{$i \leftarrow 2i - 1 + b$} \COMMENT{assign to left or right child}
+<     \ENDFOR
+<     \STATE{ \textbf{return} $i$}
+---
+>     % \State{$v \leftarrow \vec{v}^t_i$}   %\phantom{    }// lookup split value based on current $i$
+>     % \State{$b \leftarrow a_{j^t} \ge v \text{ ? } 1 \text{ : } 0$}  %\phantom{  }// above split value?
+>     \State{$v \leftarrow \vec{v}^t_i$}   \COMMENTTT{split threshold for node $i$ at level $t$}
+>     \State{$b \leftarrow x_{j^t} \ge v \text{ ? } 1 \text{ : } 0$}  \COMMENTTT{above split threshold?}
+>     % \State{$i \leftarrow 2i - 1 + b$}  %\phantom{    }// node index in next tree level
+>     \State{$i \leftarrow 2i - 1 + b$} \COMMENTTT{assign to left or right child}
+>     \EndFor
+>     \State{ \textbf{return} $i$}
+48,49d52
+< % \vspace{-3mm}
+< This function is simple, only depends on a constant number of indices in the input vector, and can easily be vectorized provided that the matrix whose rows are being encoded is stored in column-major order. % The only subtlety in doing this vectorization is that one may need to convert floating point data to integers depending on one's processor; see Appendix~\ref{sec:hashQuantize} for further discussion.
+51c54,55
+< % TODO move below to appendix
+---
+> 
+> % TODO move below to Section
+56c60
+< \vspace{-2mm}
+---
+> % \vspace*{15mm}
+74c78
+< In line~2, we select a fixed number of indices to evaluate. Several heuristics are possible, including evaluating all indices. We found that simply selecting the top $n$ indices that contributed the most loss summed across all buckets was difficult to beat. In preliminary experiments, we found that using $n > 4$ indices offered little or no additional benefit (and even choosing $n = 1$ was nearly as good), so we hardcode $n = 4$.
+---
+> In line~2, we select a fixed number of indices to evaluate. Several heuristics are possible, including evaluating all indices. We found that simply selecting the top $n$ indices that contributed the most loss summed across all buckets was difficult to beat. In preliminary experiments, we found that using $n > 4$ indices offered little or no additional benefit, and even choosing $n = 1$ was nearly as good; consequently, all reported results use $n = 4$.
+78c82
+< In lines~4-15, we find the minimal loss obtainable by splitting all buckets along that index, but with bucket-specific cutoffs. This loss is minimal not in the sense that it leads to the best overall tree, but in that it minimizes the sum of the losses in the buckets produced in this iteration. To do this, we invoke the subroutine \texttt{optimal\_split\_threshold}, which takes in a bucket $\mathcal{B}$ and an index $j$ and tests all possible thresholds to find one minimizing $\mathcal{L}(j \text{, } \mathcal{B})$. This can be done in time $O(|\mathcal{J}^{(c)}||\mathcal{B}| \log(|\mathcal{B}|))$. The pseudocode for this subroutine is given in Algorithms~\ref{algo:optimalSplitVal}~and~\ref{algo:cumSSE} in Appendix~\ref{sec:optimalSplitVal}.
+---
+> In lines~4-15, we find the minimal loss obtainable by splitting all buckets along that index, but with bucket-specific cutoffs. This loss is minimal not in the sense that it leads to a globally optimal tree, but in that it minimizes the sum of the losses in the buckets produced in this iteration. To do this, we invoke the subroutine \texttt{optimal\_split\_threshold}, which takes in a bucket $\mathcal{B}$ and an index $j$ and tests all possible thresholds to find one minimizing $\mathcal{L}(j \text{, } \mathcal{B})$. This can be done in time $O(|\mathcal{J}^{(c)}||\mathcal{B}| \log(|\mathcal{B}|))$. The pseudocode for this subroutine is given in Algorithms~\ref{algo:optimalSplitVal}~and~\ref{algo:cumSSE} in Section~\ref{sec:optimalSplitVal}.
+81c85
+< Once a split index $j$ and array of split thresholds $\vec{v}$ are chosen, all that remains is to split the buckets to form the next level of the tree (lines~16-21). This just entails forming two child buckets from each current bucket by grouping vectors whose $j$th entries are above or below the bucket's split threshold.% , where the first child has vectors whose elements $x_j$ are less than the bucket's split value and the second child has those whose elements are above the bucket's split value.
+---
+> Once a split index $j$ and an array of split thresholds $\vec{v}$ are chosen, all that remains is to split the buckets to form the next level of the tree (lines~16-21). This entails forming two child buckets from each current bucket by grouping vectors whose $j$th entries are above or below the bucket's split threshold.% , where the first child has vectors whose elements $x_j$ are less than the bucket's split value and the second child has those whose elements are above the bucket's split value.
+84,85c88,90
+< 
+< % \vspace{1mm}
+---
+> % \vspace{4mm}
+> %
+> \newpage
+89c94
+<     \STATE {\bfseries Input:} buckets $\mathcal{B}^{t-1}_1,\ldots,\mathcal{B}^{t-1}_{2^{t-1}}$, training matrix $\tilde{\A}$
+---
+>     \State {\bfseries Input:} buckets $\mathcal{B}^{t-1}_1,\ldots,\mathcal{B}^{t-1}_{2^{t-1}}$, training matrix $\tilde{\A}$
+91,92c96,97
+<     \LINECOMMENT{Greedily choose next split index and thresholds}
+<     \STATE{$\mathcal{\hat{J}} \leftarrow \texttt{heuristic\_select\_idxs}(
+---
+>     \LineComment{Greedily choose next split index and thresholds}
+>     \State{$\mathcal{\hat{J}} \leftarrow \texttt{heuristic\_select\_idxs}(
+94,104c99,109
+<     \STATE{$l^{min} \text{, } j^{min}, \vec{v}^{min} \leftarrow \inf \text{, NaN, NaN}$}
+<     \FOR{$j \in \mathcal{\hat{J}}$} \label{line:dimEvalStart}
+<         \STATE{$l \leftarrow 0 $}  \COMMENT{Initialize loss for this index to 0}
+<         \STATE{$\vec{v} \leftarrow \text{[ ]}$} \COMMENT{Empty list of split thresholds}
+<         \FOR{$i \leftarrow 1 \textbf{ to } 2^{t-1} $}
+<             \STATE{$v_i \text{, } l_i \leftarrow \texttt{optimal\_split\_threshold}(j \text{, } \mathcal{B}^{t-1}_i) $}
+<             \STATE{$\texttt{append}(\vec{v}, v_i)$} \COMMENT{append threshold for bucket $i$}
+<             \STATE{$l \leftarrow l + l_i$}  \COMMENT{accumulate loss from bucket $i$}
+<         \ENDFOR
+<         \IF {$ l < l^{min} $}
+<             \STATE{$l^{min} \leftarrow l \text{, } j^{min} \leftarrow j \text{, } \vec{v}^{min} \leftarrow \vec{v} $}
+---
+>     \State{$l^{min} \text{, } j^{min}, \vec{v}^{min} \leftarrow \inf \text{, NaN, NaN}$}
+>     \For{$j \in \mathcal{\hat{J}}$} \label{line:dimEvalStart}
+>         \State{$l \leftarrow 0 $}  \COMMENT{initialize loss for this index to 0}
+>         \State{$\vec{v} \leftarrow \text{[ ]}$} \COMMENT{empty list of split thresholds}
+>         \For{$i \leftarrow 1 \textbf{ to } 2^{t-1} $}
+>             \State{$v_i \text{, } l_i \leftarrow \texttt{optimal\_split\_threshold}(j \text{, } \mathcal{B}^{t-1}_i) $}
+>             \State{$\texttt{append}(\vec{v}, v_i)$} \COMMENT{append threshold for bucket $i$}
+>             \State{$l \leftarrow l + l_i$}  \COMMENT{accumulate loss from bucket $i$}
+>         \EndFor
+>         \If {$ l < l^{min} $}
+>             \State{$l^{min} \leftarrow l \text{, } j^{min} \leftarrow j \text{, } \vec{v}^{min} \leftarrow \vec{v} $}
+106,107c111,112
+<         \ENDIF
+<     \ENDFOR \label{line:dimEvalEnd}
+---
+>         \EndIf
+>     \EndFor \label{line:dimEvalEnd}
+109,117c114,122
+<     \LINECOMMENT{Create new buckets using chosen split}
+<     \STATE{$\bm{\mathcal{B}} \leftarrow $ [ ]} \label{line:splitBucketsStart}
+<     \FOR{$i \leftarrow 1 \textbf{ to } 2^{t-1} $}
+<         \STATE{ $\mathcal{B}_{below} \text{, } \mathcal{B}_{above} \leftarrow \texttt{apply\_split}(v^{min}_i \text{, } \mathcal{B}^{t-1}_i) $}
+<         % \STATE{$\texttt{append}(\bm{\mathcal{B}}, [\mathcal{B}_{below}, \mathcal{B}_{above}])$}
+<         \STATE{$\texttt{append}(\bm{\mathcal{B}}, \mathcal{B}_{below})$}
+<         \STATE{$\texttt{append}(\bm{\mathcal{B}}, \mathcal{B}_{above})$}
+<     \ENDFOR \label{line:splitBucketsEnd}
+<     \STATE{\textbf{return } $\bm{\mathcal{B}} \text{, } l^{min} \text{, } j^{min} \text{, } v^{min}$}
+---
+>     \LineComment{Create new buckets using chosen split}
+>     \State{$\bm{\mathcal{B}} \leftarrow $ [ ]} \label{line:splitBucketsStart}
+>     \For{$i \leftarrow 1 \textbf{ to } 2^{t-1} $}
+>         \State{ $\mathcal{B}_{below} \text{, } \mathcal{B}_{above} \leftarrow \texttt{apply\_split}(v^{min}_i \text{, } \mathcal{B}^{t-1}_i) $}
+>         % \State{$\texttt{append}(\bm{\mathcal{B}}, [\mathcal{B}_{below}, \mathcal{B}_{above}])$}
+>         \State{$\texttt{append}(\bm{\mathcal{B}}, \mathcal{B}_{below})$}
+>         \State{$\texttt{append}(\bm{\mathcal{B}}, \mathcal{B}_{above})$}
+>     \EndFor \label{line:splitBucketsEnd}
+>     \State{\textbf{return } $\bm{\mathcal{B}} \text{, } l^{min} \text{, } j^{min} \text{, } v^{min}$}
+120,136d124
+< 
+< % % ------------------------------------------------
+< % \subsection{Quantizing the Lookup Tables}
+< % % ------------------------------------------------
+< 
+< % Existing work has shown that setting $K = 16$ and quantizing the lookup tables for a given column of $\B$ to 8 bits can offer enormous speedups compared to larger $K$ and/or floating-point tables \cite{bolt, quickAdc, quickerAdc}. This is because 16 1-byte entries can be stored in a SIMD register, allowing 16 or more table lookups to be performed in parallel in a single instruction.
+< 
+< % Since the table entries naturally occupy more than 8 bits even for 8-bit data, some means of quantizing these entries is necessary. Unfortunately, existing quantization methods are not applicable. The scheme of \citet{bolt} requires knowledge of $\B$ at training time, while the scheme of \citet{quickAdc} and \citet{quickerAdc} is only applicable for nearest-neighbor search. We instead use the following approach, where $\mat{T} \in \R^{M \times C \times K}$ is the tensor of lookup tables for all $M$ columns of $\B$, $\mat{T}^{q}$ is the quantized version of $\mat{T}$, $\vec{\delta} \in \R^C$ is a vector of table-specific offsets, and $\alpha^{-1}$ is an overall scale factor:
+< % \begin{align}
+< %     \vec{\delta}_c &\triangleq \min_{m,k} \text{ } \mat{T}_{m,c,k} \\
+< %     \alpha^{-1} \triangleq 2^l \cs l &= \max_c \floor{ \log_2 \left( \frac{255}{
+< %             \max_{m,k} (\mat{T}_{m,c,k} - \delta_{c})
+< %         } \right)}. \\
+< %     \mat{T}^{q}_{m,c,k} &\triangleq \alpha^{-1}(\mat{T}_{m,c,k} - \delta_{c})
+< % \end{align}
+< % This is similar to equations~\ref{eq:offset} and \ref{eq:scale}, but with the scale factor pooled across all codebooks instead of unique to each input column. The $\alpha$ used here is the same as that in equation~\ref{eq:objective}, and the matrix $\beta$ in equation~\ref{eq:objective} has entries equal to $\sum_c \vec{\delta}_c$ (plus another constant we inroduce below).
+< 
+138c126,129
+< \vspace{-1.5mm}
+---
+> % \vspace*{15mm}
+> \vphantom{1mm}
+> % \vspace*{-5mm}
+> % \vspace*{10mm}
+140c131
+< \vspace{-.5mm}
+---
+> % \vspace{-3mm}
+143c134
+< At this point, we have a complete algorithm. We could simply drop our hash-based encoding function into PQ and approximate matrix products. However, we contribute two additional enhancements.
+---
+> At this point, we have a complete algorithm. We could simply drop our hash-based encoding function into PQ and approximate matrix products. However, we contribute two additional enhancements: a means of optimizing the prototypes with no runtime overhead, and a means of quickly summing low-bitwidth integers.
+145c136
+< First, we introduce a means of optimizing the prototypes given only the matrix $\tilde{\A}$. Several works propose prototype or table optimizations based on knowledge of $\B$ \cite{pairq,optimizedDists}, and others optimize them at the expense of slowing down the function $g(\cdot)$ \cite{cq,scq}. In contrast, we introduce a means of optimizing the centroids that does not do either of these. The idea is to choose prototypes such that $\tilde{\A}$ can be reconstructed from its prototypes with as little squared error as possible---this improves results since less error means that less information about $\tilde{\A}$ is being lost.
+---
+> First, we introduce a means of optimizing the prototypes given only the matrix $\tilde{\A}$. Several works propose prototype or table optimizations based on knowledge of $\B$ \cite{pairq,optimizedDists}, and others optimize them at the expense of slowing down the function $g(\cdot)$ \cite{cq,scq}. We introduce a means of optimizing the centroids that does not do either of these. The idea is to choose prototypes such that $\tilde{\A}$ can be reconstructed from its prototypes with as little squared error as possible---this improves results since less error means that less information about $\tilde{\A}$ is being lost.
+155c146
+< Let $\mat{P} \in \R^{KC \times D}$ be a matrix whose diagonal blocks of size $K \times |\mathcal{J}^{(c)}|$ consist of the $K$ learned prototypes in each subspace $c$. The training matrix $\tilde{\A}$ can be approximately reconstructed as:
+---
+> Let $\mat{P} \in \R^{KC \times D}$ be a matrix whose diagonal blocks of size $K \times |\mathcal{J}^{(c)}|$ consist of the $K$ learned prototypes in each subspace $c$. The training matrix $\tilde{\A}$ can be approximately reconstructed as
+162c153
+< \vspace*{-1mm}
+---
+> % \vspace*{-1mm}
+168c159
+< In short, the initial prototypes are just used to produce an assignment matrix $\mat{G}$, and it is from this assignment matrix that the final prototypes are derived. This procedure allows the prototypes to be nonzero outside of their original subspaces. Because of our hashing procedure, we avoid the dramatically increased overhead faced by other methods with non-orthogonal prototypes (c.f. \cite{otq,aq,cq,grvq,lsq,stackedQuantizers}).
+---
+> In short, the initial prototypes are used to produce an assignment matrix $\mat{G}$, and it is from this assignment matrix that the final prototypes are derived. This procedure allows the prototypes to be nonzero outside of their original subspaces. Because of our hashing procedure, we avoid the overhead faced by other methods with non-orthogonal prototypes (c.f. \cite{otq,aq,cq,grvq,lsq,stackedQuantizers}).
+171,173c162
+< \vspace{-1.5mm}
+< \subsection{Fast 8-bit Aggregation, $\bm{f(\cdot,\cdot)}$} \label{sec:aggregate}
+< \vspace{-.5mm}
+---
+> \subsection{Fast 8-Bit Aggregation, $\bm{f(\cdot,\cdot)}$} \label{sec:aggregate}
+183c172
+< We propose an alternative that sacrifices a small amount of accuracy for a significant increase in speed. Instead of using \textit{addition} instructions, we use \textit{averaging} instructions, such as \texttt{vpavgb} on x86 or \texttt{vrhadd} on ARM. While non-saturating additions compute $(a + b) \text{ \% } 256$, these instructions compute $(a + b + 1) / 2$. This means that they lose information about the low bit instead of the high bit of the sum. We estimate the overall mean by averaging pairs of values, then pairs of pairs, and so on. One could reduce all $C$ values this way, but we find that one obtains a better speed-accuracy tradeoff by computing the average of blocks of $U$ values and then upcasting to obtain exact sums of these averages. Multiplying this sum of averages by $U$ and adding in a bias correction term gives one the overall estimate of the sum. One could tune $U$ for a particular problem and hardware, but we simply set $U = 16$ in all our experiments.
+---
+> We propose an alternative that sacrifices a small amount of accuracy for a significant increase in speed. Instead of using \textit{addition} instructions, we use \textit{averaging} instructions, such as \texttt{vpavgb} on x86 or \texttt{vrhadd} on ARM. While non-saturating additions compute $(a + b) \textrm{ \% } 256$, these instructions compute $(a + b + 1) / 2$. This means that they lose information about the low bit instead of the high bit of the sum. We estimate the overall mean by averaging pairs of values, then pairs of pairs, and so on. One could reduce all $C$ values this way, but we find that one obtains a better speed-accuracy tradeoff by computing the average of blocks of $U$ values and then upcasting to obtain exact sums of these averages.\footnote{This tradeoff exists because upcasting more rarely yields diminishing speedups, but not diminishing accuracy loss. The diminishing speedups stem from the upcasting (and subsequent 16-bit summation) being less of a bottleneck as they become less frequent.} Multiplying this sum of averages by $U$ and adding in a bias correction term gives an overall estimate of the sum. One could tune $U$ for a particular problem and hardware, but we simply set $U = 16$ in all our experiments.
+185c174,176
+< The challenging part of this approach is computing the bias in the estimated sum in order to correct for it. We prove in Appendix~\ref{sec:aggregateAnalysis} that this bias is equal to $C \log_2(U) / 4$ under the realistic assumption that the low bits are equally likely to be 0 or 1.
+---
+> The challenging part of this approach is computing the bias in the estimated sum in order to correct for it. We prove in Section~\ref{sec:aggregateAnalysis} that this bias is equal to $C \log_2(U) / 4$ under the realistic assumption that the low bits are equally likely to be 0 or 1.
+> 
+> Because of our assumption that we are operating on matrices, rather than a matrix and a vector, we can also improve on the aggregation of existing methods \cite{bolt, quickAdc, quickerAdc} by fusing the aggregation of two or more output columns to hide read latency. Conceptually, this amounts to tiling the loop over output columns and alternating reads between the two corresponding tables within the innermost loop. % at once within the algorithm's inner loops. % The idea of doing so is not obvious, though
+188d178
+< \vspace{-1.5mm}
+190d179
+< \vspace{-.5mm}
+193c182,211
+< Our encoding function $g(\A), \A \in \R^{N \times D}$ has complexity $\Theta(NC)$, since it does a constant amount of work per row per codebook. Our table creation function $h(\B), \B \in \R^{D \times M}$ has complexity $\Theta(MKCD)$, since it must compute the inner product between each column of $\B$ and $KC$ prototypes of length $D$. This is a factor of $C$ worse than PQ since we do not require the prototypes for different codebooks to have disjoint nonzero indices. However, as discussed in section~\ref{sec:problemStatement}, this reduction in the speed of $h(\cdot)$ is not a concern. Finally, the complexity of our aggregation function $f(\cdot)$ is $\Theta(NCM)$, since it performs $C$ table lookups for each of $M$ output columns and $N$ output rows. This means our overall algorithm has complexity $\Theta(MC(KD + N))$, which reduces to $\Theta(NCM)$ since we fix $K = 16$, and our problem statement requires $N \gg D$.
+---
+> Our encoding function $g(\A), \A \in \R^{N \times D}$ has complexity $\Theta(NC)$, since it does a constant amount of work per row per codebook. Our table creation function $h(\B), \B \in \R^{D \times M}$ has complexity $\Theta(MKCD)$, since it must compute the inner product between each column of $\B$ and $KC$ prototypes of length $D$. This is a factor of $C$ worse than PQ since we do not require the prototypes for different codebooks to have disjoint nonzero indices. However, this reduction in the speed of $h(\cdot)$ is not a concern because $N \gg M, D$; moreover, the matrix $\B$ is often known ahead of time in realistic settings, allowing $h(\B)$ to be computed offline. Finally, the complexity of our aggregation function $f(\cdot)$ is $\Theta(NCM)$, since it performs $C$ table lookups for each of $M$ output columns and $N$ output rows. This means our overall algorithm has complexity $\Theta(MC(KD + N))$, which reduces to $\Theta(NCM)$ since we fix $K = 16$ and our problem statement requires $N \gg D$.
+> 
+> % ------------------------------------------------
+> \subsection{Theoretical Guarantees} \label{sec:maddnessMainThm}
+> % ------------------------------------------------
+> 
+> We begin by noting that all of the guarantees for \textsc{Bolt}\text{} also apply to \ours, modulo a small amount of additional error from averaging integers rather than summing exactly. This follows from \textsc{Bolt}'s guarantees being dependent only upon the quantization errors, rather than the method used to obtain them.
+> Beyond these existing guarantees, our central theoretical result is a generalization guarantee for the overall performance of \ours:
+> 
+> \begin{theorem}[Generalization Error of \ours] \label{thm:maddness}
+> Let $\Dcal$ be a probability distribution over $\R^D$ and suppose that \oursp is trained on a matrix $\tilde{\A} \in R^{N \times D}$ whose rows are drawn independently from $\Dcal$ and with maximum singular value bounded by $\sigma_A$. Let $C$ be the number of codebooks used by \oursp and $\lambda > 0$ the regularization parameter used in the ridge regression step. Then for any $\b \in \R^D$, any $\a \sim \Dcal$, and any $0 < \delta < 1$, we have with probability at least $1 - \delta$ that
+> \begin{align}
+>     \E_{\Dcal}[\Lcal(\a, \b)] \le \E_{\tilde{\A}}[\Lcal(\a, \b)] + \frac{C \sigma_A \norm{\b}_2}{2 \sqrt{\lambda}} \left(
+>         \frac{1}{256} +
+>         \frac{
+>             8 +
+>             \sqrt{
+>                 % C ((4 + \frac{2}{C})\ceil{\log_2(D)} + 284) \log{2} -\log{\delta}
+>                 C (4\ceil{\log_2(D)} + 256) \log{2} -\log{\delta}
+>             }
+>         }{\sqrt{2n}}
+>     \right)
+> \end{align}
+> % where $\Lcal(\a, \b) \triangleq |\a^\top \b - \alpha f(g(\a), h(\b)) - \mat{\beta}|$ (c.f., Equation~\ref{eq:objective}).
+> where $\Lcal(\a, \b) \triangleq |\a^\top \b - \alpha f(g(\a), h(\b)) - \mat{\beta}|$, $\alpha$ is the scale used for quantizing the lookup tables, and $\mat{\beta}$ is the constants used in quantizing the lookup tables plus the debiasing constant of Section~\ref{sec:aggregate}.
+> % The constants $\alpha$ and $\mat{\beta}$ are the values used for quantizing the lookup tables, plus the debiasing constant of Section~\ref{sec:aggregate}.
+> % with $\alpha$ and $\mat{\beta}$ the values used for quantizing the lookup tables (plus the debiasing constant of Section~\ref{sec:aggregate}).
+> \end{theorem}
+> 
+> See Section~\ref{sec:maddnessMath} for a proof and additional analysis.

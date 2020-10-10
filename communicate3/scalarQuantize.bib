@@ -1,0 +1,117 @@
+
+@article{multiLevelQuant,
+	title = {Deep {Neural} {Network} {Compression} with {Single} and {Multiple} {Level} {Quantization}},
+	url = {http://arxiv.org/abs/1803.03289},
+	abstract = {Network quantization is an effective solution to compress deep neural networks for practical usage. Existing network quantization methods cannot sufﬁciently exploit the depth information to generate low-bit compressed network. In this paper, we propose two novel network quantization approaches, single-level network quantization (SLQ) for high-bit quantization and multi-level network quantization (MLQ) for extremely low-bit quantization (ternary). We are the ﬁrst to consider the network quantization both from width and depth level. In the width level, parameters are divided into two parts: one for quantization and the other for re-training to eliminate the quantization loss. SLQ leverages the distribution of the parameters to improve the width level. In the depth level, we introduce incremental layer compensation to quantize layers iteratively which decreases the quantization loss in each iteration. The proposed approaches are validated with extensive experiments based on the state-of-the-art neural networks including AlexNet, VGG-16, GoogleNet and ResNet-18. Both SLQ and MLQ achieve impressive results.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1803.03289 [cs, stat]},
+	author = {Xu, Yuhui and Wang, Yongzhuang and Zhou, Aojun and Lin, Weiyao and Xiong, Hongkai},
+	month = mar,
+	year = {2018},
+	note = {arXiv: 1803.03289},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning, Computer Science - Artificial Intelligence},
+	file = {Xu et al. - 2018 - Deep Neural Network Compression with Single and Mu.pdf:~/Zotero/storage/3BUYHFJ8/Xu et al. - 2018 - Deep Neural Network Compression with Single and Mu.pdf:application/pdf}
+}
+
+@article{layerwiseQuant,
+	title = {Adaptive {Layerwise} {Quantization} for {Deep} {Neural} {Network} {Compression}},
+	abstract = {Building efﬁcient deep neural network models has become a hot-spot in recent years for deep learning research. Many works on network compression try to quantize a neural network with low bitwidth weights and activations. However, most of the existing network quantization methods set a ﬁxed bitwidth for the whole network, which leads to large performance drop under high compression rate. In this paper we introduce an adaptive layerwise quantization method which quantizes the network with different bitwidth assigned to different layers. By using entropy of weights and activations as an importance indicator for each layer, we keep most of the layers under a high compression rate while a few most important layers receive more bit assignment. Experiments on CIFAR10 and ImageNet2012 datasets demonstrate that our layerwise quantization could achieve smaller model size and less computation cost than the comparison ﬁxed bitwidth methods with comparable accuracy, or higher accuracy with similar model size and computational complexity.},
+	language = {en},
+	author = {Zhu, Xiaotian and Zhou, Wengang and Li, Houqiang},
+	pages = {6},
+	year = {2018},
+	file = {Zhu et al. - Adaptive Layerwise Quantization for Deep Neural Ne.pdf:~/Zotero/storage/2EAIQKBE/Zhu et al. - Adaptive Layerwise Quantization for Deep Neural Ne.pdf:application/pdf}
+}
+
+@article{jointQuant,
+	title = {Joint {Training} of {Low}-{Precision} {Neural} {Network} with {Quantization} {Interval} {Parameters}},
+	url = {http://arxiv.org/abs/1808.05779},
+	abstract = {Optimization for low-precision neural network is an important technique for deep convolutional neural network models to be deployed to mobile devices. In order to realize convolutional layers with the simple bit-wise operations, both activation and weight parameters need to be quantized with a low bit-precision. In this paper, we propose a novel optimization method for low-precision neural network which trains both activation quantization parameters and the quantized model weights. We parameterize the quantization intervals of the weights and the activations and train the parameters with the full-precision weights by directly minimizing the training loss rather than minimizing the quantization error. Thanks to the joint optimization of quantization parameters and model weights, we obtain the highly accurate low-precision network given a target bitwidth. We demonstrated the effectiveness of our method on two benchmarks: CIFAR-10 and ImageNet.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1808.05779 [cs]},
+	author = {Jung, Sangil and Son, Changyong and Lee, Seohyung and Son, Jinwoo and Kwak, Youngjun and Han, Jae-Joon and Choi, Changkyu},
+	month = aug,
+	year = {2018},
+	note = {arXiv: 1808.05779},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+	file = {Jung et al. - 2018 - Joint Training of Low-Precision Neural Network wit.pdf:~/Zotero/storage/LYNRLATS/Jung et al. - 2018 - Joint Training of Low-Precision Neural Network wit.pdf:application/pdf}
+}
+
+@article{hwgq,
+	title = {Deep {Learning} with {Low} {Precision} by {Half}-wave {Gaussian} {Quantization}},
+	url = {http://arxiv.org/abs/1702.00953},
+	abstract = {The problem of quantizing the activations of a deep neural network is considered. An examination of the popular binary quantization approach shows that this consists of approximating a classical non-linearity, the hyperbolic tangent, by two functions: a piecewise constant sign function, which is used in feedforward network computations, and a piecewise linear hard tanh function, used in the backpropagation step during network learning. The problem of approximating the ReLU non-linearity, widely used in the recent deep learning literature, is then considered. An halfwave Gaussian quantizer (HWGQ) is proposed for forward approximation and shown to have efﬁcient implementation, by exploiting the statistics of of network activations and batch normalization operations commonly used in the literature. To overcome the problem of gradient mismatch, due to the use of different forward and backward approximations, several piece-wise backward approximators are then investigated. The implementation of the resulting quantized network, denoted as HWGQ-Net, is shown to achieve much closer performance to full precision networks, such as AlexNet, ResNet, GoogLeNet and VGG-Net, than previously available low-precision networks, with 1-bit binary weights and 2-bit quantized activations.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1702.00953 [cs]},
+	author = {Cai, Zhaowei and He, Xiaodong and Sun, Jian and Vasconcelos, Nuno},
+	month = feb,
+	year = {2017},
+	note = {arXiv: 1702.00953},
+	keywords = {Computer Science - Machine Learning, Computer Science - Computer Vision and Pattern Recognition, Computer Science - Artificial Intelligence},
+	file = {Cai et al. - 2017 - Deep Learning with Low Precision by Half-wave Gaus.pdf:~/Zotero/storage/ZZAGFFPP/Cai et al. - 2017 - Deep Learning with Low Precision by Half-wave Gaus.pdf:application/pdf}
+}
+
+@article{mixedFixed,
+	title = {Mixed {Low}-precision {Deep} {Learning} {Inference} using {Dynamic} {Fixed} {Point}},
+	url = {http://arxiv.org/abs/1701.08978},
+	abstract = {We propose a cluster-based quantization method to convert pre-trained full precision weights into ternary weights with minimal impact on the accuracy. In addition we also constrain the activations to 8-bits thus enabling sub 8-bit full integer inference pipeline. Our method uses smaller clusters of N ﬁlters with a common scaling factor to minimize the quantization loss, while also maximizing the number of ternary operations. We show that with cluster size of N=4 on Resnet-101, can achieve 71.8\% TOP-1 accuracy, within 6\% of the best full precision result, while replacing ≈ 85\% of all multiplications with 8-bit accumulations. Using the same method with 4-bit weights achieves 76.3\% TOP-1 accuracy which within 2\% of the full precision result. We also study the impact of the size of the cluster on both performance and accuracy, larger cluster sizes N=64 can replace ≈ 98\% of the multiplications with ternary operations but introduces signiﬁcant drop in accuracy which necessitates ﬁne tuning the parameters with retraining the network at lower precision. To address this we have also trained low-precision Resnet-50 with 8-bit activations and ternary weights by pre-initializing the network with full precision weights and achieve 68.9\% TOP-1 accuracy within 4 additional epochs. Our ﬁnal quantized model can run on a full 8-bit compute pipeline, with a potential 16x improvement in performance compared to baseline full-precision models.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1701.08978 [cs]},
+	author = {Mellempudi, Naveen and Kundu, Abhisek and Das, Dipankar and Mudigere, Dheevatsa and Kaul, Bharat},
+	month = jan,
+	year = {2017},
+	note = {arXiv: 1701.08978},
+	keywords = {Computer Science - Machine Learning, Computer Science - Neural and Evolutionary Computing},
+	file = {Mellempudi et al. - 2017 - Mixed Low-precision Deep Learning Inference using .pdf:~/Zotero/storage/GDS9RAF8/Mellempudi et al. - 2017 - Mixed Low-precision Deep Learning Inference using .pdf:application/pdf}
+}
+
+@article{bitnet,
+	title = {{BitNet}: {Bit}-{Regularized} {Deep} {Neural} {Networks}},
+	shorttitle = {{BitNet}},
+	url = {http://arxiv.org/abs/1708.04788},
+	abstract = {We present a novel regularization scheme for training deep neural networks. The parameters of neural networks are usually unconstrained and have a dynamic range dispersed over the real line. Our key idea is to control the expressive power of the network by dynamically quantizing the range and set of values that the parameters can take. We formulate this idea using a novel end-to-end approach that regularizes the traditional classiﬁcation loss function. Our regularizer is inspired by the Minimum Description Length principle. For each layer of the network, our approach optimizes a translation and scaling factor along with integer-valued parameters. We empirically compare BitNet to an equivalent unregularized model on the MNIST and CIFAR-10 datasets. We show that BitNet converges faster to a superior quality solution. Additionally, the resulting model is signiﬁcantly smaller in size due to the use of integer parameters instead of ﬂoats.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1708.04788 [cs, stat]},
+	author = {Raghavan, Aswin and Amer, Mohamed and Chai, Sek and Taylor, Graham},
+	month = aug,
+	year = {2017},
+	note = {arXiv: 1708.04788},
+	keywords = {Computer Science - Machine Learning, Statistics - Machine Learning},
+	file = {Raghavan et al. - 2017 - BitNet Bit-Regularized Deep Neural Networks.pdf:~/Zotero/storage/RW9Q6KX8/Raghavan et al. - 2017 - BitNet Bit-Regularized Deep Neural Networks.pdf:application/pdf}
+}
+
+@article{_dorefaNet,
+	title = {{DoReFa}-{Net}: {Training} {Low} {Bitwidth} {Convolutional} {Neural} {Networks} with {Low} {Bitwidth} {Gradients}},
+	shorttitle = {{DoReFa}-{Net}},
+	url = {http://arxiv.org/abs/1606.06160},
+	abstract = {We propose DoReFa-Net, a method to train convolutional neural networks that have low bitwidth weights and activations using low bitwidth parameter gradients. In particular, during backward pass, parameter gradients are stochastically quantized to low bitwidth numbers before being propagated to convolutional layers. As convolutions during forward/backward passes can now operate on low bitwidth weights and activations/gradients respectively, DoReFa-Net can use bit convolution kernels to accelerate both training and inference. Moreover, as bit convolutions can be efﬁciently implemented on CPU, FPGA, ASIC and GPU, DoReFa-Net opens the way to accelerate training of low bitwidth neural network on these hardware. Our experiments on SVHN and ImageNet datasets prove that DoReFa-Net can achieve comparable prediction accuracy as 32-bit counterparts. For example, a DoReFa-Net derived from AlexNet that has 1-bit weights, 2-bit activations, can be trained from scratch using 6-bit gradients to get 46.1\% top-1 accuracy on ImageNet validation set. The DoReFa-Net AlexNet model is released publicly.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1606.06160 [cs]},
+	author = {Zhou, Shuchang and Wu, Yuxin and Ni, Zekun and Zhou, Xinyu and Wen, He and Zou, Yuheng},
+	month = jun,
+	year = {2016},
+	note = {arXiv: 1606.06160},
+	keywords = {Computer Science - Machine Learning, Computer Science - Neural and Evolutionary Computing},
+	file = {Zhou et al. - 2016 - DoReFa-Net Training Low Bitwidth Convolutional Ne.pdf:~/Zotero/storage/ZIME9YPT/Zhou et al. - 2016 - DoReFa-Net Training Low Bitwidth Convolutional Ne.pdf:application/pdf}
+}
+
+@article{twoBit,
+	title = {Two-{Bit} {Networks} for {Deep} {Learning} on {Resource}-{Constrained} {Embedded} {Devices}},
+	url = {http://arxiv.org/abs/1701.00485},
+	abstract = {With the rapid proliferation of Internet of Things and intelligent edge devices, there is an increasing need for implementing machine learning algorithms, including deep learning, on resource-constrained mobile embedded devices with limited memory and computation power. Typical large Convolutional Neural Networks (CNNs) need large amounts of memory and computational power, and cannot be deployed on embedded devices efficiently. We present Two-Bit Networks (TBNs) for model compression of CNNs with edge weights constrained to (-2, -1, 1, 2), which can be encoded with two bits. Our approach can reduce the memory usage and improve computational efficiency significantly while achieving good performance in terms of classification accuracy, thus representing a reasonable tradeoff between model size and performance.},
+	language = {en},
+	urldate = {2018-11-07},
+	journal = {arXiv:1701.00485 [cs]},
+	author = {Meng, Wenjia and Gu, Zonghua and Zhang, Ming and Wu, Zhaohui},
+	month = jan,
+	year = {2017},
+	note = {arXiv: 1701.00485},
+	keywords = {Computer Science - Machine Learning, Computer Science - Computer Vision and Pattern Recognition},
+	file = {Meng et al. - 2017 - Two-Bit Networks for Deep Learning on Resource-Con.pdf:~/Zotero/storage/85K9CTR4/Meng et al. - 2017 - Two-Bit Networks for Deep Learning on Resource-Con.pdf:application/pdf}
+}

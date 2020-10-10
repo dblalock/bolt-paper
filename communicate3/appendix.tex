@@ -1,0 +1,552 @@
+
+% ================================================================
+\section{Quantizing Lookup Tables} \label{sec:lutQuantize}
+% ===============================================================
+
+% Existing work has shown that setting $K = 16$ and quantizing the lookup tables for a given column of $\B$ to 8 bits can offer enormous speedups compared to larger $K$ and/or floating-point tables \cite{bolt, quickAdc, quickerAdc}. This is because 16 1-byte entries can be stored in a SIMD register, allowing 16 or more table lookups to be performed in parallel in a single instruction.
+
+Since the lookup table entries naturally occupy more than 8 bits even for 8-bit data (since products of 8-bit values require 16 bits), some means of quantizing these entries is necessary to enable vectorization. Unfortunately, existing quantization methods are not applicable to our problem setting. The scheme of \citet{bolt} requires knowledge of $\B$ at training time, while the scheme of \citet{quickAdc} and \citet{quickerAdc} is only applicable for nearest-neighbor search. We instead use the following approach, where $\mat{T} \in \R^{M \times C \times K}$ is the tensor of lookup tables for all $M$ columns of $\B$, $\mat{T}^q$ is the quantized version of $\mat{T}$, $\vec{\delta} \in \R^C$ is a vector of table-specific offsets, and $\alpha^{-1}$ is an overall scale factor:
+\begin{align}
+    \vec{\delta}_c &\triangleq \min_{m,k} \text{ } \mat{T}_{m,c,k} \\
+    \alpha^{-1} \triangleq 2^l \cs l &= \max_c \floor{ \log_2 \left( \frac{255}{
+            \max_{m,k} (\mat{T}_{m,c,k} - \delta_{c})
+        } \right)}. \\
+    \mat{T}^q_{m,c,k} &\triangleq \alpha^{-1}(\mat{T}_{m,c,k} - \delta_{c})
+\end{align}
+This is similar to equations~\ref{eq:offset} and \ref{eq:scale}, but with the scale factor pooled across all codebooks instead of unique to each input column. The $\alpha$ used here is the same as that in equation~\ref{eq:objective}, and the matrix $\beta$ in equation~\ref{eq:objective} has entries equal to $\sum_c \vec{\delta}_c$ (plus the debiasing constant from our averaging-based aggregation).
+
+% ================================================================
+\section{Quantization and \oursHash} \label{sec:hashQuantize}
+% ================================================================
+
+The use of at most 16 leaves is so that the resulting codes use 4 bits. This allows the use of these same shuffle instructions to accelerate the table lookups as in \citet{bolt}.
+
+The only subtlety in vectorizing our hash function is that one must execute line 4 using shuffle instructions such as \texttt{vpshufb} on x86, \texttt{vtbl} on ARM, or \texttt{vtbl} on PowerPC. In order to do this, the split values and scalars $x_{j^t}$ must be 8-bit integers. We quantize them by learning for each split index $j$ a pair of scalars $(\gamma_j, \delta_j)$, where
+\begin{align}
+    \delta_j &\triangleq \min_i \v^j_i \label{eq:offset} \\
+    % \gamma_j \triangleq 2^l, l = \left \lfloor \text{log2} \left( \frac{255}{\max_i \v^j_i - \delta_j} \right) \right \rfloor
+    \gamma_j &\triangleq 2^l, l = \floor{ \log_2 \left( \frac{255}{\max_i \v^j_i - \delta_j} \right) \label{eq:scale} }
+\end{align}
+% and
+% \begin{align}
+% %     &\min_i \v^j_i - \delta_j = 0 \\
+% %     &\max_i \gamma_j(\v^j_i - \delta_j) \le 255
+% \end{align}
+% and $\gamma_j$ is a power of 2.
+This restriction of $\gamma_j$ to powers of two allows one to quantize $x_{j^t}$ values with only shifts instead of multiplies. The $\vec{v}$ values can be quantized at the end of the training phase, while the $x_{j^t}$ values must be quantized within Algorithm~\ref{algo:ourEnc} before line 5.
+
+% ================================================================
+\vfill\break  % columnbreak
+\section{Subroutines for Training \oursHash} \label{sec:optimalSplitVal}
+% ================================================================
+
+The \texttt{optimal\_split\_threshold} algorithm (Algorithm~\ref{algo:optimalSplitVal}) finds the best threshold at which to split a bucket within a given dimension. To do this, it uses the \texttt{cumulative\_sse} function (Algorithm \ref{algo:cumSSE}) to help evaluate the loss associated with the resulting child buckets.
+
+These algorithms exploit the fact that the sum of squared errors can be computed using only the sum of values and sum of squared values, both of which can be updated in $O(1)$ time when a vector is moved from one side of the split to the other.
+
+% ------------------------------------------------ optimalSplitVal
+
+\begin{algorithm}[h]
+\caption{Optimal Split Threshold Within a Bucket} \label{algo:optimalSplitVal}
+\begin{algorithmic}[1]
+    \STATE {\bfseries Input:} bucket $\mathcal{B}$, index $j$
+    \STATE {$\mat{X} \leftarrow \texttt{as\_2d\_array}(\mathcal{B})$ }
+    \STATE {$\mat{X}^{sort} = \texttt{sort\_rows\_based\_on\_col}(\mat{X} \text{, } j)$}
+    \STATE {$\texttt{sses\_head} \leftarrow \texttt{cumulative\_sse}(\mat{X}^{sort}, \texttt{false}) $}
+    \STATE {$\texttt{sses\_tail} \leftarrow \texttt{cumulative\_sse}(\mat{X}^{sort}, \texttt{true}) $}
+    \STATE {$\texttt{losses} \leftarrow \texttt{sses\_head} $}
+    \STATE {$\texttt{losses}_{1:N-1} \leftarrow \texttt{losses}_{1:N-1} + \texttt{sses\_tail}_{2:N} $}
+    % \STATE {$ n^\ast \leftarrow \min_n \sum_{d=1}^D $}
+    % \STATE {$ n^\ast \leftarrow \argmin_n \texttt{sses\_head}_n + \texttt{sses\_tail}_{n+1} $}
+    \STATE {$ n^\ast \leftarrow \argmin_n \texttt{losses}_n $}
+    \STATE{$ \textbf{return } (\mat{X}^{sort}_{n^\ast \text{, } j} + \mat{X}^{sort}_{n^\ast + 1 \text{, } j}) / 2 \text{, } \texttt{losses}_{n^\ast} $}
+    % \STATE {$\texttt{sses\_tail} \leftarrow \texttt{reverse\_row\_order}(\texttt{cumsse\_cols}(\texttt{reverse\_row\_order}(\mat{X}_{sort})_) $}
+    % \STATE {$\texttt{sses\_tail} \leftarrow \texttt{reverse\_row\_order}(\texttt{cumsse\_cols}(\texttt{reverse\_row\_order}(\mat{X}_{sort})_) $}
+
+\end{algorithmic}
+\end{algorithm}
+
+% ------------------------------------------------ cumSSE
+
+\begin{algorithm}[h]
+% \caption{Cumulative SSE Within Columns} \label{algo:cumSSE}
+\caption{Cumulative SSE} \label{algo:cumSSE}
+\begin{algorithmic}[1]
+    \STATE {\bfseries Input:} 2D array $\mat{X}$, boolean \texttt{reverse}
+    \STATE {$N, D \leftarrow \texttt{shape}(\mat{X})$}
+    \IF {\texttt{reverse}}
+        \STATE{$ \forall_i \texttt{ swap}(\mat{X}_{i,d}, \mat{X}_{N-i+1,d}) $}
+    \ENDIF
+
+    % \STATE {$\texttt{out} \leftarrow \texttt{empty}(N \text{, } D)$}
+    \STATE {$\texttt{out} \leftarrow \texttt{empty}(N)$}
+    \STATE {$\texttt{cumX} \leftarrow \texttt{empty}(D)$}
+    \STATE {$\texttt{cumX2} \leftarrow \texttt{empty}(D)$}
+
+    \LINECOMMENT{Initialize first row of output and cumulative values}
+    \STATE{$\texttt{out}_{1} \leftarrow 0 $}
+    \FOR{$d \leftarrow 1 \textbf{ to } D $}
+        \STATE{$\texttt{cumX}_d \leftarrow X_{1, d} $}
+        \STATE{$\texttt{cumX2}_d \leftarrow (X_{1, d})^2 $}
+        % \STATE{$\texttt{out}_{1, d} \leftarrow 0 $}
+    \ENDFOR
+
+    \LINECOMMENT{Compute remaining output rows}
+    \FOR{$n \leftarrow 2 \textbf{ to } N $}
+        \STATE{$\texttt{out}_{n} \leftarrow 0 $}
+        \FOR{$d \leftarrow 1 \textbf{ to } D $}
+            \STATE{$\texttt{cumX}_d \leftarrow \texttt{cumX}_d + X_{1, d} $}
+            \STATE{$\texttt{cumX2}_d \leftarrow \texttt{cumX2}_d + (X_{1, d})^2 $}
+            % \STATE{$\texttt{meanX} \leftarrow \texttt{cumX}_d / n $}
+            % \STATE{$\texttt{out}_{n, d} \leftarrow \texttt{cumX2}_d - (\texttt{cumX}_d \times \texttt{cumX}_d / n)$}
+            \STATE{$\texttt{out}_{n} \leftarrow \texttt{out}_{n} + \texttt{cumX2}_d - (\texttt{cumX}_d \times \texttt{cumX}_d / n)$}
+        \ENDFOR
+    \ENDFOR
+    \STATE{\textbf{return } \texttt{out}}
+\end{algorithmic}
+\end{algorithm}
+
+% ================================================================
+% \vfill\break  % columnbreak
+\clearpage
+\section{Analysis of Aggregation Using Pairwise Averages} \label{sec:aggregateAnalysis}
+% ================================================================
+
+
+\begin{definition}[Averaging Integer Sum Estimator]
+Let $\x \in \{0, 1\}^C, C \text{ \% } U = 0, U = 2^p, p \ge 0$. The Averaging Integer Sum Estimator (AISE) $\hat{s}(\x)$ is defined as:
+\begin{align}
+    % s(\x) &\triangleq \sum_{k=1}^{C / U} s_U(\x_{((k-1)*U+1):((k-1)*U+1+U)}) \\
+    \hat{s}(\x) &\triangleq \sum_{k=1}^{C / U} \hat{s}_U(\x_{i_k:j_k}) \\
+    \hat{s}_U(\x) &\triangleq
+        \begin{cases}
+            x_1 & \x \in \R^1 \\
+            % \lfloor \frac{1}{2}(x_1 + x_2 + 1) \rfloor & \x \in \R^2 \\
+             % \lfloor \frac{1}{2}(s_U(\x_{:\text{len}(x)/2}) + s_U(\x_{\text{len}(x)/2:}) + 1) \rfloor & \text{otherwise}
+             \lfloor \frac{1}{2}(\hat{s}_U(\x_{left}) + \hat{s}_U(\x_{right}) + 1) \rfloor & \text{otherwise}
+       \end{cases}
+\end{align}
+where $i_k = (k-1) \cdot U+1, j_k = i_U + U$ and $\x_{left}$ and $\x_{right}$ denote vectors formed by taking the initial and final $D/2$ indices of a given $\x \in \R^D$.
+\end{definition}
+
+\begin{definition}[Pairwise Integer Sum and Sum Estimator]
+For integers $a$ and $b$, define
+\begin{align}
+    s(a, b) &\triangleq a + b \\
+    \hat{s}(a, b) &\triangleq 2 \mu(a, b)
+\end{align}
+where $\mu(a, b) \triangleq \lfloor \frac{1}{2}(a + b + 1) \rfloor$.
+\end{definition}
+
+\begin{lemma}[Bias when averaging one pair] \label{thm:avgBias}
+Consider two scalars $a$ and $b$, with $a, b \iid$ Bernoulli(.5). Define $\eps(a, b) \triangleq \hat{s}(a, b) - s(a, b)$. Then
+\[
+    E[\eps(a, b)] = \frac{1}{2}
+\]
+\end{lemma}
+\begin{proof} The proof follows immediately from considering the four equiprobable realizations of the pair $a, b$. In the cases $(0, 0)$ and $(1, 1)$, $2\mu(a, b) = s(a, b)$. In the cases $(0, 1)$ and $(1, 0)$, $2 \mu(a, b) = 2$, while $s(a, b) = 1$.
+% : $(0, 0)$, $(0, 1)$, $(1, 0)$, $(1, 1)$
+\end{proof}
+
+
+
+
+% \begin{lemma}[Bias when averaging one pair] \label{thm:avgBias}
+% Consider two scalars $a$ and $b$, $a, b \iid Bernoulli(.5)$. Then
+% \[
+%     E[\mu(x, y)] = \frac{1}{2}
+% \]
+% \end{lemma}
+% \begin{proof} The proof follows immediately from considering the four equiprobable realizations of the pair $a, b$. In the cases $(0, 0)$ and $(1, 1)$, $\mu(a, b) = 0$. In the cases $(0, 1)$ and $(1, 0)$, $\mu(a, b) = 1$.
+% % : $(0, 0)$, $(0, 1)$, $(1, 0)$, $(1, 1)$
+% \end{proof}
+
+\begin{lemma}[Variance of error when averaging one pair]
+Consider two scalars $a$ and $b$, $a, b \iid$ Bernoulli(.5). Then
+\[
+    % E[\mu(a, b)^2] - E[\mu(x, y)]^2 = \frac{1}{4}
+    E[\eps(a, b)^2] - E[\eps(x, y)]^2 = \frac{1}{4}
+\]
+\end{lemma}
+\begin{proof} Using Lemma~\ref{thm:avgBias}, the above can be rewritten as:
+\[
+    % E[\mu(a, b)^2] = \frac{1}{2}
+    E[\eps(a, b)^2] = \frac{1}{2}
+\]
+The proof then follows by again considering the four equiprobable cases as in Lemma~\ref{thm:avgBias}. In the cases $(0, 0)$ and $(1, 1)$, $\eps(a, b)^2 = 0$. In the cases $(0, 1)$ and $(1, 0)$, $(2 \hat{s}(a, b) - s(a, b))^2 = (2 - 1)^2 = 1$.
+\end{proof}
+
+% \begin{lemma}[Bias Recursive Step]
+% % When applying the function $\mu$ recursively,
+% \[
+%     % E[\mu(\mu(a, b), \mu(c, d))] = 1
+%     % E[\mu(\mu(a, b), \mu(c, d))] = 2 (E[\mu(a, b)] + E[\mu(c, d)])
+%     % E[\eps(\hat{s}(a, b), \hat{s}(c, d))] = .5 + E[\eps(a, b)] + E[\eps(c, d)]
+%     E[\eps(\mu(a, b), \mu{s}(c, d))] = .5 + E[\eps(a, b)] + E[\eps(c, d)]
+% \]
+% \end{lemma}
+% \begin{proof}This can equivalently be formulated as
+% \begin{align}
+%     % E[\mu(\mu(a, b), \mu(c, d))] = 2 E[\mu(\mu(a, b), \mu(c, d))]
+%     E[\mu(\mu(a, b), \mu(c, d))] = 2 E[\mu(a, b)] + E[\mu(c, d)]
+% \end{align}
+% \end{proof}
+
+
+
+% \begin{lemma}[Bias and error variance of AISE within a subspace] \label{thm:avgSubspace}
+\begin{lemma}[Bias of AISE within a subspace] \label{thm:avgSubspace}
+% Let $\hat{s}(\x), \x \in \R^C, C \text{ \% } U = 0$ be the sum estimator described in section~\ref{sec:aggregate} and let $s(\x) \triangleq \sum_c x_c$.
+% Let $s(\x)$ be defined as
+Suppose that the scalar elements $x_i$ of $\vec{x}$ are drawn from independent Bernoulli(.5) distributions. Then
+\begin{align}
+    E[s_U(\x) - \hat{s}_U(\x)] &= U \log_2(U) / 4 \\
+    % Var[s_U(\x) - \hat{s}_U(\x)] &= U \log_2(U) / 8.
+\end{align}
+\end{lemma}
+\begin{proof}
+Observe that the computation graph can be cast as a balanced binary tree with $U$ leaves and each parent equal to the integer average of its children. Consider the bias introduced at each level $t$ of the tree, where $t=0$ corresponds to the leaves and $t = \log_2(U)$ corresponds to the root. The expected error $E[\xi(t, n)]$ introduced at a node $n$ in level $t > 0$ is given by:
+\begin{align}
+    E[\xi(t, n)] = \frac{1}{2} \cdot 2^{t - 1}
+\end{align}
+where the $\frac{1}{2}$ follows from Lemma~\ref{thm:avgBias} and the scale $2^{t - 1}$ is the number of leaf nodes to which the bias is effectively applied. E.g., adding 1 to the estimated average of four leaf nodes would increase the estimated sum by four. Since there are $U \cdot 2^{-t}$ nodes per level, this means that the total expected error introduced at level $t$ is $\frac{1}{2} \cdot 2^{t - 1} \cdot 2^{-t} = \frac{1}{4}$. Summing from $t = 1$ to $t = \log_2(U)$ completes the proof of the expected error. Note that $t=0$ is omitted since the leaf nodes are not the result of averaging operations and so introduce no error.
+
+% Identical reasoning can be used to derive the variance of the error, since the variances from different nodes add.
+\end{proof}
+
+
+% \begin{theorem}[Bias and error variance of AISE]
+\begin{theorem}[Bias of AISE] \label{thm:overallBias}
+% Let $\hat{s}(\x), \x \in \R^C, C \text{ \% } U = 0$ be the sum estimator described in section~\ref{sec:aggregate} and let $s(\x) \triangleq \sum_c x_c$.
+% Let $s(\x)$ be defined as
+Suppose that the scalar elements $x_i$ of $\vec{x}$ are drawn from independent Bernoulli(.5) distributions. Then
+\begin{align}
+    E[s(\x) - \hat{s}(\x)] &= C \log_2(U) / 4 \\
+    % Var[s(\x) - \hat{s}(\x)] &= C \log_2(U) / 8.
+\end{align}
+\end{theorem}
+\begin{proof}
+This follows immediately from Lemma~\ref{thm:avgSubspace}, the fact that the overall sum is estimated within each of $C / U$ subspaces of size $U$, and assumption that the errors in each subspace are independent.
+\end{proof}
+
+We also verified Theorem~\ref{thm:overallBias} numerically by summing large numbers of integers drawn uniformly from the interval $0,\ldots,255$.
+
+Note that the assumption the the elements are independent is not especially strong in reality. This is because this section focuses on the effects on the least significant bits (which are the ones affected by each averaging operation), and the least significant bit does tend to be nearly uniformly random in a great deal of real-world data.
+
+% ================================================================
+\vfill\break  % columnbreak
+\section{Additional experimental details} \label{sec:experimentDetails}
+% ================================================================
+
+% ------------------------------------------------
+\subsection{Choice of Matrix Multiplication Tasks}
+% ------------------------------------------------
+
+Because nearly all existing work on approximate matrix multiplication either focuses on special cases that do not satisfy our problem definition \cite{quickerAdc, pq, opq} or synthetic matrices, there is not a clear set of benchmark matrix multiply tasks to use. We therefore propose a collection of tasks that we believe are both reproducible and representative of many real-world matrices. To the best of our knowledge, our experiments use over an order of magnitude more matrices than any previous study.
+
+% ------------------------------------------------
+\subsection{Choice of Single Threaded Benchmarks}
+% ------------------------------------------------
+
+Given the ubiquity of GPUs and multicore CPUs, it may not be obvious why single-threaded experiments are desirable. There are a number of reasons we restrict our focus to CPUs and the single threaded case:
+% We only implemented our algorithm on the CPU for simplicity and
+\begin{itemize}
+    \item To enable fair comparisons to existing work, particularly the nearest rival, Bolt \cite{bolt}.
+    % \item Existing work, particularly our method's nearest rival \cite{bolt}, only uses a single thread.
+    \item To facilitate fair comparisons to our work by future authors---single-threaded experiments are much easier to reproduce and extend than multithreaded ones.
+    \item Matrix multiplication is embarrassingly parallel with respect to rows of the input and columns of the output. There is therefore nothing ``interesting'' about how our method parallelizes relative to any other; all methods reduce to a single-threaded kernel that can easily be applied to disjoint submatrices. While we certainly could spend the considerable time required to construct and debug multicore benchmarks, this would be unlikely to yield any useful insights.
+    \item Parallelization in modern numerical libraries is often managed at a higher level than the lowest-level subroutines. For example, the authors of FBGEMM \cite{fbgemm} state: \textit{``Internally, FBGEMM is intentionally designed not to create any threads. Usually, such a library is intended to be used as a backend by deep learning frameworks, such as PyTorch and Caffe2, that create and manage their own threads.''}\footnote{https://engineering.fb.com/ml-applications/fbgemm/} I.e., a multithreaded library calls into single-threaded subroutines (such as a matrix multiplication function); it is this single-threaded subroutine where we make contributions, and therefore where we focus our experimental efforts. Independent of common practices in modern libraries, this pattern is also the only sensible strategy for small matrices, like many of those we consider---the overhead of launching and joining threads is extremely unlikely to be worth it for sufficiently small matrices. We could perhaps characterize where this breakpoint is, but this is a hardware-specific result that has little to do with our contributions.
+    % \item There are many subtle issues around where data ``originates'' that
+    \item While training of deep neural networks is typically done on GPUs or other accelerators, trained models (including but not limited to neural networks) are commonly deployed on smartphones with just CPUs and/or graphics acceleration that is no better than the CPU \cite{fbAtEdge}. And since most of the billions of smartphones in the world tend to be low end or old, the need to deploy models on CPUs (including those with few cores) is unlikely to change for many years.
+    \item Creating a performant implementation of our method for GPUs would require a great deal of engineering work. We plan to create such an implementation in the future, but believe that the many empirical and theoretical results we currently have are a more than adequate proof of concept and already worth sharing with the community. % Moreover, given both the rapid pace of change in accelerator hardware and diversity of existing hardware, even results on GPUs would quickly
+    % \item While it would require a great deal of engineering work to produce a performant GPU version of our method, experiments on CPUs are sufficient proof of concept to suggest
+    % \item Our basic ideas can be applied to GPUs or other devices. The only CPU-specific constraint informing our algorithm is the need to have splits at the same level of a tree all use the same index. We of course cannot know precisely how well our ideas work on any given piece of hardware absent direct testing of a high-performance implementation. We therefore plan to create a GPU implementation of our method in future work.
+\end{itemize}
+
+% ,
+
+% ------------------------------------------------
+\subsection{SparsePCA details}
+% ------------------------------------------------
+
+We took steps to ensure that SparsePCA's results were not hampered by insufficient hyperparameter tuning. First, for each matrix product, we tried a range of lambda values which we found to encompass the full gamut of nearly 0\% to nearly 100\% sparsity: $\lambda \in 2^i, i \in \{-5, -4, -3, -2, -1, 0, 1, 2, 3\}$. Second, because different sparsity patterns may yield different exeuction times, we report not times from the single matrix SparsePCA produces for a given ($d, \lambda$) pair, but the best times from any of ten random matrices of the same size and at most the same sparsity. Finally and most importantly, we plot only the Pareto frontier of (speed, quality) pairs produced for a given matrix multiply. I.e., we let SparsePCA cherrypick its best results on each individual matrix multiply.
+
+% ------------------------------------------------
+\subsection{Exact Matrix Multiplication}
+% ------------------------------------------------
+
+We also implemented our own matrix product function specialized for tall, skinny matrices. In all cases, we report the timings based on the faster of this function and Eigen's \cite{eigen} matrix multiply function for a given matrix product.
+
+% ------------------------------------------------
+\subsection{Additional Baselines}
+% ------------------------------------------------
+
+We also tested Frequent Directions / Fast frequent directions \cite{liberty_simple_2012, ghashami_frequent_2016, isvd}, many variations of the sampling method of \cite{drineas_fast_2006}, projection using orthogonalized gaussian random matrices \cite{superbitLSH}, projection using matrices of scaled i.i.d. rademacher random variables \cite{rademacherJL}, projection using orthonormalized matrices of rademacher random variables, the co-occuring directions sketch \cite{mroueh_co-occuring_2016}, OSNAP \cite{osnap}, Product Quantization \cite{pq}, and Optimized Product Quanization \cite{opq}.
+
+The poor performance of many of these methods is unsurprising in our setting. Given that we have access to a training set on which to learn the true principal components, the Eckart-Young-Mirsky theorem \cite{eckartYoungMirskyThm} indicates that PCA should outperform any other individual matrix sketching method employing dense projection matrices, at least in the limit of infinite training data. Also, since PQ and OPQ use 256 dense centroids (except in the Bolt / QuickerADC variations), it is also impossible for them to perform well when $\min(D, M)$ is not significantly larger than 256.
+
+% ------------------------------------------------
+\subsection{UCR Time Series Archive}
+% ------------------------------------------------
+
+We omitted datasets with fewer than 128 training examples, since it is not possible for Stochastic Neighbor Compression to draw 128 samples without replacement in this case.
+
+In addition to being a large, public corpus of over a hundred datasets from a huge variety of different domains, the UCR Time Series Archive also has the advantage that it can be used to produce matrix multiplication tasks of a fixed size. This is necessary for meaningful comparison of speed vs accuracy tradeoffs across datasets. We constructed training and test matrices $\tilde{\A}$ and $\A$ by resampling each time series in each dataset's train and test set to a length of $320$ (the closest multiple of 32 to the median length of 310). We obtained the matrix $\B$ for each dataset by running Stochastic Neighbor Compression \cite{snc} on the training set with an RBF kernel of bandwidth one. We set the number of returned neighbors to 128 (results with 64 and 256 were similar), yielding a $\B$ matrix of size $320 \times 128$. %See Appendix~\ref{sec:experimentDetails} for additional details.
+Since different datasets have different test set sizes, all results are for a standardized test set size of 1000 rows. We wanted the length to be a multiple of 32 since existing methods operate best with sizes that are either powers of two or, failing that, multiples of large powers of two.
+
+We approximate Euclidean distances using the identity $\norm{\vec{x} - \vec{y}}_2^2 = \norm{\vec{x}}_2^2 - 2\vec{x}^\top \vec{y} + \norm{\vec{y}}_2^2$. We approximate only the inner products $\vec{x}^\top \vec{y}$, since $\norm{\vec{y}}_2^2$ can be precomputed for fixed exemplars $\vec{y}$ and $\norm{\vec{x}}_2^2$ doesn't affect the class prediction since it is constant across all exemplars for a given input $\vec{x}$.
+
+% since having a length that is a multiple of at least 8 is the best-case scenario for most existing methods, and 320 is a ``rounder'' number than 312.
+
+% ------------------------------------------------
+\subsection{Caltech101}
+% ------------------------------------------------
+
+We only extracted valid windows---i.e., never past the edge of an image. We extracted the windows in CHW order, meaning that scalars from the same color channel were placed at contiguous indices. The ``first'' images are based on filename in lexicographic order.
+
+We used pairs of filters because using a single filter would mean timing a matrix-vector product instead of a matrix-matrix product.
+
+To allow meaningful speed comparisons across images, we resized and center cropped each image to $224 \times 224$ as commonly done in image classification pipelines \cite{resNet,resnet2,densenet}. We then extracted sliding windows of the appropriate size and used each (flattened) window as one row of $\tilde{\A}$ or $\A$. We similarly flattened the filters, with each set of coefficients forming one column of $\B$. In both cases, $\B$ has two columns---this is because using a single filter would mean timing a matrix-vector product instead of a matrix-matrix product. Two columns also made sense since Sobel filters are often used in horizontal and vertical pairings, and Gaussian filters are often used together to perform difference-of-Gaussians transforms.
+
+Even though the RGB values at each position are naturally unsigned 8-bit integers, we allowed all rival methods to operate on them as 32-bit floating point, without including the conversion when timing them. Because it only requires checking whether values are above a threshold, \oursp can operate on 8-bit data directly.
+
+% ------------------------------------------------
+\subsection{Additional Results}
+% ------------------------------------------------
+
+In Section~\ref{sec:results}, we showed the classification accuracy as a function of wall time for the CIFAR-10 and CIFAR-100 softmax classifiers, as well as on the UCR datasets. In Figure~\ref{fig:cifarNMSE} and Figure~\ref{fig:ucrNMSE}, we instead show normalized mean squared error versus time. In Figure~\ref{fig:cifarOps} and Figure~\ref{fig:caltechOps}, we show accuracy or NMSE vs number of operations performed, where one operation is either one multiply-add or one table lookup, depending on the method. The first two figures illustrate that NMSE is closely related to classification accuracy, but with imperfect NMSE still yielding excellent accuracy in many cases. The second two figures show that our method's superior results are not merely caused by the use of faster CPU instructions, but also by the use of fewer basic operations at the algorithm level.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=\linewidth]{amm/cifar_Speedup_1 - NMSE}
+\caption{\oursp achieves a far better speed versus squared error tradeoff than any existing method when approximating two softmax classifiers. These results parallel the speed vs classification accuracy results, except that the addition of our ridge regression is much more beneficial on CIFAR-100.}
+\label{fig:cifarNMSE}
+\end{center}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=\linewidth]{amm/ucr2_Speedup_1 - NMSE_rbf}
+\caption{\oursp achieves the lowest squared error at high speedups on the UCR datasets. These results parallel the speed vs classification accuracy results.}
+\label{fig:ucrNMSE}
+\end{center}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=\linewidth]{amm/cifar_ops_Accuracy}
+\caption{\oursp achieves the best speed versus accuracy tradeoff on the CIFAR datasets of any method even when speed is measured as number of operations instead of wall time. Note that fewer operations with a high accuracy (up and to the left) is better.}
+\label{fig:cifarOps}
+\end{center}
+\end{figure}
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=\linewidth]{amm/caltech_ops_1 - NMSE.pdf}
+\caption{\oursp still achieves the best speed versus squared error tradeoff on the image processing tasks when speed is measured as number of operations instead of wall time.}
+\label{fig:caltechOps}
+\end{center}
+\end{figure}
+
+
+% ================================================================
+% \vfill\break  % columnbreak
+% \vfill
+\clearpage
+\section{Proof of Generalization Guarantee} \label{sec:maddnessMath}
+% ================================================================
+
+In this section, we prove Theorem~\ref{thm:maddness}, restated below for convenience.
+
+\begin{theorem*}[Generalization Error of \ours] \label{thm:maddness}
+Let $\Dcal$ be a probability distribution over $\R^D$ and suppose that \oursp is trained on a matrix $\tilde{\A} \in R^{N \times D}$ whose rows are drawn independently from $\Dcal$ and with maximum singular value bounded by $\sigma_A$. Let $C$ be the number of codebooks used by \oursp and $\lambda > 0$ the regularization parameter used in the ridge regression step. %Then for any vector $\b$, any vector $\a \sim \Dcal$, and any $0 < \delta < 1$, we have with probability at least $1 - \delta$ that
+Then for any $\b \in \R^D$, any $\a \sim \Dcal$, and any $0 < \delta < 1$, we have with probability at least $1 - \delta$ that
+ % Then for all vectors $\b$ and any vector $\a \sim \Dcal$, we have with probability at least $1 - \delta$, $0 < \delta < 1$,
+\begin{align*}
+    \begin{split}
+    \E_{\Dcal}[&\Lcal(\a, \b)] \le \E_{\tilde{\A}}[\Lcal(\a, \b)] + \\
+    &\frac{C \sigma_A \norm{\b}_2}{2 \sqrt{\lambda}} \left(
+        \frac{1}{256} +
+        \frac{
+            8 +
+            \sqrt{
+                % C (4\ceil{\log_2(D)} + 256) \log{2} -\log{\delta}
+                \nu(C, D, \delta)
+            }
+        }{\sqrt{2n}}
+    \right)
+    \end{split}
+% \end{equation}
+\end{align*}
+% where
+% where $\Lcal(\a, \b) \triangleq |\a^\top \b - \alpha f(g(\a), h(\b)) - \mat{\beta}|$ (c.f., Equation~\ref{eq:objective}).
+where $\Lcal(\a, \b) \triangleq |\a^\top \b - \alpha f(g(\a), h(\b)) - \mat{\beta}|$, $\alpha$ is the scale used for quantizing the lookup tables, $\mat{\beta}$ is the constants used in quantizing the lookup tables plus the debiasing constant of Section~\ref{sec:aggregate}, and
+\begin{align*}
+    \nu(C, D, \delta) \triangleq C (4\ceil{\log_2(D)} + 256) \log{2} -\log{\delta}.
+\end{align*}
+% \begin{align}
+%     \begin{split}
+%     \E_{\Dcal}[ \Lcal(\a, \b)] \le \E_{\tilde{\A}}[\Lcal(\a, \b)] +
+%     \frac{C \sigma_A \norm{\b}_2}{2 \sqrt{\lambda}} \bigg(
+%         \frac{1}{256} + \\
+%         \frac{
+%             8 +
+%             \sqrt{
+%                 % C ((4 + \frac{2}{C})\ceil{\log_2(D)} + 284) \log{2} -\log{\delta}
+%                 C (4\ceil{\log_2(D)} + 256) \log{2} -\log{\delta}
+%             }
+%         }{\sqrt{2n}}
+%     % \right)
+%     \bigg)
+%     \end{split}
+% \end{align}
+% where $\Lcal(\a, \b) \triangleq |\a^\top \b - \alpha f(g(\a), h(\b)) - \mat{\beta}|$, $\alpha$ is the scale used for quantizing the lookup tables, and $\mat{\beta}$ is the constants used in quantizing the lookup tables plus the debiasing constant of Section~\ref{sec:aggregate}.
+
+\end{theorem*}
+
+The proof relies on the observation that \ours's training procedure can be decomposed into two sequential subroutines: \texttt{Maddness-Build-Tree}, which learns the function $g(\a)$ by constructing a binary decision tree, and \texttt{Maddness-Regress}, which learns the function $h(\b)$ by optimizing a prototype matrix $\P$ such that $g(\tilde{\A}) \P \approx \tilde{\A}$.
+% regressing the output $\mat{G} \triangleq g(\tilde{\A})$ onto the.
+%prototype matrix $\P$ used by using ridge regression conditioned on the output of \texttt{Maddness-Build-Tree} on the training matrix $\tilde{\A}$.
+% We will prove an overall generalization guarantee for \oursp by first providing a guarantee for \texttt{Maddness-Regress} for a fixed \texttt{Maddness-Build-Tree} hypothesis, and then union bounding over the hypothesis space for \texttt{Maddness-Build-Tree}.
+This observation allows us to prove~\ref{thm:maddness} by first providing a guarantee for \\ \texttt{Maddness-Regress} for a fixed \texttt{Maddness-Build-Tree} hypothesis, and then union bounding over the hypothesis space for \texttt{Maddness-Build-Tree}. Bounding the size of the hypothesis space is straightforward (Lemma~\ref{lemma:ntrees}), so the bulk of this section focuses on providing a guarantee for \texttt{Maddness-Regress}. We must also prove a bound on the loss contributed by quantizing the lookup tables array $\P^\top \b$. % There is also a need to bound the errors introduced by quantizing the lookup tables $\P^\top \b$, but this error is small and.
+
+\begin{lemma}[Number of Hypotheses for \texttt{Maddness-Build-Tree}] \label{lemma:ntrees}
+Let $C$ be the number of codebooks used by \oursp and let $D$ be the number of columns in the matrix $\tilde{\A}$ on which \oursp is trained. Then there are at most $2^{C (4\ceil{\log_2(D)} + 256)}$ unique trees that \texttt{Maddness-Build-Tree} can generate.
+\end{lemma}
+\begin{proof}
+\texttt{Maddness-Build-Tree} learns four sets of parameters for each of the $C$ trees it produces: split indices, split offsets, split scales, and split values.
+
+There are four split indices per tree because there is one for each of the tree's four levels. Each index requires $\ceil{\log_2(D)}$ bits to store, so the split indices require a total of $4 \ceil{\log_2(D)}$ bits per tree. For each split index, there is one split offset and scale, used to map floating point data in an arbitrary range to the interval $[0, 255]$ to match up with the 8-bit split values.
+
+The offsets require at most 25 bits each for 32-bit floating point data, since the low 7 bits can be dropped without affecting the post-scaling quantized output. The scales are constrained to be powers of two, and so require at most 9 bits for non-subnormal 32-bit floating point inputs (which have one sign bit and eight exponent bits). The offsets and scales together therefore contribute $4 (25 + 9) = 136$ bits per tree.
+
+There are $15$ split values because there is one for the root of each tree, then two for the second level, four for the third, and eight for the fourth. Each split value is stored using eight bits, so each tree requires $15 \cdot 8 = 120$ bits for split values. The total number of bits used for all trees is therefore $C(4 \ceil{\log_2(D)} + 256)$. Note that the constant 256 being a power of two is just an accident of floating point formats. The claimed hypothesis count follows from the number of expressible hypotheses being at most $2$ to the power of the largest number of bits used to store any hypothesis.
+% Finally, it is necessary to encode the number of bits used to store split indices, $\ceil{\log_2(D)}$; assuming $D$ can be stored in 32 bits, this is at most 5 bits.
+\end{proof}
+
+% \begin{theorem}[[Bartlett and Mendelson 2002]] let $\Fcal$ be a class of functions, let $\Scal$ be a set of $n$ samples drawn i.i.d. from some distribution $\Dcal$, and let $\Lcal(f), f \in \Fcal$ be a loss function with Lipschitz constant $l$. Then for any $\delta, 0 < \delta < 1$, it holds for all $f \in \Fcal$ with probability at least $1 - \delta$ that
+% \begin{align}
+%     \E_\Dcal[\Lcal{f}] \le \E_S[\Lcal(f)] + 2 l \Rcal_n(\Fcal) + l \sqrt{\frac{\log(1 / \delta)}{2n}}
+% \end{align}
+% \end{theorem}
+
+We now turn our attention to bounding the errors of the regression component of training. Our strategy for doing so is to bound the largest singular value of the learned matrix of prototypes $\P$. Given such a bound, the norms of both $g(\a)^\top \P$ and $\P^\top \b$ can be bounded.
+
+% and $\Y \in \R^{D \times M}
+\begin{lemma}[Regularized Pseudoinverse Operator Norm Bound] \label{lemma:pinvBound}
+Let $\X \in \R^{N \times D}$
+% $\lambda$
+% $\mat{I}$
+% $\W$
+be an arbitrary matrix with finite elements. Then every singular value $\sigma_i$ of the matrix $\Z \triangleq (\X^\top \X + \lambda \mat{I})^{-1} \X^\top$, $\lambda > 0$ is at most $\frac{1}{2\sqrt{\lambda}}$.
+\end{lemma}
+\begin{proof} Let $\U \Sigm \Vt$ be the singular value decomposition of $\X$. Then we have
+\begin{align}
+    \Z &= (\X^\top \X + \lambda \I)^{-1} \X^\top   \\
+    &= (\V \Sigm \Ut \U \Sigm \Vt + \lambda \I)^{-1} \V \Sigm \Ut \\
+    &= (\V \Sigm^2 \Vt + \lambda \I)^{-1} \V \Sigm \Ut \\
+    &= (\V \Sigm^2 \Vt + \V \lambda \I \Vt)^{-1} \V \Sigm \Ut \label{step:wrapI} \\
+    &= (\V \Sigm_\lambda \Vt)^{-1} \V \Sigm \Ut \\
+    &= \V \Sigm_\lambda^{-1} \Vt \V \Sigm \Ut \\
+    &= \V \Sigm_\lambda^{-1} \Sigm \Ut \\
+    &= \V \Sigm^\prime \Ut
+\end{align}
+where $\Sigm_\lambda \triangleq \Sigm^2 + \lambda \I$ and $\Sigm^\prime \triangleq (\Sigm^2 + \lambda \I)^{-1} \Sig$. Step \ref{step:wrapI} follows from the equality $\V \lambda \I \Vt = \lambda \V \Vt = \lambda \I$. Because the matrices $\V$ and $\Ut$ are orthonormal and $\Sigm^\prime$ is diagonal, the singular values of $\Z$ are equal to the diagonal entries of $\Sigm^\prime$. Each entry $\sigma_i^\prime$ is equal to
+\begin{align}
+    \sigma_i^\prime = \frac{\sigma_i}{\sigma_i^2 + \lambda}.
+\end{align}
+This expression attains its maximal value of $\frac{1}{2\sqrt{\lambda}}$ when $\sigma_i^2 = \lambda$.
+\end{proof}
+
+\begin{lemma}[Ridge Regression Singular Value Bound] \label{lemma:ridgeBound}
+Let $\X \in \R^{N \times D}$ and $\Y \in \R^{D \times M}$ be arbitrary matrices and let $\W \triangleq (\X^\top \X + \lambda \mat{I})^{-1} \X^\top \Y$, $\lambda > 0$ be the ridge regression weight matrix. Then $\norm{\W}_\inf \le \frac{\norm{\Y}_\inf}{2 \sqrt{\lambda}}$, where $\norm{\cdot}_\inf$ denotes the largest singular value.
+\end{lemma}
+\begin{proof}
+Observe that $\W = \Z \Y$, where $\Z \triangleq (\X^\top \X + \lambda \mat{I})^{-1} \X^\top$. Then by applying Lemma~\ref{lemma:pinvBound} and recalling that Schatten norms are submultiplicative, we have
+\begin{align}
+    \norm{\W}_\inf \le \norm{\Z}_\inf \norm{\Y}_\inf \le \frac{\norm{\Y}_\inf}{2\sqrt{\lambda}}.
+\end{align}
+\end{proof}
+
+\begin{lemma}[Bound on \oursp Embedding Norm] \label{lemma:embedNorm}
+Let $\g = g(\a)$ be the encoding of an arbitrary vector $\a$ using $C$ codebooks and let $\P$ be the prototype matrix learned by \oursp using training matrix $\tilde{\A}$ with ridge regression parameter $\lambda > 0$. Then
+\begin{align}
+    \norm{\g^\top \P}_2 \le \frac{C}{2 \sqrt{\lambda}} \norm{\tilde{\A}}_{\inf}
+\end{align}
+where $\norm{\tilde{\A}}_{\inf}$ denotes the largest singular value of $\tilde{\A}$.
+\end{lemma}
+\begin{proof} We have
+\begin{align}
+    \norm{\g^\top \P}_2 &\le \norm{\g}_2 \norm{\P}_\inf \\
+    &= C \norm{\P}_\inf \\
+    &\le \frac{C}{2 \sqrt{\lambda}} \norm{\tilde{\A}}_{\inf}.
+\end{align}
+The first step follows from Cauchy-Schwarz. The second follows from $\g$ being zero except for exactly $C$ ones. The last is an application of Lemma~\ref{lemma:ridgeBound}.
+\end{proof}
+
+\begin{lemma}[Maximum Table Quantization Loss] \label{lemma:lutQuantBound}
+Let $\ahat = g(\a)^\top\P$, where $g(\cdot)$ and $P$ are trained using $C$ codebooks and ridge regression penalty $\lambda > 0$ on a matrix $\tilde{\A}$ with maximum singular value at most $\sigma_A$, and $\a \in \R^D$ is an arbitrary vector. Then for any vector $\b \in \R^D$, $|\ahat^\top \b - \yhat| < \frac{C \sigma_A \norm{\b}_2}{512 \sqrt{\lambda}} $, where %$\yhat \triangleq g(\a)^\top (\P^\top \b)$.
+$\yhat \triangleq \alpha g(\a)^\top g(\b) + \mat{\beta}$ is \ours's approximation to $\a^\top \b$, with $\alpha$ and $\mat{\beta}$ the scale and offsets used to quantize the lookup tables.
+%defined in Equation~\ref{eq:objective} except without the averaging debias constant added to $\mat{\beta}$.
+\end{lemma}
+\begin{proof} If \oursp had infinite-precision lookup tables, $\yhat$ would exactly equal $\ahat^\top \b$. We therefore need only bound the error introduced by the quantization. By Lemma~\ref{lemma:embedNorm}, $\norm{\ahat}_2 \le \frac{C \sigma_A}{2 \sqrt{\lambda}} $. This implies that
+\begin{align}
+    \norm{\ahat^\top \b} \le \frac{C \sigma_A \norm{\b}_2}{2 \sqrt{\lambda}}
+\end{align}
+and therefore
+\begin{align}
+    \frac{-C \sigma_A \norm{\b}_2}{2 \sqrt{\lambda}} \le \ahat^\top \b \le \frac{C \sigma_A \norm{\b}_2}{2 \sqrt{\lambda}}.
+\end{align}
+For each of the $C$ codebooks, this means that the value to be quantized lies in the interval $[\frac{-\sigma_A \norm{\b}_2}{2 \sqrt{\lambda}}, \frac{\sigma_A \norm{\b}_2}{2 \sqrt{\lambda}}]$ of width $\frac{\sigma_A \norm{\b}_2}{\sqrt{\lambda}}$.
+Because \oursp quantizes the lookup tables such that largest and smallest entries for any row of $\P$ are linearly mapped to $255.5$ and $-0.5$,\footnote{We use $255.5$ and $-0.5$ rather than $255$ and $0$ because the latter only guarantees that a point is within $1 / 510$ of the interval width, not $1 / 512$. This is not an important choice and either option would be fine.} respectively, the worst-case quantization error is when the quantized value lies exactly between two quantization levels.% (as opposed to lying outside the linearly rescaled interval).
+We therefore need to compute the largest possible gap between a value and its quantization. Using 256 quantization levels, the largest possible gap is $1 / (256 / .5) = 1/512$ of the interval width. Multiplying by the above interval width yields a maximum quantization error for a given codebook of $\frac{\sigma_A \norm{\b}_2}{512 \sqrt{\lambda}}$.
+ % Using the worst-case interval above and observing that 256 quantization levels imply a maximum quantization error of $1 / (256 / .5) = 1/512$ of the interval width gives us a maximum error for each codebook of $\frac{\sigma_A \norm{\b}_2}{512 \sqrt{\lambda}}$.
+Because the errors in each subspace may not agree in sign, their sum is an upper bound on the overall quantization error.
+\end{proof}
+
+At this point, we have all of the pieces necessary to prove a generalization guarantee for \texttt{Maddness-Regress} save one: a theorem linking the norms of the various vectors and matrices involved to a probabilistic guarantee. Kakade et al. \cite{kakadeLinear} provide such a gaurantee, based on Rademacher complexity \cite{rademacherOrig}.
+
+\begin{theorem}[\cite{kakadeLinear}, Corollary 5] \label{thm:linearGeneralize}
+Let $\Fcal = \{\w^\top \x : \norm{\w}_2 \le W \}$ be the class of linear functions with bounded $L_2$ norms, let $\Scal$ be a set of $n$ samples drawn i.i.d. from some distribution $\Dcal$ over the $L_2$ ball of radius $X$,
+% such that $\x \sim \Dcal \implies \norm{\x}_2 \le X$ almost surely for some $X$
+and let $\Lcal(f), f \in \Fcal$ be a loss function with Lipschitz constant $L$. Then for any $0 < \delta < 1$, it holds with probability at least $1 - \delta$  over the sample $\Scal$ that
+\begin{align}
+    \E_\Dcal[\Lcal(f)] \le \E_S[\Lcal(f)] + \frac{L X W}{\sqrt{2n}} \left( 8 + \sqrt{-log(\delta)} \right) .
+    % l \Rcal_n(\Fcal) + l \sqrt{\frac{\log(1 / \delta)}{2n}}
+\end{align}
+\end{theorem}
+
+We can now obtain our desired guarantee for the regression step.
+
+% \begin{lemma}[Rademacher Complexity and Maximum Loss of \texttt{Maddness-Regress}].
+\begin{lemma}[Generalization Error of \texttt{Maddness-Regress}] \label{lemma:regGeneralize}
+% $\Dcal: \R^{N \times D} \rightarrow \R_+$
+% \tilde{\A} \sim \Dcal,
+
+% Let $\tilde{\A} \in \R^{N \times D}$ be the matrix on which \oursp is trained. Let $\G = g(\tilde{\A}) \in \R^{N \times 16C}$ be the encoding of $\tilde{\A}$ using a fixed (data-independent) set of $C$ trees output by \\
+% \texttt{Maddness-Build-Tree}; let $\sigma_A$ be an upper bound on the largest singular value of any matrix $\A$ drawn from $\Dcal$ with $N$ rows; let $\lambda > 0$ be the regularization parameter of the ridge regression used by \texttt{Maddness-Regress}; and let $\Lcal(\a, \b) \triangle |\a^\top \b - f(g(\a), h(\b))|$. Then for any row $\a$ of any matrix $\A \sim \Dcal$, and any vector $\b, \norm{\b}_2 \le L_{\b}$, it holds with probability at least $1 - \delta$, $0 < \delta < 1$ over the training matrix $\tilde{\A}$ that:
+Let $\Dcal$ be a probability distribution over $\R^D$ and suppose that \oursp is trained on a matrix $\tilde{\A} \in R^{N \times D}$ whose rows are drawn independently from $\Dcal$ and with maximum singular value bounded by $\sigma_A$. Let $C$ be the number of codebooks used by \oursp and $\lambda > 0$ the regularization parameter used in the ridge regression step. Further let $g(\a)$ be a fixed (data-independent) function and $\Lcal(\a, \b) \triangleq |\a^\top \b - f(g(\a), h(\b))|$. Then for all vectors $\b$, any vector $\a \sim \Dcal$, and any $0 < \delta < 1$, we have with probability at least $1 - \delta$ that
+\begin{align} \label{eq:regressGeneralize}
+    \begin{split}
+    \E_{\Dcal}[ & \Lcal(\a, \b)] \le \E_{\tilde{\A}}[\Lcal(\a, \b)] + \frac{C \sigma_A \norm{\b}_2}{512 \sqrt{\lambda}} + \\
+    &\frac{C \sigma_A \norm{\b}_2}{2\sqrt{2n \lambda}} \left( 8 + \sqrt{-log(\delta)} \right).
+    \end{split}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+The output of \texttt{Maddness-Regress} can be decomposed into
+\begin{align}
+    \yhat \triangleq f(g(\a), h(\b)) = \g^\top \P \b + \eps + \zeta
+\end{align}
+where $\g = g(\a)$, $\P$ is the matrix of prototypes, $\eps$ is data-independent noise from the averaging process\footnote{We continue to make the assumption that the least significant bits of the lookup table entries are independent Bernoulli(0.5) random variables, which is nearly true in practice. Even if this assumption does not hold, this noise does not contribute to the generalization gap unless it differs between train and test sets.}, and $\zeta$ is noise from quantizing the lookup table entries. By Lemma~\ref{lemma:lutQuantBound}, $\zeta \le \frac{C \sigma_A \norm{\b}_2}{512 \sqrt{\lambda}}$ (accounting for the second term in Equation~\ref{eq:regressGeneralize}). We therefore need only obtain a guarantee for $|\g^\top \P \b - \a^\top \b|$. Defining $\w \triangleq \P \b$, we see that \texttt{Maddness-Regress} is a linear model, and therefore subject to Theorem~\ref{thm:linearGeneralize}. Given an upper bound on the Lipschitz constant of the loss, a bound on the $L_2$ norm of $\g$, and a bound on the $L_2$ norm of $\w$, we can apply this theorem. The Lipschitz constant for the absolute loss is 1. The $L_2$ norm of $\g$ is exactly $C$. The $L_2$ norm of $\w$ can be bounded as
+\begin{align}
+    \norm{\w}_2 &= \norm{\P \b}_2 \le \norm{\P}_\inf \norm{\b}_2
+    \le \frac{\sigma_A \norm{\b}_2 }{2\sqrt{\lambda}}
+\end{align}
+using Lemma~\ref{lemma:ridgeBound}.
+\end{proof}
+
+Using this lemma, the proof of Theorem~\ref{thm:maddness} is immediate; we begin with Lemma~\ref{lemma:regGeneralize} and simply union bound over all $2^{C (4\ceil{\log_2(D)} + 120)}$ hypotheses from Lemma~\ref{lemma:ntrees}.
+
+
