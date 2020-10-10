@@ -117,14 +117,14 @@ We introduce an approximate matrix multiplication algorithm that both substantia
 \input{results.tex}
 
 %================================================================
-\vspace{-2.5mm}
+% \vspace{-2.5mm}
 \section{Conclusion}
-\vspace{-.5mm}
+% \vspace{-.5mm}
 %================================================================
 
 We introduce an approximate matrix multiplication algorithm that achieves a significantly better speed-quality tradeoff than existing methods, as measured on various machine learning and other tasks using hundreds of real-world matrices from diverse domains. We also prove theoretical guarantees regarding our method's errors. Our method's performance stems from 1) its replacement of the bottleneck in existing methods with a learned locality-sensitive hash function, 2) its optimization of a quantity that other methods cannot optimize without a large slowdown, and 3) its use of an inexact estimator for computing sums.
 
-In future work, we plan to specialize our method for convolutions, implement it on GPUs, and integrate it into neural networks. Moreoever, because the bottleneck operations in our method are simple table lookups and elementwise comparisons, rather than traditional multiply-adds, it would also be interesting to explore implementing this approach in hardware.
+In future work, we plan to specialize our method for convolutions, implement it on GPUs, and integrate it into neural networks. Moreoever, because the bottleneck operations in our method are simple table lookups and elementwise comparisons, rather than traditional multiply-adds, it would also be interesting to explore implementing our approach in hardware.
 
 
 

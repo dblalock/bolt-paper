@@ -95,9 +95,9 @@ our average-based, matrix-aware aggregation is significantly faster than the upc
 \end{figure}
 
 % ------------------------------------------------
-% \vspace{-1.5mm}
+\vspace{-1.5mm}
 \subsection{Softmax Classifier}
-% \vspace{-.5mm}
+\vspace{-.5mm}
 % \vspace{-1mm}
 % ------------------------------------------------
 
@@ -112,6 +112,9 @@ As shown in Figure~\ref{fig:cifar}, \oursp significantly outperforms all existin
 \end{center}
 \end{figure}
 
+Moreover, our method achieves this performance despite having worse support from the hardware. Specifically, it obtains speedups much smaller than the level of compression it provides. For example, the third points from the right correspond to speedups of roughly $100\times$. However, they are compressing each $512 \times 4\text{B} = 2048\text{B}$ row of the input down to a mere 4B, a savings of $512\times$ (sizes not shown in figure). In other words, if the hardware could lookup-accumulate as many bytes per cycle as it can multiply-accumulate, our method would be roughly four times as fast. Combined with the fact that multiplexers require many fewer transistors than multipliers, this suggests that a hardware implementation of our method could offer large speedups and power savings compared to existing accelerators.
+% Similar results hold in other experiments throughout this section.
+
 % ------------------------------------------------
 \vspace{-2mm}
 \subsection{Kernel-based classification}
@@ -119,12 +122,12 @@ As shown in Figure~\ref{fig:cifar}, \oursp significantly outperforms all existin
 % \vspace{-1mm}
 % ------------------------------------------------
 
-To assess the efficacy of our method on a larger and more diverse set of datasets than simply CIFAR-10 and CIFAR-100, we trained kernel classifiers on the datasets from the UCR Time Series Archive \cite{UCRArchive2018}. To enable meaningful speed comparison across datasets, we resampled the time series in all datasets to the median length and obtained the matrix $\B$ for each dataset by running Stochastic Neighbor Compression \cite{snc} on the training set with an RBF kernel of bandwidth one. We set the number of returned neighbors to 128 (results with 64 and 256 were similar). We approximated the Euclidean distances used by the kernel via the identity $\norm{\vec{x} - \vec{y}}_2^2 = \norm{\vec{x}}_2^2 - 2\vec{x}^\top \vec{y} + \norm{\vec{y}}_2^2$, which consists only of dot products.
+To assess the efficacy of our method on a larger and more diverse set of datasets than CIFAR-10 and CIFAR-100, we trained kernel classifiers on the datasets from the UCR Time Series Archive \cite{UCRArchive2018}. To enable meaningful speed comparison across datasets, we resampled the time series in all datasets to the median length and obtained the matrix $\B$ for each dataset by running Stochastic Neighbor Compression \cite{snc} on the training set with an RBF kernel of bandwidth one. We set the number of returned neighbors to 128 (results with 64 and 256 were similar). We approximated the Euclidean distances used by the kernel via the identity $\norm{\vec{x} - \vec{y}}_2^2 = \norm{\vec{x}}_2^2 - 2\vec{x}^\top \vec{y} + \norm{\vec{y}}_2^2$, which consists only of dot products.
 
 This is not the state-of-the-art means of classifying time series, but it does yield fixed-sized matrices and is representative of several modern techniques for constructing highly efficient classifiers \cite{snc,dsnc,bnc,protonn}. This setup also complements the CIFAR results by being an extremely difficult task, since Stochastic Neighbor Compression has already optimized the classifiers to avoid redundancy.
 %. This is because 1) Stochastic Neighbor Compression has already optimized the classifer to avoid redundancy, and 2) the distances between time series are often far smaller than their $L_2$ norms, allowing even small approximation errors to change predictions. % since the distances between time series are often far smaller than their euclidean lengths; this property means that even small amounts of approximation error are sufficient to change predictions. It is also difficult because the $\B$ matrix has been optimized to avoid redundancy, so any acceleration
 
-As shown in Figure~\ref{fig:ucr}, \oursp is significantly faster at a given level of accuracy. A counter-intuitive result, however, is that optimization of the prototypes occasionally reduces accuracy (see the red line dipping below the blue one in the lowest subplot). Since the optimization strictly increases the expressive power, we believe that this is a product of overfitting and could be corrected were we to tune the ridge regression's parameter (instead of always using $\lambda = 1$).
+As shown in Figure~\ref{fig:ucr}, \oursp is significantly faster at a given level of accuracy. A counter-intuitive result, however, is that optimization of the prototypes occasionally reduces accuracy---see the red line dipping below the blue one in the lowest subplot. Since the optimization strictly increases the expressive power, we believe that this is a product of overfitting and could be corrected were we to tune the ridge regression's parameter (instead of always using $\lambda = 1$).
 % This subplot also shows that even \oursp cannot satisfy the most stringent accuracy requirements on many datasets, since the \oursp curves never approach 1.
 This subplot also reveals that the most stringent degredation requirements can sometimes only be met using PCA at a low speedup (and not \ours), since this is the only curve approaching $1$.
 % , at high accuracy preservation thresholds,  % However as indicated by \oursp never approaching a fraction of 1 on the bottom subplot, \oursp does not consistently preserve the full accuracy. This suggests that, for difficult classification problems in which almost no accuracy can be sacrificed, \outsp is often not the best choice. The only methods that reliably preserve nearly the full original accuracy are PCA with a small speedup and, with certain parameter settings, Bolt.
