@@ -1,110 +1,110 @@
 
-% % ================================================================
-% \section{Quantizing Lookup Tables} \label{sec:lutQuantize}
-% % ===============================================================
+% ================================================================
+\section{Quantizing Lookup Tables} \label{sec:lutQuantize}
+% ===============================================================
 
-% % Existing work has shown that setting $K = 16$ and quantizing the lookup tables for a given column of $\B$ to 8 bits can offer enormous speedups compared to larger $K$ and/or floating-point tables \cite{bolt, quickAdc, quickerAdc}. This is because 16 1-byte entries can be stored in a SIMD register, allowing 16 or more table lookups to be performed in parallel in a single instruction.
+% Existing work has shown that setting $K = 16$ and quantizing the lookup tables for a given column of $\B$ to 8 bits can offer enormous speedups compared to larger $K$ and/or floating-point tables \cite{bolt, quickAdc, quickerAdc}. This is because 16 1-byte entries can be stored in a SIMD register, allowing 16 or more table lookups to be performed in parallel in a single instruction.
 
-% Since the lookup table entries naturally occupy more than 8 bits even for 8-bit data (since products of 8-bit values require 16 bits), some means of quantizing these entries is necessary to enable vectorization. Unfortunately, existing quantization methods are not applicable to our problem setting. The scheme of \citet{bolt} requires knowledge of $\B$ at training time, while the scheme of \citet{quickAdc} and \citet{quickerAdc} is only applicable for nearest-neighbor search. We instead use the following approach, where $\mat{T} \in \R^{M \times C \times K}$ is the tensor of lookup tables for all $M$ columns of $\B$, $\mat{T}^q$ is the quantized version of $\mat{T}$, $\vec{\delta} \in \R^C$ is a vector of table-specific offsets, and $\alpha^{-1}$ is an overall scale factor:
+Since the lookup table entries naturally occupy more than 8 bits even for 8-bit data (since products of 8-bit values require 16 bits), some means of quantizing these entries is necessary to enable vectorization. Unfortunately, existing quantization methods are not applicable to our problem setting. The scheme of \citet{bolt} requires knowledge of $\B$ at training time, while the scheme of \citet{quickAdc} and \citet{quickerAdc} is only applicable for nearest-neighbor search. We instead use the following approach, where $\mat{T} \in \R^{M \times C \times K}$ is the tensor of lookup tables for all $M$ columns of $\B$, $\mat{T}^q$ is the quantized version of $\mat{T}$, $\vec{\delta} \in \R^C$ is a vector of table-specific offsets, and $\alpha^{-1}$ is an overall scale factor:
+\begin{align}
+    \vec{\delta}_c &\triangleq \min_{m,k} \text{ } \mat{T}_{m,c,k} \\
+    \alpha^{-1} \triangleq 2^l \cs l &= \max_c \floor{ \log_2 \left( \frac{255}{
+            \max_{m,k} (\mat{T}_{m,c,k} - \delta_{c})
+        } \right)}. \\
+    \mat{T}^q_{m,c,k} &\triangleq \alpha^{-1}(\mat{T}_{m,c,k} - \delta_{c})
+\end{align}
+This is similar to equations~\ref{eq:offset} and \ref{eq:scale}, but with the scale factor pooled across all codebooks instead of unique to each input column. The $\alpha$ used here is the same as that in equation~\ref{eq:objective}, and the matrix $\beta$ in equation~\ref{eq:objective} has entries equal to $\sum_c \vec{\delta}_c$ (plus the debiasing constant from our averaging-based aggregation).
+
+% ================================================================
+\section{Quantization and \oursHash} \label{sec:hashQuantize}
+% ================================================================
+
+The use of at most 16 leaves is so that the resulting codes use 4 bits. This allows the use of these same shuffle instructions to accelerate the table lookups as in \citet{bolt}.
+
+The only subtlety in vectorizing our hash function is that one must execute line 4 using shuffle instructions such as \texttt{vpshufb} on x86, \texttt{vtbl} on ARM, or \texttt{vtbl} on PowerPC. In order to do this, the split values and scalars $x_{j^t}$ must be 8-bit integers. We quantize them by learning for each split index $j$ a pair of scalars $(\gamma_j, \delta_j)$, where
+\begin{align}
+    \delta_j &\triangleq \min_i \v^j_i \label{eq:offset} \\
+    % \gamma_j \triangleq 2^l, l = \left \lfloor \text{log2} \left( \frac{255}{\max_i \v^j_i - \delta_j} \right) \right \rfloor
+    \gamma_j &\triangleq 2^l, l = \floor{ \log_2 \left( \frac{255}{\max_i \v^j_i - \delta_j} \right) \label{eq:scale} }
+\end{align}
+% and
 % \begin{align}
-%     \vec{\delta}_c &\triangleq \min_{m,k} \text{ } \mat{T}_{m,c,k} \\
-%     \alpha^{-1} \triangleq 2^l \cs l &= \max_c \floor{ \log_2 \left( \frac{255}{
-%             \max_{m,k} (\mat{T}_{m,c,k} - \delta_{c})
-%         } \right)}. \\
-%     \mat{T}^q_{m,c,k} &\triangleq \alpha^{-1}(\mat{T}_{m,c,k} - \delta_{c})
+% %     &\min_i \v^j_i - \delta_j = 0 \\
+% %     &\max_i \gamma_j(\v^j_i - \delta_j) \le 255
 % \end{align}
-% This is similar to equations~\ref{eq:offset} and \ref{eq:scale}, but with the scale factor pooled across all codebooks instead of unique to each input column. The $\alpha$ used here is the same as that in equation~\ref{eq:objective}, and the matrix $\beta$ in equation~\ref{eq:objective} has entries equal to $\sum_c \vec{\delta}_c$ (plus the debiasing constant from our averaging-based aggregation).
+% and $\gamma_j$ is a power of 2.
+This restriction of $\gamma_j$ to powers of two allows one to quantize $x_{j^t}$ values with only shifts instead of multiplies. The $\vec{v}$ values can be quantized at the end of the training phase, while the $x_{j^t}$ values must be quantized within Algorithm~\ref{algo:ourEnc} before line 5.
 
-% % ================================================================
-% \section{Quantization and \oursHash} \label{sec:hashQuantize}
-% % ================================================================
+% ================================================================
+\vfill\break  % columnbreak
+\section{Subroutines for Training \oursHash} \label{sec:optimalSplitVal}
+% ================================================================
 
-% The use of at most 16 leaves is so that the resulting codes use 4 bits. This allows the use of these same shuffle instructions to accelerate the table lookups as in \citet{bolt}.
+The \texttt{optimal\_split\_threshold} algorithm (Algorithm~\ref{algo:optimalSplitVal}) finds the best threshold at which to split a bucket within a given dimension. To do this, it uses the \texttt{cumulative\_sse} function (Algorithm \ref{algo:cumSSE}) to help evaluate the loss associated with the resulting child buckets.
 
-% The only subtlety in vectorizing our hash function is that one must execute line 4 using shuffle instructions such as \texttt{vpshufb} on x86, \texttt{vtbl} on ARM, or \texttt{vtbl} on PowerPC. In order to do this, the split values and scalars $x_{j^t}$ must be 8-bit integers. We quantize them by learning for each split index $j$ a pair of scalars $(\gamma_j, \delta_j)$, where
-% \begin{align}
-%     \delta_j &\triangleq \min_i \v^j_i \label{eq:offset} \\
-%     % \gamma_j \triangleq 2^l, l = \left \lfloor \text{log2} \left( \frac{255}{\max_i \v^j_i - \delta_j} \right) \right \rfloor
-%     \gamma_j &\triangleq 2^l, l = \floor{ \log_2 \left( \frac{255}{\max_i \v^j_i - \delta_j} \right) \label{eq:scale} }
-% \end{align}
-% % and
-% % \begin{align}
-% % %     &\min_i \v^j_i - \delta_j = 0 \\
-% % %     &\max_i \gamma_j(\v^j_i - \delta_j) \le 255
-% % \end{align}
-% % and $\gamma_j$ is a power of 2.
-% This restriction of $\gamma_j$ to powers of two allows one to quantize $x_{j^t}$ values with only shifts instead of multiplies. The $\vec{v}$ values can be quantized at the end of the training phase, while the $x_{j^t}$ values must be quantized within Algorithm~\ref{algo:ourEnc} before line 5.
+These algorithms exploit the fact that the sum of squared errors can be computed using only the sum of values and sum of squared values, both of which can be updated in $O(1)$ time when a vector is moved from one side of the split to the other.
 
-% % ================================================================
-% \vfill\break  % columnbreak
-% \section{Subroutines for Training \oursHash} \label{sec:optimalSplitVal}
-% % ================================================================
+% ------------------------------------------------ optimalSplitVal
 
-% The \texttt{optimal\_split\_threshold} algorithm finds the best threshold at which to split a bucket within a given dimension. To do this, it uses the \texttt{cumulative\_sse} function (\ref{algo:cumSSE}) to help evaluate the loss associated with the resulting child buckets.
+\begin{algorithm}[h]
+\caption{Optimal Split Threshold Within a Bucket} \label{algo:optimalSplitVal}
+\begin{algorithmic}[1]
+    \STATE {\bfseries Input:} bucket $\mathcal{B}$, index $j$
+    \STATE {$\mat{X} \leftarrow \texttt{as\_2d\_array}(\mathcal{B})$ }
+    \STATE {$\mat{X}^{sort} = \texttt{sort\_rows\_based\_on\_col}(\mat{X} \text{, } j)$}
+    \STATE {$\texttt{sses\_head} \leftarrow \texttt{cumulative\_sse}(\mat{X}^{sort}, \texttt{false}) $}
+    \STATE {$\texttt{sses\_tail} \leftarrow \texttt{cumulative\_sse}(\mat{X}^{sort}, \texttt{true}) $}
+    \STATE {$\texttt{losses} \leftarrow \texttt{sses\_head} $}
+    \STATE {$\texttt{losses}_{1:N-1} \leftarrow \texttt{losses}_{1:N-1} + \texttt{sses\_tail}_{2:N} $}
+    % \STATE {$ n^\ast \leftarrow \min_n \sum_{d=1}^D $}
+    % \STATE {$ n^\ast \leftarrow \argmin_n \texttt{sses\_head}_n + \texttt{sses\_tail}_{n+1} $}
+    \STATE {$ n^\ast \leftarrow \argmin_n \texttt{losses}_n $}
+    \STATE{$ \textbf{return } (\mat{X}^{sort}_{n^\ast \text{, } j} + \mat{X}^{sort}_{n^\ast + 1 \text{, } j}) / 2 \text{, } \texttt{losses}_{n^\ast} $}
+    % \STATE {$\texttt{sses\_tail} \leftarrow \texttt{reverse\_row\_order}(\texttt{cumsse\_cols}(\texttt{reverse\_row\_order}(\mat{X}_{sort})_) $}
+    % \STATE {$\texttt{sses\_tail} \leftarrow \texttt{reverse\_row\_order}(\texttt{cumsse\_cols}(\texttt{reverse\_row\_order}(\mat{X}_{sort})_) $}
 
-% These algorithms exploit the fact that the sum of squared errors can be computed using only the sum of values and sum of squared values, both of which can be updated in $O(1)$ time when a vector is moved from one side of the split to the other.
+\end{algorithmic}
+\end{algorithm}
 
-% % ------------------------------------------------ optimalSplitVal
+% ------------------------------------------------ cumSSE
 
-% \begin{algorithm}[h]
-% \caption{Optimal Split Threshold Within a Bucket} \label{algo:optimalSplitVal}
-% \begin{algorithmic}[1]
-%     \STATE {\bfseries Input:} bucket $\mathcal{B}$, index $j$
-%     \STATE {$\mat{X} \leftarrow \texttt{as\_2d\_array}(\mathcal{B})$ }
-%     \STATE {$\mat{X}^{sort} = \texttt{sort\_rows\_based\_on\_col}(\mat{X} \text{, } j)$}
-%     \STATE {$\texttt{sses\_head} \leftarrow \texttt{cumulative\_sse}(\mat{X}^{sort}, \texttt{false}) $}
-%     \STATE {$\texttt{sses\_tail} \leftarrow \texttt{cumulative\_sse}(\mat{X}^{sort}, \texttt{true}) $}
-%     \STATE {$\texttt{losses} \leftarrow \texttt{sses\_head} $}
-%     \STATE {$\texttt{losses}_{1:N-1} \leftarrow \texttt{losses}_{1:N-1} + \texttt{sses\_tail}_{2:N} $}
-%     % \STATE {$ n^\ast \leftarrow \min_n \sum_{d=1}^D $}
-%     % \STATE {$ n^\ast \leftarrow \argmin_n \texttt{sses\_head}_n + \texttt{sses\_tail}_{n+1} $}
-%     \STATE {$ n^\ast \leftarrow \argmin_n \texttt{losses}_n $}
-%     \STATE{$ \textbf{return } (\mat{X}^{sort}_{n^\ast \text{, } j} + \mat{X}^{sort}_{n^\ast + 1 \text{, } j}) / 2 \text{, } \texttt{losses}_{n^\ast} $}
-%     % \STATE {$\texttt{sses\_tail} \leftarrow \texttt{reverse\_row\_order}(\texttt{cumsse\_cols}(\texttt{reverse\_row\_order}(\mat{X}_{sort})_) $}
-%     % \STATE {$\texttt{sses\_tail} \leftarrow \texttt{reverse\_row\_order}(\texttt{cumsse\_cols}(\texttt{reverse\_row\_order}(\mat{X}_{sort})_) $}
+\begin{algorithm}[h]
+% \caption{Cumulative SSE Within Columns} \label{algo:cumSSE}
+\caption{Cumulative SSE} \label{algo:cumSSE}
+\begin{algorithmic}[1]
+    \STATE {\bfseries Input:} 2D array $\mat{X}$, boolean \texttt{reverse}
+    \STATE {$N, D \leftarrow \texttt{shape}(\mat{X})$}
+    \IF {\texttt{reverse}}
+        \STATE{$ \forall_i \texttt{ swap}(\mat{X}_{i,d}, \mat{X}_{N-i+1,d}) $}
+    \ENDIF
 
-% \end{algorithmic}
-% \end{algorithm}
+    % \STATE {$\texttt{out} \leftarrow \texttt{empty}(N \text{, } D)$}
+    \STATE {$\texttt{out} \leftarrow \texttt{empty}(N)$}
+    \STATE {$\texttt{cumX} \leftarrow \texttt{empty}(D)$}
+    \STATE {$\texttt{cumX2} \leftarrow \texttt{empty}(D)$}
 
-% % ------------------------------------------------ cumSSE
+    \LINECOMMENT{Initialize first row of output and cumulative values}
+    \STATE{$\texttt{out}_{1} \leftarrow 0 $}
+    \FOR{$d \leftarrow 1 \textbf{ to } D $}
+        \STATE{$\texttt{cumX}_d \leftarrow X_{1, d} $}
+        \STATE{$\texttt{cumX2}_d \leftarrow (X_{1, d})^2 $}
+        % \STATE{$\texttt{out}_{1, d} \leftarrow 0 $}
+    \ENDFOR
 
-% \begin{algorithm}[h]
-% % \caption{Cumulative SSE Within Columns} \label{algo:cumSSE}
-% \caption{Cumulative SSE} \label{algo:cumSSE}
-% \begin{algorithmic}[1]
-%     \STATE {\bfseries Input:} 2D array $\mat{X}$, boolean \texttt{reverse}
-%     \STATE {$N, D \leftarrow \texttt{shape}(\mat{X})$}
-%     \IF {\texttt{reverse}}
-%         \STATE{$ \forall_i \texttt{ swap}(\mat{X}_{i,d}, \mat{X}_{N-i+1,d}) $}
-%     \ENDIF
-
-%     % \STATE {$\texttt{out} \leftarrow \texttt{empty}(N \text{, } D)$}
-%     \STATE {$\texttt{out} \leftarrow \texttt{empty}(N)$}
-%     \STATE {$\texttt{cumX} \leftarrow \texttt{empty}(D)$}
-%     \STATE {$\texttt{cumX2} \leftarrow \texttt{empty}(D)$}
-
-%     \LINECOMMENT{Initialize first row of output and cumulative values}
-%     \STATE{$\texttt{out}_{1} \leftarrow 0 $}
-%     \FOR{$d \leftarrow 1 \textbf{ to } D $}
-%         \STATE{$\texttt{cumX}_d \leftarrow X_{1, d} $}
-%         \STATE{$\texttt{cumX2}_d \leftarrow (X_{1, d})^2 $}
-%         % \STATE{$\texttt{out}_{1, d} \leftarrow 0 $}
-%     \ENDFOR
-
-%     \LINECOMMENT{Compute remaining output rows}
-%     \FOR{$n \leftarrow 2 \textbf{ to } N $}
-%         \STATE{$\texttt{out}_{n} \leftarrow 0 $}
-%         \FOR{$d \leftarrow 1 \textbf{ to } D $}
-%             \STATE{$\texttt{cumX}_d \leftarrow \texttt{cumX}_d + X_{1, d} $}
-%             \STATE{$\texttt{cumX2}_d \leftarrow \texttt{cumX2}_d + (X_{1, d})^2 $}
-%             % \STATE{$\texttt{meanX} \leftarrow \texttt{cumX}_d / n $}
-%             % \STATE{$\texttt{out}_{n, d} \leftarrow \texttt{cumX2}_d - (\texttt{cumX}_d \times \texttt{cumX}_d / n)$}
-%             \STATE{$\texttt{out}_{n} \leftarrow \texttt{out}_{n} + \texttt{cumX2}_d - (\texttt{cumX}_d \times \texttt{cumX}_d / n)$}
-%         \ENDFOR
-%     \ENDFOR
-%     \STATE{\textbf{return } \texttt{out}}
-% \end{algorithmic}
-% \end{algorithm}
+    \LINECOMMENT{Compute remaining output rows}
+    \FOR{$n \leftarrow 2 \textbf{ to } N $}
+        \STATE{$\texttt{out}_{n} \leftarrow 0 $}
+        \FOR{$d \leftarrow 1 \textbf{ to } D $}
+            \STATE{$\texttt{cumX}_d \leftarrow \texttt{cumX}_d + X_{1, d} $}
+            \STATE{$\texttt{cumX2}_d \leftarrow \texttt{cumX2}_d + (X_{1, d})^2 $}
+            % \STATE{$\texttt{meanX} \leftarrow \texttt{cumX}_d / n $}
+            % \STATE{$\texttt{out}_{n, d} \leftarrow \texttt{cumX2}_d - (\texttt{cumX}_d \times \texttt{cumX}_d / n)$}
+            \STATE{$\texttt{out}_{n} \leftarrow \texttt{out}_{n} + \texttt{cumX2}_d - (\texttt{cumX}_d \times \texttt{cumX}_d / n)$}
+        \ENDFOR
+    \ENDFOR
+    \STATE{\textbf{return } \texttt{out}}
+\end{algorithmic}
+\end{algorithm}
 
 % ================================================================
 \vfill\break  % columnbreak
@@ -113,10 +113,10 @@
 
 
 \begin{definition}[Averaging Integer Sum Estimator]
-Let $\hat{s}(\x), \x \in \{0, 1\}^C, C \text{ \% } U = 0, U = 2^p, p \ge 0$. Further define the averaging operator $\mu(a, b) \triangleq \lfloor \frac{1}{2}(a + b + 1) \rfloor$. The Averaging Integer Sum Estimator (AISE) is defined as:
+Let $\x \in \{0, 1\}^C, C \text{ \% } U = 0, U = 2^p, p \ge 0$. The Averaging Integer Sum Estimator (AISE) $\hat{s}(\x)$ is defined as:
 \begin{align}
     % s(\x) &\triangleq \sum_{k=1}^{C / U} s_U(\x_{((k-1)*U+1):((k-1)*U+1+U)}) \\
-    \hat{s}(\x) &\triangleq \sum_{k=1}^{C / U} s_U(\x_{i_U:j_U}) \\
+    \hat{s}(\x) &\triangleq \sum_{k=1}^{C / U} \hat{s}_U(\x_{i_k:j_k}) \\
     \hat{s}_U(\x) &\triangleq
         \begin{cases}
             x_1 & \x \in \R^1 \\
@@ -125,7 +125,7 @@ Let $\hat{s}(\x), \x \in \{0, 1\}^C, C \text{ \% } U = 0, U = 2^p, p \ge 0$. Fur
              \lfloor \frac{1}{2}(\hat{s}_U(\x_{left}) + \hat{s}_U(\x_{right}) + 1) \rfloor & \text{otherwise}
        \end{cases}
 \end{align}
-where $i_U = (k-1)*U+1, j_U = i_U + U$ and $\x_{left}$ and $\x_{right}$ denote the initial and final $D/2$ indices of a given $\x \in \R^D$.
+where $i_k = (k-1) \cdot U+1, j_k = i_U + U$ and $\x_{left}$ and $\x_{right}$ denote vectors formed by taking the initial and final $D/2$ indices of a given $\x \in \R^D$.
 \end{definition}
 
 \begin{definition}[Pairwise Integer Sum and Sum Estimator]
@@ -134,10 +134,11 @@ For integers $a$ and $b$, define
     s(a, b) &\triangleq a + b \\
     \hat{s}(a, b) &\triangleq 2 \mu(a, b)
 \end{align}
+where $\mu(a, b) \triangleq \lfloor \frac{1}{2}(a + b + 1) \rfloor$.
 \end{definition}
 
 \begin{lemma}[Bias when averaging one pair] \label{thm:avgBias}
-Consider two scalars $a$ and $b$, $a, b \iid Bernoulli(.5)$. Define $\eps(a, b) \triangleq \hat{s}(a, b) - s(a, b)$. Then
+Consider two scalars $a$ and $b$, with $a, b \iid$ Bernoulli(.5). Define $\eps(a, b) \triangleq \hat{s}(a, b) - s(a, b)$. Then
 \[
     E[\eps(a, b)] = \frac{1}{2}
 \]
@@ -160,7 +161,7 @@ Consider two scalars $a$ and $b$, $a, b \iid Bernoulli(.5)$. Define $\eps(a, b) 
 % \end{proof}
 
 \begin{lemma}[Variance of error when averaging one pair]
-Consider two scalars $a$ and $b$, $a, b \iid \text{Bernoulli}(.5)$. Then
+Consider two scalars $a$ and $b$, $a, b \iid$ Bernoulli(.5). Then
 \[
     % E[\mu(a, b)^2] - E[\mu(x, y)]^2 = \frac{1}{4}
     E[\eps(a, b)^2] - E[\eps(x, y)]^2 = \frac{1}{4}
@@ -192,97 +193,127 @@ The proof then follows by again considering the four equiprobable cases as in Le
 
 
 
-\begin{lemma}[Bias and squared error of Averaging Integer Sum Estimator within a subspace] \label{thm:avgSubspace}
+% \begin{lemma}[Bias and error variance of AISE within a subspace] \label{thm:avgSubspace}
+\begin{lemma}[Bias of AISE within a subspace] \label{thm:avgSubspace}
 % Let $\hat{s}(\x), \x \in \R^C, C \text{ \% } U = 0$ be the sum estimator described in section~\ref{sec:aggregate} and let $s(\x) \triangleq \sum_c x_c$.
 % Let $s(\x)$ be defined as
-Suppose that the scalars $x_i$ are drawn from independent Bernoulli(.5) distributions. Then
+Suppose that the scalar elements $x_i$ of $\vec{x}$ are drawn from independent Bernoulli(.5) distributions. Then
 \begin{align}
-    E[s(\x) - \hat{s}(\x)] &= U \log_2(U) / 4 \\
-    E[(s_U(\x) - \hat{s}_U(\x))^2] &= U \log_2(U) / 8.
+    E[s_U(\x) - \hat{s}_U(\x)] &= U \log_2(U) / 4 \\
+    % Var[s_U(\x) - \hat{s}_U(\x)] &= U \log_2(U) / 8.
 \end{align}
 \end{lemma}
 \begin{proof}
-Observe that the computation graph can be cast as a balanced binary tree with $U$ leaves and each parent equal to the integer average of its children. Consider the bias introduced at each level $t$ of the tree, where $t=0$ corrsponds to the leaves and $t = \log_2(U)$ corresponds to the root. The expected error $E[\eps(t, n)]$ introduced at a node $n$ in level $t > 0$ is given by:
+Observe that the computation graph can be cast as a balanced binary tree with $U$ leaves and each parent equal to the integer average of its children. Consider the bias introduced at each level $t$ of the tree, where $t=0$ corresponds to the leaves and $t = \log_2(U)$ corresponds to the root. The expected error $E[\xi(t, n)]$ introduced at a node $n$ in level $t > 0$ is given by:
 \begin{align}
-    E[\eps(t, n)] = \frac{1}{2} \cdot 2^{t - 1}
+    E[\xi(t, n)] = \frac{1}{2} \cdot 2^{t - 1}
 \end{align}
-where the $\frac{1}{2}$ follows from Lemma~\ref{thm:avgBias} and the scale $2^{t - 1}$ is the number of leaf nodes to which the bias is effectively applied. E.g., adding one to the estimated average of four leaf nodes would increase the estimated sum by four. Since there are $U \cdot 2^{-t}$ nodes per level, this means that the total expected error introduced at level $t$ is $\frac{1}{2} \cdot 2^{t - 1} \cdot 2^{-t} = \frac{1}{4}$. Summing from $t = 1$ to $t = \log_2(U)$ completes the proof of the expected error. Note that $t=0$ is omitted since the leaf nodes are not the result of averaging operations and so introduce no error.
+where the $\frac{1}{2}$ follows from Lemma~\ref{thm:avgBias} and the scale $2^{t - 1}$ is the number of leaf nodes to which the bias is effectively applied. E.g., adding 1 to the estimated average of four leaf nodes would increase the estimated sum by four. Since there are $U \cdot 2^{-t}$ nodes per level, this means that the total expected error introduced at level $t$ is $\frac{1}{2} \cdot 2^{t - 1} \cdot 2^{-t} = \frac{1}{4}$. Summing from $t = 1$ to $t = \log_2(U)$ completes the proof of the expected error. Note that $t=0$ is omitted since the leaf nodes are not the result of averaging operations and so introduce no error.
 
-Similar reasoning can be used to derive the expected squared error, since the variances from different nodes add.
+% Identical reasoning can be used to derive the variance of the error, since the variances from different nodes add.
 \end{proof}
 
 
-\begin{theorem}[Bias and Variance of Averaging Integer Sum Estimator]
+% \begin{theorem}[Bias and error variance of AISE]
+\begin{theorem}[Bias of AISE] \label{thm:overallBias}
 % Let $\hat{s}(\x), \x \in \R^C, C \text{ \% } U = 0$ be the sum estimator described in section~\ref{sec:aggregate} and let $s(\x) \triangleq \sum_c x_c$.
 % Let $s(\x)$ be defined as
-Suppose that the scalars $x_i$ are drawn from independent Bernoulli(.5) distributions. Then
+Suppose that the scalar elements $x_i$ of $\vec{x}$ are drawn from independent Bernoulli(.5) distributions. Then
 \begin{align}
     E[s(\x) - \hat{s}(\x)] &= C \log_2(U) / 4 \\
-    [(s(\x) - \hat{s}(\x))^2] &= C \log_2(U) / 8.
+    % Var[s(\x) - \hat{s}(\x)] &= C \log_2(U) / 8.
 \end{align}
 \end{theorem}
 \begin{proof}
-This follows immediately from Lemma~\ref{thm:avgSubspace} the fact that the overall sum is estimated within each of $C / U$ subspaces of size $U$, and the errors in each subspace are assumed independent.
+This follows immediately from Lemma~\ref{thm:avgSubspace}, the fact that the overall sum is estimated within each of $C / U$ subspaces of size $U$, and assumption that the errors in each subspace are independent.
 \end{proof}
 
+We also verified Theorem~\ref{thm:overallBias} numerically by summing large numbers of integers drawn uniformly from the interval $0,\ldots,255$.
+
+Note that the assumption the the elements are independent is not especially strong in reality. This is because this section focuses on the effects on the least significant bits (which are the ones affected by each averaging operation), and the least significant bit does tend to be nearly uniformly random in a great deal of real-world data.
+
+% ================================================================
+\vfill\break  % columnbreak
+\section{Additional experimental details} \label{sec:experimentDetails}
+% ================================================================
+
+% ------------------------------------------------
+\subsection{Choice of Matrix Multiplication Tasks}
+% ------------------------------------------------
+
+Because nearly all existing work on approximate matrix multiplication either focuses on special cases that do not satisfy our problem definition \cite{quickerAdc, pq, opq} or synthetic matrices, there is not a clear set of benchmark matrix multiply tasks to use. We therefore propose a collection of tasks that we believe are both reproducible and representative of many real-world matrices. To the best of our knowledge, our experiments use over an order of magnitude more matrices than any previous study.
 
 
+% ------------------------------------------------
+\subsection{SparsePCA details}
+% ------------------------------------------------
 
+We took steps to ensure that SparsePCA's results were not hampered by insufficient hyperparameter tuning. First, for each matrix product, we tried a range of lambda values which we found to encompass the full gamut of nearly 0\% to nearly 100\% sparsity: $\lambda \in 2^i, i \in \{-5, -4, -3, -2, -1, 0, 1, 2, 3\}$. Second, because different sparsity patterns may yield different exeuction times, we report not times from the single matrix SparsePCA produces for a given ($d, \lambda$) pair, but the best times from any of ten random matrices of the same size and at most the same sparsity. Finally and most importantly, we plot only the Pareto frontier of (speed, quality) pairs produced for a given matrix multiply. I.e., we let SparsePCA cherrypick its best results on each individual matrix multiply.
 
-% % ================================================================
-% \vfill\break  % columnbreak
-% \section{Additional experimental details} \label{sec:experimentDetails}
-% % ================================================================
+% ------------------------------------------------
+\subsection{Exact Matrix Multiplication}
+% ------------------------------------------------
 
-% % ------------------------------------------------
-% \subsection{Choice of Matrix Multiplication Tasks}
-% % ------------------------------------------------
+We also implemented our own matrix product function specialized for tall, skinny matrices. In all cases, we report the timings based on the faster of this function and Eigen's matrix multiply function for a given matrix product.
 
-% Because nearly all existing work on approximate matrix multiplication either focuses on special cases that do not satisfy our problem definition \cite{quickerAdc, pq, opq} or synthetic matrices, there is not a clear set of benchmark matrix multiply tasks to use. We therefore propose a collection of tasks that we believe are both reproducible and representative of many real-world matrices. To the best of our knowledge, our experiments use over an order of magnitude more matrices than any previous study.
+% ------------------------------------------------
+\subsection{Additional Baselines}
+% ------------------------------------------------
 
+We also tested Frequent Directions / Fast frequent directions \cite{liberty_simple_2012, ghashami_frequent_2016, isvd}, many variations of the sampling method of \cite{drineas_fast_2006}, projection using orthogonalized gaussian random matrices \cite{superbitLSH}, projection using matrices of scaled i.i.d. rademacher random variables \cite{rademacherJL}, projection using orthonormalized matrices of rademacher random variables, the co-occuring directions sketch \cite{mroueh_co-occuring_2016}, OSNAP \cite{osnap}, Product Quantization \cite{pq}, and Optimized Product Quanization \cite{opq}.
 
-% % ------------------------------------------------
-% \subsection{SparsePCA details}
-% % ------------------------------------------------
+The poor performance of many of these methods is unsurprising in our setting. Given that we have access to a training set on which to learn the true principal components, the Eckert-Young-Mirsky theorem \cite{eckartYoungMirskyThm} indicates that PCA should outperform any other individual matrix sketching method employing dense projection matrices, at least in the limit of infinite training data. Also, since PQ and OPQ use 256 dense centroids (except in the Bolt / QuickerADC variations), it is also impossible for them to perform well when $\min(D, M)$ is not significantly larger than 256.
 
-% We took steps to ensure that SparsePCA's results were not hampered by insufficient hyperparameter tuning. First, for each matrix product, we tried a range of lambda values which we found to encompass the full gamut of nearly 0\% to nearly 100\% sparsity: $\lambda \in 2^i, i \in \{-5, -4, -3, -2, -1, 0, 1, 2, 3\}$. Second, because different sparsity patterns may yield different exeuction times, we report not times from the single matrix SparsePCA produces for a given ($d, \lambda$) pair, but the best times from any of ten random matrices of the same size and at most the same sparsity. Finally and most importantly, we plot only the Pareto frontier of (speed, quality) pairs produced for a given matrix multiply. I.e., we let SparsePCA cherrypick its best results on each individual matrix multiply.
+% ------------------------------------------------
+\subsection{UCR Time Series Archive}
+% ------------------------------------------------
 
-% % ------------------------------------------------
-% \subsection{Exact Matrix Multiplication}
-% % ------------------------------------------------
+We omitted datasets with fewer than 128 training examples, since it is not possible for Stochastic Neighbor Compression to draw 128 samples without replacement in this case.
 
-% We also implemented our own matrix product function specialized for tall, skinny matrices. In all cases, we report the timings based on the better of these two functions for a given matrix product.
+In addition to being a large, public corpus of over a hundred datasets from a huge variety of different domains, the UCR Time Series Archive also has the advantage that it can be used to produce matrix multiplication tasks of a fixed size. This is necessary for meaningful comparison of speed vs accuracy tradeoffs across datasets. We constructed training and test matrices $\tilde{\A}$ and $\A$ by resampling each time series in each dataset's train and test set to a length of $320$ (the closest multiple of 32 to the median length of 310). We obtained the matrix $\B$ for each dataset by running Stochastic Neighbor Compression \cite{snc} on the training set with an RBF kernel of bandwidth one. We set the number of returned neighbors to 128 (results with 64 and 256 were similar), yielding a $\B$ matrix of size $320 \times 128$. %See Appendix~\ref{sec:experimentDetails} for additional details.
+Since different datasets have different test set sizes, all results are for a standardized test set size of 1000 rows. We wanted the length to be a multiple of 32 since existing methods operate best with sizes that are either powers of two or, failing that, multiples of large powers of two.
 
-% % ------------------------------------------------
-% \subsection{Additional Baselines}
-% % ------------------------------------------------
+We approximate Euclidean distances using the identity $\norm{\vec{x} - \vec{y}}_2^2 = \norm{\vec{x}}_2^2 - 2\vec{x}^\top \vec{y} + \norm{\vec{y}}_2^2$. We approximate only the inner products $\vec{x}^\top \vec{y}$, since $\norm{\vec{y}}_2^2$ can be precomputed for fixed exemplars $\vec{y}$ and $\norm{\vec{x}}_2^2$ doesn't affect the class prediction since it is constant across all exemplars for a given input $\vec{x}$.
 
-% We also tested Frequent Directions / Fast frequent directions \cite{liberty_simple_2012, ghashami_frequent_2016, isvd}, many variations of the sampling method of \cite{drineas_fast_2006}, projection using orthogonalized gaussian random matrices \cite{superbitLSH}, projection using matrices of scaled i.i.d. rademacher random variables \cite{rademacherJL}, projection using orthonormalized matrices of rademacher random variables, the co-occuring directions sketch \cite{mroueh_co-occuring_2016}, OSNAP \cite{osnap}, Product Quantization \cite{pq}, and Optimized Product Quanization \cite{opq}.
+% since having a length that is a multiple of at least 8 is the best-case scenario for most existing methods, and 320 is a ``rounder'' number than 312.
 
-% The poor performance of many of these methods is unsurprising in our setting. Given that we have access to a training set on which to learn the true principal components, the Eckert-Young-Mirsky theorem \cite{eckartYoungMirskyThm} suggests that PCA should outperform any other matrix sketching method employing dense projection matrices. Also, since PQ and OPQ use 256 dense centroids (except in the Bolt / QuickerADC variations), it is also not possible for them to perform well when $\min(D, M)$ is not significantly larger than 256.
+% ------------------------------------------------
+\subsection{Caltech101}
+% ------------------------------------------------
 
-% % ------------------------------------------------
-% \subsection{UCR Time Series Archive}
-% % ------------------------------------------------
+We only extracted valid windows---i.e., never past the edge of an image. We extracted the windows in CHW order, meaning that scalars from the same color channel were placed at contiguous indices. The ``first'' images are based on filename in lexicographic order.
 
-% We omitted datasets with fewer than 128 training examples, since it is not possible for Stochastic Neighbor Compression to draw 128 samples without replacement in this case.
+We used pairs of filters because using a single filter would mean timing a matrix-vector product instead of a matrix-matrix product.
 
-% In addition to being a large, public corpus of over a hundred datasets from a huge variety of different domains, UCR Time Series Archive also has the advantage that it can be used to produce matrix multiplication tasks of a fixed size. This is necessary for meaningful comparison of performance across datasets. We constructed training and test matrices $\tilde{\A}$ and $\A$ by resampling each time series in each dataset's train and test set to a length of $320$ (the closest multiple of 32 to the median length of 310). We obtained the matrix $\B$ for each dataset by running Stochastic Neighbor Compression \cite{snc} on the training set with an RBF kernel of bandwidth one. We set the number of returned neighbors to 128 (results with 64 and 256 were similar), yielding a $\B$ matrix of size $320 \times 128$. %See Appendix~\ref{sec:experimentDetails} for additional details.
+To allow meaningful speed comparisons across images, we resized and center cropped each image to $224 \times 224$ as commonly done in image classification pipelines \cite{resNet,resnet2,densenet}. We then extracted sliding windows of the appropriate size and used each (flattened) window as one row of $\tilde{\A}$ or $\A$. We similarly flattened the filters, with each set of coefficients forming one column of $\B$. In both cases, $\B$ has two columns---this is because using a single filter would mean timing a matrix-vector product instead of a matrix-matrix product. Two columns also made sense since Sobel filters are often used in horizontal and vertical pairings, and Gaussian filters are often used together to perform difference-of-Gaussians transforms.
 
-% Since different datasets have different test set sizes, all results are for a standardized test set size of 1000 rows. We wanted the length to be a multiple of 32 since existing methods operate best with sizes that are either powers of two or, failing that, multiples of large powers of two.
+Even though the RGB values at each position are naturally unsigned 8-bit integers, we allowed all rival methods to operate on them as 32-bit floating point, without including the conversion when timing them. Because it only requires checking whether values are above a threshold, \oursp can operate on 8-bit data directly.
 
-% We approximate Euclidean distances using the identity $\norm{\vec{x} - \vec{y}}_2^2 = \norm{\vec{x}}_2^2 - 2\vec{x}^\top \vec{y} + \norm{\vec{y}}_2^2$ and approximating the inner products $\vec{x}^\top \vec{y}$, since $\norm{\vec{y}}_2^2$ can be precomputed for fixed exemplars $\vec{y}$ and $\norm{\vec{x}}_2^2$ doesn't affect the class prediction since it is constant across all exemplars for a given input $\vec{x}$.
+% ------------------------------------------------
+\subsection{Additional Results}
+% ------------------------------------------------
 
-% % since having a length that is a multiple of at least 8 is the best-case scenario for most existing methods, and 320 is a ``rounder'' number than 312.
+In Section~\ref{sec:results}, we showed the classification accuracy as a function of wall time for the CIFAR-10 and CIFAR-100 softmax classifiers. In Figure~\ref{fig:cifarNMSE}, we instead show normalized mean squared error versus time. In Figure~\ref{fig:cifarOps}, we show accuracy vs number of operations performed, where one operation is either one multiply-add or one table lookup, depending on the method. The first figure illustrates that NMSE is closely related to classification accuracy, but with imperfect NMSE still yielding excellent accuracy in many cases. The second figure shows that our method's superior results are not merely caused by the use of faster CPU instructions, but also by the use of fewer basic operations at the algorithm level.
 
-% % ------------------------------------------------
-% \subsection{Caltech101}
-% % ------------------------------------------------
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=\linewidth]{amm/cifar_Speedup_1 - NMSE}
+\caption{\oursp achieves a far better speed versus squared error tradeoff than any existing method when approximating two softmax classifiers. These results parallel the speed vs classification accuracy results, except that the addition of our ridge regression is much more beneficial on CIFAR-100.}
+\label{fig:cifarNMSE}
+\end{center}
+\end{figure}
 
-% We only extracted full windows---i.e., never past the edge of an image. We extracted the windows in CHW order, meaning that scalars from the same color channel were placed at contiguous indices. The ``first'' images are based on filename in lexicographic order.
-
-% We used pairs of filters because using a single filter would mean timing a matrix-vector product instead of a matrix-matrix product.
-
-% To allow meaningful speed comparisons across images, we resized and center cropped each image to $224 \times 224$ as commonly done in image classification pipelines \cite{resNet,resnet2,densenet}. We then extracted sliding windows of the appropriate size and used each (flattened) window as one row of $\tilde{\A}$ or $\A$. We similarly flattened the filters, with each set of coefficients forming one column of $\B$. In both cases, $\B$ has two columns---this is because using a single filter would mean timing a matrix-vector product instead of a matrix-matrix product. Moreover, because Sobel filters are often used in horizontal and vertical pairings, and Gaussian filters are often used together to perform difference-of-Gaussians transforms.
-
-% Even though the RGB values at each position are naturally unsigned 8-bit integers, we allowed all rival methods to operate on them as 32-bit floating point, without including the conversion when timing them. Because it only requires checking whether values are above a threshold, \oursp can operate on 8-bit data directly.
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=\linewidth]{amm/cifar_ops_Accuracy}
+\caption{\oursp also achieves a far better speed-accuracy tradeoff when speed is measured as number of operations instead of wall time. Note that fewer operations with a high accuracy (up and to the left) is better.}
+\label{fig:cifarOps}
+\end{center}
+\end{figure}
+% \begin{figure}[h]
+% \begin{center}
+% \includegraphics[width=\linewidth]{amm/cifar_ops_1 - NMSE}
+% \caption{The same }
+% \label{fig:cifarOps}
+% \end{center}
+% \end{figure}

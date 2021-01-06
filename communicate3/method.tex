@@ -88,13 +88,13 @@ Once a split index $j$ and an array of split thresholds $\vec{v}$ are chosen, al
 \begin{algorithmic}[1]
     \STATE {\bfseries Input:} buckets $\mathcal{B}^{t-1}_1,\ldots,\mathcal{B}^{t-1}_{2^{t-1}}$, training matrix $\tilde{\A}$
 
-    \LINECOMMENT{Greedily choose next split index and thresholds}
+    \LINECOMMENT{greedily choose next split index and thresholds}
     \STATE{$\mathcal{\hat{J}} \leftarrow \texttt{heuristic\_select\_idxs}(
         \mathcal{B}^{t-1}_1,\ldots,\mathcal{B}^{t-1}_{2^{t-1}})$}\label{line:dimHeuristic}
     \STATE{$l^{min} \text{, } j^{min}, \vec{v}^{min} \leftarrow \inf \text{, NaN, NaN}$}
     \FOR{$j \in \mathcal{\hat{J}}$} \label{line:dimEvalStart}
-        \STATE{$l \leftarrow 0 $}  \COMMENT{Initialize loss for this index to 0}
-        \STATE{$\vec{v} \leftarrow \text{[ ]}$} \COMMENT{Empty list of split thresholds}
+        \STATE{$l \leftarrow 0 $}  \COMMENT{initialize loss for this index to 0}
+        \STATE{$\vec{v} \leftarrow \text{[ ]}$} \COMMENT{empty list of split thresholds}
         \FOR{$i \leftarrow 1 \textbf{ to } 2^{t-1} $}
             \STATE{$v_i \text{, } l_i \leftarrow \texttt{optimal\_split\_threshold}(j \text{, } \mathcal{B}^{t-1}_i) $}
             \STATE{$\texttt{append}(\vec{v}, v_i)$} \COMMENT{append threshold for bucket $i$}
@@ -106,7 +106,7 @@ Once a split index $j$ and an array of split thresholds $\vec{v}$ are chosen, al
         \ENDIF
     \ENDFOR \label{line:dimEvalEnd}
 
-    \LINECOMMENT{Create new buckets using chosen split}
+    \LINECOMMENT{create new buckets using chosen split}
     \STATE{$\bm{\mathcal{B}} \leftarrow $ [ ]} \label{line:splitBucketsStart}
     \FOR{$i \leftarrow 1 \textbf{ to } 2^{t-1} $}
         \STATE{ $\mathcal{B}_{below} \text{, } \mathcal{B}_{above} \leftarrow \texttt{apply\_split}(v^{min}_i \text{, } \mathcal{B}^{t-1}_i) $}
@@ -140,7 +140,7 @@ Once a split index $j$ and an array of split thresholds $\vec{v}$ are chosen, al
 \vspace{-.5mm}
 % ------------------------------------------------
 
-At this point, we have a complete algorithm. We could simply drop our hash-based encoding function into PQ and approximate matrix products. However, we contribute two additional enhancements: a means of optimizing the prototypes with no runtime overhead, and a means of quickly summing low-bitwidth integers
+At this point, we have a complete algorithm. We could simply drop our hash-based encoding function into PQ and approximate matrix products. However, we contribute two additional enhancements: a means of optimizing the prototypes with no runtime overhead, and a means of quickly summing low-bitwidth integers.
 
 First, we introduce a means of optimizing the prototypes given only the matrix $\tilde{\A}$. Several works propose prototype or table optimizations based on knowledge of $\B$ \cite{pairq,optimizedDists}, and others optimize them at the expense of slowing down the function $g(\cdot)$ \cite{cq,scq}. We introduce a means of optimizing the centroids that does not do either of these. The idea is to choose prototypes such that $\tilde{\A}$ can be reconstructed from its prototypes with as little squared error as possible---this improves results since less error means that less information about $\tilde{\A}$ is being lost.
 % Our insight is that
@@ -202,11 +202,11 @@ Our encoding function $g(\A), \A \in \R^{N \times D}$ has complexity $\Theta(NC)
 \vspace{-1.5mm}
 % ------------------------------------------------
 
-We begin by noting that all of the guarantees for \textsc{Bolt}\text{} also apply to \ours, modulo a small amount of additional error from averaging integers rather than summing exactly. This follows from \textsc{Bolt}'s guarantees being dependent only upon the quantization errors, rather than the method used to obtain them.
+We begin by noting that all of the guarantees for \textsc{Bolt}\text{} \cite{bolt} also apply to \ours, modulo a small amount of additional error from averaging integers rather than summing exactly. This follows from \textsc{Bolt}'s guarantees being dependent only upon the quantization errors, rather than the method used to obtain them.
 Beyond these existing guarantees, our central theoretical result is a generalization guarantee for the overall performance of \ours.
 
 \begin{theorem}[Generalization Error of \ours] \label{thm:maddness}
-Let $\Dcal$ be a probability distribution over $\R^D$ and suppose that \oursp is trained on a matrix $\tilde{\A} \in R^{N \times D}$ whose rows are drawn independently from $\Dcal$ and with maximum singular value bounded by $\sigma_A$. Let $C$ be the number of codebooks used by \oursp and $\lambda > 0$ the regularization parameter used in the ridge regression step. Then for any $\b \in \R^D$, any $\a \sim \Dcal$, and any $0 < \delta < 1$, we have with probability at least $1 - \delta$ that
+Let $\Dcal$ be a probability distribution over $\R^D$ and suppose that \oursp is trained on a matrix $\tilde{\A} \in R^{N \times D}$ whose rows are drawn independently from $\Dcal$ and with maximum singular value bounded by $\sigma_A$. Let $C$ be the number of codebooks used by \oursp and $\lambda > 0$ be the regularization parameter used in the ridge regression step. Then for any $\b \in \R^D$, any $\a \sim \Dcal$, and any $0 < \delta < 1$, we have with probability at least $1 - \delta$ that
 \begin{align}
     \begin{split}
     \E_{\Dcal}[&\Lcal(\a, \b)] \le \E_{\tilde{\A}}[\Lcal(\a, \b)] + \\

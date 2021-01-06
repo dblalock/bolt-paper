@@ -182,7 +182,7 @@ Because the entries of $\mat{T}$ are stored as 8-bit values, exact summation req
 
 We propose an alternative that sacrifices a small amount of accuracy for a significant increase in speed. Instead of using \textit{addition} instructions, we use \textit{averaging} instructions, such as \texttt{vpavgb} on x86 or \texttt{vrhadd} on ARM. While non-saturating additions compute $(a + b) \text{ \% } 256$, these instructions compute $(a + b + 1) / 2$. This means that they lose information about the low bit instead of the high bit of the sum. We estimate the overall mean by averaging pairs of values, then pairs of pairs, and so on. One could reduce all $C$ values this way, but we find that one obtains a better speed-accuracy tradeoff by computing the average of blocks of $U$ values and then upcasting to obtain exact sums of these averages. Multiplying this sum of averages by $U$ and adding in a bias correction term gives one the overall estimate of the sum. One could tune $U$ for a particular problem and hardware, but we simply set $U = 16$ in all our experiments.
 
-The challenging part of this approach is computing the bias in the estimated sum in order to correct for it. We prove in Appendix~\ref{sec:aggregateAnalysis} that this bias is equal to $C \log_2(U) / 4$, and the variance is $C \log_2(U) / 8$ under the realistic assumption that the low bits are equally likely to be 0 or 1.
+The challenging part of this approach is computing the bias in the estimated sum in order to correct for it. We prove in Appendix~\ref{sec:aggregateAnalysis} that this bias is equal to $C \log_2(U) / 4$ under the realistic assumption that the low bits are equally likely to be 0 or 1.
 
 % ------------------------------------------------
 \vspace{-1.5mm}

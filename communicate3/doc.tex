@@ -67,13 +67,15 @@
 \printAffiliationsAndNotice{}
 
 % ------------------------------------------------
+\vspace*{2mm}
+% \vspace*{3mm}
 \begin{abstract}
+\vspace*{3mm}
 % ------------------------------------------------
-\vspace*{1mm}
 Multiplying matrices is among the most fundamental and most computationally demanding operations in machine learning and scientific computing. Consequently, the task of efficiently approximating matrix products has received significant attention.
 
-We introduce an approximate matrix multiplication algorithm that both substantially outperforms existing methods in practice and offers theoretical guarantees. Experiments using hundreds of matrices from diverse domains show that our method runs far faster than current approaches for a given amount of error, often obtaining more than a $10\times$ relative speedup. In the common case that one matrix is known ahead of time, our method also has the interesting property that it requires \textit{zero} multiply-add operations. The key idea behind our approach is to replace the expensive encoding step common in vector quantization methods with a learned locality-sensitive hash function.
-\vspace*{3mm}
+We introduce an approximate matrix multiplication algorithm that substantially outperforms existing methods in practice and also offers formal error guarantees. Experiments using hundreds of matrices from diverse domains show that our method runs far faster than current approaches for a given amount of error, often obtaining more than a $10\times$ relative speedup. In the common case that one matrix is known ahead of time, our method also has the interesting property that it requires \textit{zero} multiply-add operations. % The key idea behind our approach is to replace the expensive encoding step common in vector quantization methods with a learned locality-sensitive hash function.
+\vspace*{4mm}
 \end{abstract}
 ] % end of mlsys 2 columnn
 
@@ -85,7 +87,9 @@ We introduce an approximate matrix multiplication algorithm that both substantia
 
 % ================================================================
 % \section{Background and Related Work}
+\vspace{-1.5mm}
 \section{Related Work} \label{sec:relatedWork}
+\vspace{-.5mm}
 % ================================================================
 
 \input{relatedWork.tex}
@@ -109,7 +113,7 @@ We introduce an approximate matrix multiplication algorithm that both substantia
 \input{method.tex}
 
 %================================================================
-% \vspace{-2mm}
+\vspace{-2mm}
 \section{Experiments} \label{sec:results}
 % \vspace{-.5mm}
 %================================================================
@@ -122,7 +126,9 @@ We introduce an approximate matrix multiplication algorithm that both substantia
 % \vspace{-.5mm}
 %================================================================
 
-We introduce an approximate matrix multiplication algorithm that achieves a significantly better speed-quality tradeoff than existing methods, as measured on various machine learning and other tasks using hundreds of real-world matrices from diverse domains. We also prove theoretical guarantees regarding our method's errors. Our method's performance stems from 1) its replacement of the bottleneck in existing methods with a learned locality-sensitive hash function, 2) its optimization of a quantity that other methods cannot optimize without a large slowdown, and 3) its use of an inexact estimator for computing sums.
+We introduce an approximate matrix multiplication algorithm that, under commonly occurring conditions, achieves a significantly better speed-quality tradeoff than existing methods, as measured on various machine learning and other tasks using hundreds of real-world matrices from diverse domains. We also prove theoretical guarantees regarding our algorithm's errors.
+
+Our method's performance stems from 1) its replacement of the bottleneck in existing methods with a learned locality-sensitive hash function, 2) its overhead-free optimization of quantization prototypes, and 3) its use of an inexact estimator for computing sums. This inexact estimator may be of independent interest.
 
 In future work, we plan to specialize our method for convolutions, implement it on GPUs, and integrate it into neural networks. Moreoever, because the bottleneck operations in our method are simple table lookups and elementwise comparisons, rather than traditional multiply-adds, it would also be interesting to explore implementing our approach in hardware.
 

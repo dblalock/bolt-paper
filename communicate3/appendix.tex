@@ -200,7 +200,7 @@ The proof then follows by again considering the four equiprobable cases as in Le
 % Let $s(\x)$ be defined as
 Suppose that the scalar elements $x_i$ of $\vec{x}$ are drawn from independent Bernoulli(.5) distributions. Then
 \begin{align}
-    E[s_U(\x) - \hat{s}_U(\x)] &= U \log_2(U) / 4 \\
+    E[s_U(\x) - \hat{s}_U(\x)] &= U \log_2(U) / 4
     % Var[s_U(\x) - \hat{s}_U(\x)] &= U \log_2(U) / 8.
 \end{align}
 \end{lemma}
@@ -221,7 +221,7 @@ where the $\frac{1}{2}$ follows from Lemma~\ref{thm:avgBias} and the scale $2^{t
 % Let $s(\x)$ be defined as
 Suppose that the scalar elements $x_i$ of $\vec{x}$ are drawn from independent Bernoulli(.5) distributions. Then
 \begin{align}
-    E[s(\x) - \hat{s}(\x)] &= C \log_2(U) / 4 \\
+    E[s(\x) - \hat{s}(\x)] &= C \log_2(U) / 4
     % Var[s(\x) - \hat{s}(\x)] &= C \log_2(U) / 8.
 \end{align}
 \end{theorem}
@@ -231,7 +231,7 @@ This follows immediately from Lemma~\ref{thm:avgSubspace}, the fact that the ove
 
 We also verified Theorem~\ref{thm:overallBias} numerically by summing large numbers of integers drawn uniformly from the interval $0,\ldots,255$.
 
-Note that the assumption the the elements are independent is not especially strong in reality. This is because this section focuses on the effects on the least significant bits (which are the ones affected by each averaging operation), and the least significant bit does tend to be nearly uniformly random in a great deal of real-world data.
+Note that the assumption that the elements are independent is not especially strong in reality. This is because this section focuses on the effects on the least significant bits (which are the ones affected by each averaging operation), and the least significant bit does tend to be nearly uniformly random in a great deal of real-world data.
 
 % ================================================================
 \vfill\break  % columnbreak
@@ -270,7 +270,7 @@ Given the ubiquity of GPUs and multicore CPUs, it may not be obvious why single-
 \subsection{SparsePCA details}
 % ------------------------------------------------
 
-We took steps to ensure that SparsePCA's results were not hampered by insufficient hyperparameter tuning. First, for each matrix product, we tried a range of lambda values which we found to encompass the full gamut of nearly 0\% to nearly 100\% sparsity: $\lambda \in 2^i, i \in \{-5, -4, -3, -2, -1, 0, 1, 2, 3\}$. Second, because different sparsity patterns may yield different exeuction times, we report not times from the single matrix SparsePCA produces for a given ($d, \lambda$) pair, but the best times from any of ten random matrices of the same size and at most the same sparsity. Finally and most importantly, we plot only the Pareto frontier of (speed, quality) pairs produced for a given matrix multiply. I.e., we let SparsePCA cherrypick its best results on each individual matrix multiply.
+We took steps to ensure that SparsePCA's results were not hampered by insufficient hyperparameter tuning. First, for each matrix product, we tried a range of lambda values which we found to encompass the full gamut of nearly 0\% to nearly 100\% sparsity: $\lambda \in 2^i, i \in \{-5, -4, -3, -2, -1, 0, 1, 2, 3\}$. Second, because different sparsity patterns may yield different execution times, we report not times from the single matrix SparsePCA produces for a given ($d, \lambda$) pair, but the best times from any of ten random matrices of the same size and at most the same sparsity. Finally and most importantly, we plot only the Pareto frontier of (speed, quality) pairs produced for a given matrix multiply. I.e., we let SparsePCA cherrypick its best results on each individual matrix multiply.
 
 % ------------------------------------------------
 \subsection{Exact Matrix Multiplication}
@@ -360,7 +360,7 @@ In Section~\ref{sec:results}, we showed the classification accuracy as a functio
 In this section, we prove Theorem~\ref{thm:maddness}, restated below for convenience.
 
 \begin{theorem*}[Generalization Error of \ours] \label{thm:maddness}
-Let $\Dcal$ be a probability distribution over $\R^D$ and suppose that \oursp is trained on a matrix $\tilde{\A} \in R^{N \times D}$ whose rows are drawn independently from $\Dcal$ and with maximum singular value bounded by $\sigma_A$. Let $C$ be the number of codebooks used by \oursp and $\lambda > 0$ the regularization parameter used in the ridge regression step. %Then for any vector $\b$, any vector $\a \sim \Dcal$, and any $0 < \delta < 1$, we have with probability at least $1 - \delta$ that
+Let $\Dcal$ be a probability distribution over $\R^D$ and suppose that \oursp is trained on a matrix $\tilde{\A} \in R^{N \times D}$ whose rows are drawn independently from $\Dcal$ and with maximum singular value bounded by $\sigma_A$. Let $C$ be the number of codebooks used by \oursp and $\lambda > 0$ be the regularization parameter used in the ridge regression step. %Then for any vector $\b$, any vector $\a \sim \Dcal$, and any $0 < \delta < 1$, we have with probability at least $1 - \delta$ that
 Then for any $\b \in \R^D$, any $\a \sim \Dcal$, and any $0 < \delta < 1$, we have with probability at least $1 - \delta$ that
  % Then for all vectors $\b$ and any vector $\a \sim \Dcal$, we have with probability at least $1 - \delta$, $0 < \delta < 1$,
 \begin{align*}

@@ -16,7 +16,8 @@ The basic intuition behind PQ is that $\a^\top \b \approx \hat{\a}^\top \b$, whe
  % \cite{pq}, a classic approach to this problem that serves as a conceptual foundation for our own method. There are three basic steps behind PQ:
 In somewhat more detail, PQ consists of the following:
 \vspace{-3mm}
-\begin{enumerate}\itemsep.5mm
+% \begin{enumerate}\itemsep.5mm
+\begin{enumerate}\itemsep2mm
     % \item asdf
     % \item $g(\A)$
     % \item Replacing each row of $\A$ with a prototype chosen from a predefined set.%
@@ -38,7 +39,7 @@ PQ is depicted for a single pair of vectors $\a$ and $\b$ in Figure~\ref{fig:pq}
 % ------------------------------------------------
 
 Let $\tilde{A} \in \R^{N \times D}$ be a training set, $K$ be a number of prototypes per subspace, $C$ be a number of subspaces, and $\{\mathcal{J}^{(c)}\}_{c=1}^C$ be the (mutually exclusive and collectively exhaustive) sets of indices associated with each subspace. The training-time task of PQ is to learn $C$ sets of prototypes $\mat{P}^{(c)} \in \R^{K \times |\mathcal{J}^{(c)}|}$ and assignments $\vec{z}^{(c)} \in \R^{N}$ such that:
-\vspace{-2mm}
+% \vspace{-1mm}
 \begin{align}
     \sum_{i=1}^N \sum_{c=1}^C \sum_{j\in \mathcal{J}^{(c)}} \left( \tilde{\A}_{ij} - \mat{P}^{(c)}_{z^{(c)},j} \right)^2
 \vspace*{-.5mm}

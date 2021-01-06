@@ -2,20 +2,21 @@
 Matrix multiplication is among the most fundamental subroutines used in machine learning and scientific computing. As a result, there has been a great deal of work on implementing high-speed matrix multiplication libraries \cite{pytorch,eigen,tensorflow}, designing custom hardware to accelerate multiplication of certain classes of matrices \cite{eie,eyeriss,scnn,tpu}, scaling matrix multiplication across many machines \cite{distributedCoded, shortDot, entangledPolynomial, matmulCommunicationBounds}, and designing efficient Approximate Matrix Multiplication (AMM) algorithms under various assumptions and problem settings \cite{drineas_fast_2006,manne_fast_2014,ye_frequent_2016,mroueh_co-occuring_2016,bolt}.
 
 We focus on the AMM task under the assumptions that the matrices are tall,
-% relatively dense,
-too dense to merit the use of sparsity-exploiting kernels,
-and resident in a single machine's memory. In this setting, the primary challenge is minimization of the amount of CPU time required to approximate linear operations with a given level of fidelity.
+relatively dense,
+% too dense to merit the use of sparsity-exploiting kernels,
+% drawn from a known distribution,
+and resident in a single machine's memory. In this setting, the primary challenge is minimizing of the amount of computation required to approximate linear operations with a given level of fidelity.
 %not reduction of disk or network usage [], efficient coordination between distributed workers [], maximization of a space-distortion tradeoff [], or reduction of asymptotic complexity []. Instead, it is minimization of the amount of CPU time required to approximate linear operations with a given level of fidelity.
 
 This setting arises naturally in machine learning and data mining when one has a data matrix $\mat{A}$ whose rows are samples and a linear operator $\mat{B}$ one wishes to apply to these samples. $\mat{B}$ could be a linear classifier, linear regressor, or an embedding matrix, among other possibilities.
 
-As a concrete example, consider the task of approximating a softmax classifier trained to predict image labels given embeddings derived from a neural network. Here, the rows of $\A$ are the embeddings for each image, and the columns of $\B$ are the weight vectors for each class. Classification is performed by computing the product $\A\B$ and taking the argmax within each row of the result. Because taking the argmax is inexpensive, the bottleneck is computing the matrix product.
-In Figure~\ref{fig:fig1}, we see the results of approximating $\A\B$ using our method and its best-performing rivals \cite{hashjl, sparsePCA} on the CIFAR-10 and CIFAR-100 datasets.
+As a concrete example, consider the task of approximating a softmax classifier trained to predict image labels given embeddings derived from a neural network. Here, the rows of the matrix $\A$ are the embeddings for each image, and the columns of the matrix $\B$ are the weight vectors for each class. Classification is performed by computing the product $\A\B$ and taking the argmax within each row of the result. Because taking the argmax is inexpensive, the bottleneck is computing the matrix product.
+In Figure~\ref{fig:fig1}, we see the results of approximating $\A\B$ using our method and its best-performing rivals \cite{hashjl, sparsePCA} on the CIFAR-10 and CIFAR-100 datasets.% ().
 \vspace{1mm}
 \begin{figure}[h]
 \begin{center}
 \includegraphics[width=\linewidth]{amm/fig1}
-\caption{Our method achieves a dramatically better speed-accuracy tradeoff than the best existing methods when approximating two linear classifiers.}
+\caption{Our method achieves a dramatically better speed-accuracy tradeoff than the best existing methods when approximating two linear classifiers. See Section~\ref{sec:results} for details.}
 \label{fig:fig1}
 \end{center}
 \end{figure}
@@ -25,7 +26,10 @@ In Figure~\ref{fig:fig1}, we see the results of approximating $\A\B$ using our m
 % \vspace{-1mm}
 % In addition to achieving strong empirical performance,
 
-Our method represents a significant methodological departure from most traditional approaches to this problem. Traditional AMM methods construct matrices $\V_A, \V_B \in \R^{D \times d}, d \ll D$ such that
+Our method represents a significant methodological departure from most traditional approaches to
+% this problem.
+approximate matrix multiplication.
+Traditional AMM methods construct matrices $\V_A, \V_B \in \R^{D \times d}, d \ll D$ such that
 \begin{align}
     \A \B \approx (\A \V_A) (\V_B^\top \B).
 \end{align}
@@ -70,7 +74,7 @@ Our contributions can be summarized as follows:
     \item An efficient family of vector quantization functions that can encode over 100GB of data per second in a single CPU thread.
     % \item A provably good procedure for learning one of these functions from training data, in addition to other theoretical analysis.
     \item A high-speed summation algorithm for low-bitwidth integers that avoids upcasting, saturation, and overflow.
-    \item An algorithm based on these functions for approximate matrix multiplication. Experiments across hundreds of diverse matrices demonstrate that this algorithm significantly outperforms existing methods. We also prove a guarantee on the magnitude of its errors.
+    \item An algorithm based on these functions for approximate matrix multiplication. Experiments across hundreds of diverse matrices demonstrate that this algorithm significantly outperforms existing methods. We also prove bounds on the magnitudes of its errors.
 \end{itemize}
 \vspace{-3mm}
 
@@ -79,10 +83,13 @@ Our contributions can be summarized as follows:
 % ------------------------------------------------
 
 Let $\A \in \R^{N \times D}$ and $\B \in \R^{D \times M}$ be two matrices, with $N \gg D \ge M$. Given a computation time budget $\tau$, our task is to
-construct three functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$, along with constants $\alpha$ and $\beta$, such that
+construct three functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$, along with constants $\alpha$ and $\mat{\beta}$, such that
 \begin{align} \label{eq:objective}
     \norm{\alpha f(g(\A), h(\B)) + \mat{\beta} - \A\B}_F < \eps(\tau) \norm{\A\B}_F
 \end{align}
-for the smallest error $\eps(\tau)$ possible. The constants $\alpha$ and $\beta$ are separated from $f(\cdot,\cdot)$ so that $f(\cdot,\cdot)$ can produce low-bitwidth outputs (e.g., in the range $[0, 255]$) even when the entries of $\A\B$ do not fall in this range.
+for as small an error $\eps(\tau)$ as possible. The constants $\alpha$ and $\mat{\beta}$ are separated from $f(\cdot,\cdot)$ so that $f(\cdot,\cdot)$ can produce low-bitwidth outputs (e.g., in the range $[0, 255]$) even when the entries of $\A\B$ do not fall in this range.
 
 We assume the existence of a training set $\tilde{\A}$, whose rows are drawn from the same distribution as the rows of $\A$. This is a natural assumption in the case that rows of $\A$ represent examples in training data, or structured subsets thereof (such as patches of images). This assumption is common in the information retrieval literature \cite{bolt,pairq,quip}, but is a significant departure from most theoretical work.
+
+\vspace{-.5mm}
+Lastly, while our ideas are not specific to CPUs, we focus on CPU performance throughout this work and leave implementation on GPUs, FPGAs, etc., to future work.
