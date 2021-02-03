@@ -21,7 +21,7 @@ In somewhat more detail, PQ consists of the following:
     % \item asdf
     % \item $g(\A)$
     % \item Replacing each row of $\A$ with a prototype chosen from a predefined set.%
-    \item \textbf{Prototype Learning} - In an initial, offline training phase,  cluster the rows of $\A$ (or a training set $\tilde{\A}$) using K-means to create prototypes. A separate K-means is run in each of $C$ disjoint subspaces to produce $C$ sets of $K$ protoypes. %The prototypes consist of the cartesian product of prototypes within disjoint subspaces.
+    \item \textbf{Prototype Learning} - In an initial, offline training phase,  cluster the rows of $\A$ (or a training set $\tilde{\A}$) using K-means to create prototypes. A separate K-means is run in each of $C$ disjoint subspaces to produce $C$ sets of $K$ prototypes. %The prototypes consist of the cartesian product of prototypes within disjoint subspaces.
     % \item $g(\A)$ - Replace each row of $\A$ with the most similar prototype.
     % \item $h(\B)$ - Precompute the dot products between each column of $\B$ and each prototype.
     \item \textbf{Encoding Function}, $g(\a)$ - Determine the most similar prototype to $\a$ in each subspace. Store these assignments as integer indices using $C \log_2(K)$ bits.
