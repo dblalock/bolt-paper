@@ -71,7 +71,7 @@ Using this notation, it suffices to characterize the learning algorithm by descr
 
 % In line~\ref{line:dimHeuristic},
 % The construction of level $t$ of the tree is given in Algorithm~\ref{algo:learnTree}.
-In line~2, we select a fixed number of indices to evaluate. Several heuristics are possible, including evaluating all indices. We found that simply selecting the top $n$ indices that contributed the most loss summed across all buckets was difficult to beat. In preliminary experiments, we found that using $n > 4$ indices offered little or no additional benefit (and even choosing $n = 1$ was nearly as good), so we hardcode $n = 4$.
+In line~2, we select a fixed number of indices to evaluate. Several heuristics are possible, including evaluating all indices. We found that simply selecting the top $n$ indices that contributed the most loss summed across all buckets was difficult to beat. In preliminary experiments, we found that using $n > 4$ indices offered little or no additional benefit (and even choosing $n = 1$ was nearly as good), so we fix $n = 4$.
 % The loss associated with a given index in a given bucket is the variance within that dimension multiplied by the size of the bucket---i.e., the sum of squared errors compared to the bucket's mean.
 
 % In lines~\ref{line:dimEvalStart}-\ref{line:dimEvalEnd},
@@ -140,9 +140,10 @@ Once a split index $j$ and array of split thresholds $\vec{v}$ are chosen, all t
 \vspace{-.5mm}
 % ------------------------------------------------
 
-At this point, we have a complete algorithm. We could simply drop our hash-based encoding function into PQ and approximate matrix products. However, we contribute two additional enhancements.
+At this point, we have a complete algorithm. We could simply drop our hash-based encoding function into PQ and approximate matrix products. However, we contribute two additional enhancements: a means of optimizing the prototypes with no runtime overhead, and a means of quickly summing low-bitwidth integers.
 
-First, we introduce a means of optimizing the prototypes given only the matrix $\tilde{\A}$. Several works propose prototype or table optimizations based on knowledge of $\B$ \cite{pairq,optimizedDists}, and others optimize them at the expense of slowing down the function $g(\cdot)$ \cite{cq,scq}. In contrast, we introduce a means of optimizing the centroids that does not do either of these. The idea is to choose prototypes such that $\tilde{\A}$ can be reconstructed from its prototypes with as little squared error as possible---this improves results since less error means that less information about $\tilde{\A}$ is being lost.
+% First, we introduce a means of optimizing the prototypes given only the matrix $\tilde{\A}$.
+Several works propose prototype or table optimizations based on knowledge of $\B$ \cite{pairq,optimizedDists}, and others optimize them at the expense of slowing down the function $g(\cdot)$ \cite{cq,scq}. In contrast, we introduce a means of optimizing the centroids that does not do either of these. The idea is to choose prototypes such that $\tilde{\A}$ can be reconstructed from its prototypes with as little squared error as possible---this improves results since less error means that less information about $\tilde{\A}$ is being lost.
 % Our insight is that
 % \begin{enumerate}
 %     \item The quality of the matrix product approximation increases when the quantization error between each row of $\A$ and its corresponding prototypes decreases.
@@ -163,7 +164,7 @@ where $\mat{G}$ serves to select the appropriate prototype in each subspace. Row
     \mat{P} \triangleq (\mat{G}^\top \mat{G} + \lambda \mat{I})^{-1} \mat{G}^\top \tilde{\A}.
 % \vspace*{-.5mm}
 \end{align}
-One could obtain better performance by cross-validating to find $\lambda$, but for simplicity, we hardcode $\lambda = 1$. %, which corresponds to adding the minimum sensible pseudocount to the assignment cooccurrence matrix $\mat{G}^\top \mat{G}$.
+One could obtain better performance by cross-validating to find $\lambda$, but for simplicity, we fix $\lambda = 1$. %, which corresponds to adding the minimum sensible pseudocount to the assignment cooccurrence matrix $\mat{G}^\top \mat{G}$.
 
 In short, the initial prototypes are just used to produce an assignment matrix $\mat{G}$, and it is from this assignment matrix that the final prototypes are derived. This procedure allows the prototypes to be nonzero outside of their original subspaces. Because of our hashing procedure, we avoid the dramatically increased overhead faced by other methods with non-orthogonal prototypes (c.f. \cite{otq,aq,cq,grvq,lsq,stackedQuantizers}).
 
@@ -180,9 +181,11 @@ Given the encodings $\mat{G}$, the function $f(\cdot,\cdot)$ is defined as
 \end{align}
 Because the entries of $\mat{T}$ are stored as 8-bit values, exact summation requires immediately upcasting each looked-up entry to 16 bits before performing any addition instructions \cite{bolt}. This not only imposes overhead directly, but also means that one must perform 16-bit additions, which have half the throughput of 8-bit additions.
 
-We propose an alternative that sacrifices a small amount of accuracy for a significant increase in speed. Instead of using \textit{addition} instructions, we use \textit{averaging} instructions, such as \texttt{vpavgb} on x86 or \texttt{vrhadd} on ARM. While non-saturating additions compute $(a + b) \text{ \% } 256$, these instructions compute $(a + b + 1) / 2$. This means that they lose information about the low bit instead of the high bit of the sum. We estimate the overall mean by averaging pairs of values, then pairs of pairs, and so on. One could reduce all $C$ values this way, but we find that one obtains a better speed-accuracy tradeoff by computing the average of blocks of $U$ values and then upcasting to obtain exact sums of these averages. Multiplying this sum of averages by $U$ and adding in a bias correction term gives one the overall estimate of the sum. One could tune $U$ for a particular problem and hardware, but we simply set $U = 16$ in all our experiments.
+We propose an alternative that sacrifices a small amount of accuracy for a significant increase in speed. Instead of using \textit{addition} instructions, we use \textit{averaging} instructions, such as \texttt{vpavgb} on x86 or \texttt{vrhadd} on ARM. While non-saturating additions compute $(a + b) \text{ \% } 256$, these instructions compute $(a + b + 1) / 2$. This means that they lose information about the low bit instead of the high bit of the sum. We estimate the overall mean by averaging pairs of values, then pairs of pairs, and so on. We refer the reader to Appendix~\ref{sec:aggregateAnalysis} for details.
 
-The challenging part of this approach is computing the bias in the estimated sum in order to correct for it. We prove in Appendix~\ref{sec:aggregateAnalysis} that this bias is equal to $C \log_2(U) / 4$ under the realistic assumption that the low bits are equally likely to be 0 or 1.
+% One could reduce all $C$ values this way, but we find that one obtains a better speed-accuracy tradeoff by computing the average of blocks of $U$ values and then upcasting to obtain exact sums of these averages. Multiplying this sum of averages by $U$ and adding in a bias correction term gives one the overall estimate of the sum. One could tune $U$ for a particular problem and hardware, but we simply set $U = 16$ in all our experiments.
+
+The challenging part of this approach is computing the bias in the estimated sum in order to correct for it. We prove in Appendix~\ref{sec:aggregateAnalysis} that this bias has a closed-form solution under the realistic assumption that the low bits are equally likely to be 0 or 1.
 
 % ------------------------------------------------
 \vspace{-1.5mm}
@@ -191,3 +194,42 @@ The challenging part of this approach is computing the bias in the estimated sum
 % ------------------------------------------------
 
 Our encoding function $g(\A), \A \in \R^{N \times D}$ has complexity $\Theta(NC)$, since it does a constant amount of work per row per codebook. Our table creation function $h(\B), \B \in \R^{D \times M}$ has complexity $\Theta(MKCD)$, since it must compute the inner product between each column of $\B$ and $KC$ prototypes of length $D$. This is a factor of $C$ worse than PQ since we do not require the prototypes for different codebooks to have disjoint nonzero indices. However, as discussed in section~\ref{sec:problemStatement}, this reduction in the speed of $h(\cdot)$ is not a concern. Finally, the complexity of our aggregation function $f(\cdot)$ is $\Theta(NCM)$, since it performs $C$ table lookups for each of $M$ output columns and $N$ output rows. This means our overall algorithm has complexity $\Theta(MC(KD + N))$, which reduces to $\Theta(NCM)$ since we fix $K = 16$, and our problem statement requires $N \gg D$.
+
+% % ------------------------------------------------
+% \vspace{-1mm}
+% \subsection{Theoretical Guarantees} \label{sec:maddnessMainThm}
+% \vspace{-1.5mm}
+% % ------------------------------------------------
+
+% We begin by noting that all of the guarantees for \textsc{Bolt}\text{} \cite{bolt} also apply to \ours, modulo a small amount of additional error from averaging integers rather than summing exactly. This follows from \textsc{Bolt}'s guarantees being dependent only upon the quantization errors, rather than the method used to obtain them.
+% Beyond these existing guarantees, our central theoretical result is a generalization guarantee for the overall performance of \ours.
+
+% \begin{theorem}[Generalization Error of \ours] \label{thm:maddness}
+% Let $\Dcal$ be a probability distribution over $\R^D$ and suppose that \oursp is trained on a matrix $\tilde{\A} \in R^{N \times D}$ whose rows are drawn independently from $\Dcal$ and with maximum singular value bounded by $\sigma_A$. Let $C$ be the number of codebooks used by \oursp and $\lambda > 0$ be the regularization parameter used in the ridge regression step. Then for any $\b \in \R^D$, any $\a \sim \Dcal$, and any $0 < \delta < 1$, we have with probability at least $1 - \delta$ that
+% \begin{align}
+%     \begin{split}
+%     \E_{\Dcal}[&\Lcal(\a, \b)] \le \E_{\tilde{\A}}[\Lcal(\a, \b)] + \\
+%     &\frac{C \sigma_A \norm{\b}_2}{2 \sqrt{\lambda}} \left(
+%         \frac{1}{256} +
+%         \frac{
+%             8 +
+%             \sqrt{
+%                 % C (4\ceil{\log_2(D)} + 256) \log{2} -\log{\delta}
+%                 \nu(C, D, \delta)
+%             }
+%         }{\sqrt{2n}}
+%     \right)
+%     \end{split}
+% % \end{equation}
+% \end{align}
+% % where
+% % where $\Lcal(\a, \b) \triangleq |\a^\top \b - \alpha f(g(\a), h(\b)) - \mat{\beta}|$ (c.f., Equation~\ref{eq:objective}).
+% where $\Lcal(\a, \b) \triangleq |\a^\top \b - \alpha f(g(\a), h(\b)) - \mat{\beta}|$, $\alpha$ is the scale used for quantizing the lookup tables, $\mat{\beta}$ is the constants used in quantizing the lookup tables plus the debiasing constant of Section~\ref{sec:aggregate}, and
+% \begin{align}
+%     \nu(C, D, \delta) \triangleq C (4\ceil{\log_2(D)} + 256) \log{2} -\log{\delta}.
+% \end{align}
+% % The constants $\alpha$ and $\mat{\beta}$ are the values used for quantizing the lookup tables, plus the debiasing constant of Section~\ref{sec:aggregate}.
+% % with $\alpha$ and $\mat{\beta}$ the values used for quantizing the lookup tables (plus the debiasing constant of Section~\ref{sec:aggregate}).
+% \end{theorem}
+
+% See Appendix~\ref{sec:maddnessMath} for a proof and additional analysis. The intuition behind the proof is that the overall approximation decomposes into three parts: lookup table quantization error, a learned hash function, and a linear model. The table quantization error is provably small. The learned hash function can be expressed using finitely many bits, and therefore has a finite hypothesis space over which we can union bound. The linear model's generalization error can be bounded using known theorems \cite{kakadeLinear} based on Rademacher complexity \cite{rademacherOrig}. However, using these theorems requires bounds on the norms of linear combinations of the prototypes, which are difficult to obtain. % A key step in bounding these norms is obtaining a guarantee regarding the singular values of weight matrices trained through ridge regression, which may be of independent interest.

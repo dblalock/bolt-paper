@@ -21,6 +21,6 @@ All of the above methods differ from our own not merely in specifics, but also i
 \vspace{-1mm}
 \subsection{Hashing to Avoid Linear Operations}
 % \vspace{-.5mm}
-In the neural network acceleration literature, there have been several efforts to accelerate dense linear layers using some form of hashing \cite{springScalable,slide,wtaSoftmax,googleWtaCvpr,hashnet}. These methods differ from our own in the hash functions chosen, not exploiting a training set, and in the overall goal of the algorithm. While we seek to approximate the entire output matrix, these methods seek to either sample outputs \cite{springScalable,slide}, approximate only the largest outputs \cite{wtaSoftmax,googleWtaCvpr}, or implement a fixed, sparse linear operator \cite{hashnet}.
+In the neural network acceleration literature, there have been several efforts to accelerate dense linear layers using some form of hashing \cite{springScalable,slide,wtaSoftmax,googleWtaCvpr,hashnet}. These methods differ from our own in the hash functions chosen, in not exploiting a training set, and in the overall goal of the algorithm. While we seek to approximate the entire output matrix, these methods seek to either sample outputs \cite{springScalable,slide}, approximate only the largest outputs \cite{wtaSoftmax,googleWtaCvpr}, or implement a fixed, sparse linear operator \cite{hashnet}.
 
 

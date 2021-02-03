@@ -157,6 +157,80 @@
 % \newtheorem{Theorem}{Theorem}[section]
 % \newtheorem{P}{Definition}[section]
 
+% % ------------------------ convenience commands
+% \newcommand\eps\varepsilon
+% \DeclareMathOperator{\infimum}{inf}
+% \renewcommand\inf\infty
+% \DeclareMathOperator{\erfc}{erfc}
+
+% \renewcommand{\c}{\vec{c}}
+% \newcommand{\q}{\vec{q}}
+% \renewcommand{\r}{\vec{r}}
+% \renewcommand{\v}{\vec{v}}
+% \newcommand{\vhat}{\hat{\vec{v}}}
+% \newcommand{\x}{\vec{x}}
+% \newcommand{\xhat}{\hat{\vec{x}}}
+% \newcommand{\y}{\vec{y}}
+% \newcommand{\yhat}{\hat{\vec{y}}}
+% \newcommand{\z}{\vec{z}}
+% \newcommand{\zhat}{\hat{\vec{z}}}
+
+% \newcommand{\lam}{\lambda}
+% \newcommand{\sig}{\sigma}
+% \newcommand{\Sig}{\Sigma}
+
+% \newcommand{\E}{\mathop{{}\mathbb{E}}}
+
+% \newcommand{\A}{\mat{A}}
+% \newcommand{\Ahat}{\mat{\hat{A}}}
+% \renewcommand{\a}{\vec{a}}
+% \newcommand{\ahat}{\vec{\hat{a}}}
+% \newcommand{\B}{\mat{B}}
+% \newcommand{\Bhat}{\mat{\hat{B}}}
+% \renewcommand{\b}{\vec{b}}
+% \newcommand{\bhat}{\vec{\hat{b}}}
+% \newcommand{\V}{\mat{V}}
+
+% \renewcommand{\H}{\mathcal{H}}
+% \newcommand{\R}{\mathbb{R}}
+% % \newcommand{\V}{\mathcal{V}}
+% \newcommand{\Xs}{\mathcal{X}}
+% % \newcommand{\Z}{\mathcal{Z}}
+% % \renewcommand{\S}{\mathcal{S}}
+% % \newcommand{\Nb}{\mathcal{N}_b}
+
+% \newcommand{\onehalf}{\frac{1}{2}}
+
+% \newcommand{\Xcal}{\mathcal{X}}
+% \newcommand{\Ycal}{\mathcal{Y}}
+
+% \newcommand{\pie}[1]{\frac{\pi}{#1}}
+% % \newcommand{\pitwo}{\frac{\pi}{2}}
+% % \newcommand{\pifour}{\frac{\pi}{4}}
+
+% % \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+% \DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+% \DeclarePairedDelimiter\norm{\lVert}{\rVert}%
+
+% \DeclareMathOperator{\Beta}{Beta}
+% \DeclareMathOperator{\Normal}{\mathcal{N}}
+% \DeclareMathOperator{\erf}{erf}
+% \DeclareMathOperator{\Var}{Var}
+
+% % \newcommand{\iid}{\stackrel{i.i.d.}{\sim}}
+% \newcommand{\iid}{\stackrel{iid}{\sim}}
+
+% \newcommand{\Lcal}{\mathcal{L}}
+% \newcommand{\Rcal}{\mathcal{R}}
+% \newcommand{\Scal}{\mathcal{S}}
+% \newcommand{\Dcal}{\mathcal{D}}
+% \newcommand{\Fcal}{\mathcal{F}}
+
+% % make *all* text 10pt
+% % \renewcommand{\footnotesize}{\normalsize}
+% % \renewcommand{\footnotesize}{\small}
+% % \renewcommand{\small}{\normalsize}
+
 % ------------------------ convenience commands
 \newcommand\eps\varepsilon
 \DeclareMathOperator{\infimum}{inf}
@@ -166,6 +240,7 @@
 \renewcommand{\c}{\vec{c}}
 \newcommand{\q}{\vec{q}}
 \renewcommand{\r}{\vec{r}}
+\newcommand{\w}{\vec{w}}
 \renewcommand{\v}{\vec{v}}
 \newcommand{\vhat}{\hat{\vec{v}}}
 \newcommand{\x}{\vec{x}}
@@ -174,12 +249,15 @@
 \newcommand{\yhat}{\hat{\vec{y}}}
 \newcommand{\z}{\vec{z}}
 \newcommand{\zhat}{\hat{\vec{z}}}
+\newcommand{\X}{\mat{X}}
 
 \newcommand{\lam}{\lambda}
 \newcommand{\sig}{\sigma}
 \newcommand{\Sig}{\Sigma}
+\newcommand{\Sigm}{\mat{\Sigma}}
 
-\newcommand{\E}{\mathop{{}\mathbb{E}}}
+% \newcommand{\E}{\mathop{{}\mathbb{E}}}
+\newcommand{\E}{\mathbb{E}}
 
 \newcommand{\A}{\mat{A}}
 \newcommand{\Ahat}{\mat{\hat{A}}}
@@ -188,8 +266,24 @@
 \newcommand{\B}{\mat{B}}
 \newcommand{\Bhat}{\mat{\hat{B}}}
 \renewcommand{\b}{\vec{b}}
+\newcommand{\g}{\vec{g}}
 \newcommand{\bhat}{\vec{\hat{b}}}
+\newcommand{\U}{\mat{U}}
+\newcommand{\Ut}{\mat{U}^{\top}}
 \newcommand{\V}{\mat{V}}
+\newcommand{\Vt}{\mat{V}^{\top}}
+\newcommand{\W}{\mat{W}}
+\newcommand{\Y}{\mat{Y}}
+\newcommand{\Z}{\mat{Z}}
+\newcommand{\I}{\mat{I}}
+\renewcommand{\P}{\mat{P}}
+\newcommand{\G}{\mat{G}}
+
+\newcommand{\vtheta}{\vec{\theta}}
+\newcommand{\vdelta}{\vec{\delta}}
+
+\renewcommand{\rshift}{\texttt{>>}\text{ }}
+\renewcommand{\lshift}{\texttt{<<}\text{ }}
 
 \renewcommand{\H}{\mathcal{H}}
 \newcommand{\R}{\mathbb{R}}
@@ -199,12 +293,15 @@
 % \renewcommand{\S}{\mathcal{S}}
 % \newcommand{\Nb}{\mathcal{N}_b}
 
+\newcommand{\pie}[1]{\frac{\pi}{#1}}
+\newcommand{\piOver}[1]{\frac{\pi}{#1}}
 \newcommand{\onehalf}{\frac{1}{2}}
+
+\renewcommand{\sp}{\text{ }}
 
 \newcommand{\Xcal}{\mathcal{X}}
 \newcommand{\Ycal}{\mathcal{Y}}
 
-\newcommand{\pie}[1]{\frac{\pi}{#1}}
 % \newcommand{\pitwo}{\frac{\pi}{2}}
 % \newcommand{\pifour}{\frac{\pi}{4}}
 
@@ -216,14 +313,32 @@
 \DeclareMathOperator{\Normal}{\mathcal{N}}
 \DeclareMathOperator{\erf}{erf}
 \DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\sign}{sign}
+% \DeclareMathOperator{\log2}{\text{log}_2}
+
+\DeclareMathOperator{\MSE}{MSE}  % bolt math
+
+\newcommand{\Lcal}{\mathcal{L}}
+\newcommand{\Rcal}{\mathcal{R}}
+\newcommand{\Scal}{\mathcal{S}}
+\newcommand{\Dcal}{\mathcal{D}}
+\newcommand{\Fcal}{\mathcal{F}}
+
+% martingale math
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\p}{P}
 
 % \newcommand{\iid}{\stackrel{i.i.d.}{\sim}}
 \newcommand{\iid}{\stackrel{iid}{\sim}}
+% \renewcommand{\log}{\textit{log}}
+% \renewcommand{\log}{\textit{log}}
+% \RenewMathOperator{\log}{\text{log}}
 
 % make *all* text 10pt
 % \renewcommand{\footnotesize}{\normalsize}
 % \renewcommand{\footnotesize}{\small}
 % \renewcommand{\small}{\normalsize}
+
 
 % ------------------------------------------------ stuff that might break things
 
@@ -234,3 +349,4 @@
 \newtheorem{lemma}{Lemma}[section]
 \newtheorem{definition}{Definition}[section]
 \newtheorem{corollary}{Corrolary}[section]
+\newtheorem*{theorem*}{Theorem}  % no numbering

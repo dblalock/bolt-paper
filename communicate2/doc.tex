@@ -59,7 +59,7 @@
 
 Multiplying matrices is among the most fundamental and most computationally demanding operations in machine learning and scientific computing. Consequently, the task of efficiently approximating matrix products has received significant attention.
 
-We introduce an approximate matrix multiplication algorithm that substantially outperforms existing methods. Experiments using hundreds of matrices from diverse domains show that it runs far faster than current approaches for a given amount of error, often obtaining more than a $10\times$ relative speedup. In the common case that one matrix is known ahead of time, our method also has the interesting property that it requires \textit{zero} multiply-add operations. The key idea behind our approach is to replace the expensive encoding step common in vector quantization methods with a learned locality-sensitive hash function.
+We introduce an approximate matrix multiplication algorithm that greatly outperforms existing methods. Experiments using hundreds of matrices from diverse domains show that it often runs $10\times$ faster than current methods at a given level of error, as well as $100\times$ faster than exact matrix multiplication. In the common case that one matrix is known ahead of time, our method also has the interesting property that it requires zero multiply-adds. These results suggest that a mixture of hashing, averaging, and byte shuffling—--the core operations of our method—--could be a more promising building block than the sparsified, factorized, and/or scalar quantized matrix products that have been the subject of hundreds of papers and enormous hardware investment in recent years.
 
 \end{abstract}
 
@@ -108,8 +108,13 @@ We introduce an approximate matrix multiplication algorithm that substantially o
 \vspace{-.5mm}
 %================================================================
 
-We introduce an approximate matrix multiplication algorithm that achieves a significantly better speed-quality tradeoff than existing methods, as measured on various machine learning and other tasks using hundreds of real-world matrices from diverse domains. Our method's performance stems from 1) its replacement of the bottleneck in existing methods with a learned locality-sensitive hash function, 2) its optimization of a quantity that other methods cannot optimize without a large slowdown, and 3) its use of an inexact estimator for computing sums.
-In future work, we plan to specialize our method for convolutions, implement it on GPUs, and integrate it into neural networks.
+We introduce an approximate matrix multiplication algorithm that achieves a significantly better speed-quality tradeoff than existing methods, as measured using hundreds of real-world matrices from diverse domains. Our method also features theoretical guarantees, as well as a number of algorithmic contributions likely to be of more general interest. Regarding future work, these results suggest that methods similar to our own might hold promise for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms. %---though realizing this potential will require a great deal of further research and engineering.
+
+% Our results suggest that methods similar to our own could hold promise for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms, but we emphasize that such extensions will require significant further research and the present work claims superiority only for \textit{approximate matrix multiplication}.
+% the present work only claims superiority for \textit{approximate matrix multiplication} as described in our problem formulation. In future work
+
+% Our method's performance stems from 1) its replacement of the bottleneck in existing methods with a learned locality-sensitive hash function, 2) its optimization of a quantity that other methods cannot optimize without a large slowdown, and 3) its use of an inexact estimator for computing sums.
+% In future work, we plan to specialize our method for convolutions, implement it on GPUs, and integrate it into neural networks.
 % In future work, we plan to integrate our method into neural networks, specialize it for convolutions, and implement it on GPUs.
 
 % ================================================================
