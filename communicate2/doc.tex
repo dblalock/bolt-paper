@@ -103,12 +103,40 @@ We introduce an approximate matrix multiplication algorithm that greatly outperf
 \input{results.tex}
 
 %================================================================
-\vspace{-2.5mm}
-\section{Conclusion}
+% \vspace{-2.5mm}
+\vspace{-.5mm}
+\section{Discussion and Conclusion}
 \vspace{-.5mm}
 %================================================================
 
-We introduce an approximate matrix multiplication algorithm that achieves a significantly better speed-quality tradeoff than existing methods, as measured using hundreds of real-world matrices from diverse domains. Our method also features theoretical guarantees, as well as a number of algorithmic contributions likely to be of more general interest. Regarding future work, these results suggest that methods similar to our own might hold promise for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms. %---though realizing this potential will require a great deal of further research and engineering.
+We introduce \ours, an algorithm that achieves up to a $10\times$ better speed-quality tradeoff than existing methods for the well-studied problem of approximate matrix multiplication, as measured on a large, diverse, and challenging set of real-world matrices.
+% substantially larger than that used in any previous work.
+% , as measured using a large, diverse, and challenging set of real-world matrices.
+Our method also features theoretical guarantees, as well as a number of algorithmic contributions likely to be of more general interest. %While the focus of this paper is matrix multiplication, our results suggest that future methods similar to our own might hold promise for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms.
+
+% \ours's efficacy for matrix multiplication suggests that similar methods based on vector quantization and byte shuffling may be promising for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms.
+
+% \vspace{-.25mm}
+The main limitation of our work is that we do not demonstrate (or claim) speedups on Google TPUs, recent NVIDIA GPUs, or other accelerators specialized for traditional matrix products. However, 1) such accelerators are a small minority of computational devices, and 2) our work does suggest a possible path for \textit{future} accelerators to be much more efficient. Namely, replacing the multiply-add hardware needed by current approaches with the multi\textit{plex}-add hardware needed for fast table lookups could both save many transistors and likely increase output quality.
+
+% hardware acceleration for the hashing, averaging, and table lookup operations we employ could both increase quality of output and require fewer transistors than current multiplication-based approaches.
+
+% than are needed by multipliers, and would (as we demonstrate) likely
+
+% on which we rely would require fewer transistors than are needed by multipliers, and would (as we demonstrate) likely achieve better quality than current approaches.
+
+%  simultanebe implemented with far fewer transistors than are needed by multipliers, and 2) could (as we demonstrate) approximate linear transforms at least as well traditional approaches like scalar quantization.
+
+% \vspace{-.25mm}
+Finally, while the focus of this paper is matrix multiplication and extending it beyond this will require further research, our results suggest that similar methods might hold promise for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms.
+
+% In future work, our results suggest that methods similar to our own might hold promise for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms.
+
+% In future work, our results
+
+% that using methods similar to our own accelerating
+
+ %---though realizing this potential will require a great deal of further research and engineering.
 
 % Our results suggest that methods similar to our own could hold promise for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms, but we emphasize that such extensions will require significant further research and the present work claims superiority only for \textit{approximate matrix multiplication}.
 % the present work only claims superiority for \textit{approximate matrix multiplication} as described in our problem formulation. In future work
@@ -131,7 +159,7 @@ We introduce an approximate matrix multiplication algorithm that achieves a sign
 
 % TODO uncomment
 
-\bibliography{architectures,datasets,misc,sprintz,extract,bolt,backprop-alternatives,distillation,fast-dnn-runtime-stuff,fast-optimize,nets-theory,small-fast-arch,sparseAndPrune,scalarQuantize,vectorQuantize,combo,hashing,shrink+prune,binarize,ternary,automl,zero-shot,few-shot,amm,ammMore,lsh,adversarial}
+\bibliography{architectures,datasets,misc,sprintz,extract,bolt,backprop-alternatives,distillation,fast-dnn-runtime-stuff,fast-optimize,nets-theory,small-fast-arch,sparseAndPrune,scalarQuantize,vectorQuantize,combo,hashing,shrink+prune,binarize,ternary,automl,zero-shot,few-shot,amm,ammMore,lsh,adversarial,libs,math}
 \clearpage
 \newpage  % so we can cut the pdf
 \appendix

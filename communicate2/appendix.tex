@@ -295,7 +295,7 @@ The poor performance of many of these methods is unsurprising in our setting. Gi
 \subsection{UCR Time Series Archive}
 % ------------------------------------------------
 
-We omitted datasets with fewer than 128 training examples, since it is not possible for Stochastic Neighbor Compression to draw 128 samples without replacement in this case.
+We set the number of returned neighbors to 128 (results with 64 and 256 were similar). We omitted datasets with fewer than 128 training examples, since it is not possible for Stochastic Neighbor Compression to draw 128 samples without replacement in this case.
 
 In addition to being a large, public corpus of over a hundred datasets from a huge variety of different domains, the UCR Time Series Archive also has the advantage that it can be used to produce matrix multiplication tasks of a fixed size. This is necessary for meaningful comparison of speed vs accuracy tradeoffs across datasets. We constructed training and test matrices $\tilde{\A}$ and $\A$ by resampling each time series in each dataset's train and test set to a length of $320$ (the closest multiple of 32 to the median length of 310). We obtained the matrix $\B$ for each dataset by running Stochastic Neighbor Compression \cite{snc} on the training set with an RBF kernel of bandwidth one. We set the number of returned neighbors to 128 (results with 64 and 256 were similar), yielding a $\B$ matrix of size $320 \times 128$. %See Appendix~\ref{sec:experimentDetails} for additional details.
 Since different datasets have different test set sizes, all results are for a standardized test set size of 1000 rows. We wanted the length to be a multiple of 32 since existing methods operate best with sizes that are either powers of two or, failing that, multiples of large powers of two.
@@ -359,8 +359,21 @@ In Section~\ref{sec:results}, we showed the classification accuracy as a functio
 % \vfill\break  % columnbreak
 % \vfill
 \clearpage
-\section{Proof of Generalization Guarantee} \label{sec:maddnessMath}
+\section{Theoretical Analysis of \ours} \label{sec:maddnessMath}
 % ================================================================
+
+
+% ------------------------------------------------
+\subsection{Complexity}
+% ------------------------------------------------
+
+% Our encoding function $g(\A), \A \in \R^{N \times D}$ has complexity $\Theta(NC)$, since it does a constant amount of work per row per codebook. Our table creation function $h(\B), \B \in \R^{D \times M}$ has complexity $\Theta(MKCD)$, since it must compute the inner product between each column of $\B$ and $KC$ prototypes of length $D$. This is a factor of $C$ worse than PQ since we do not require the prototypes for different codebooks to have disjoint nonzero indices. However, as discussed in section~\ref{sec:problemStatement}, this reduction in the speed of $h(\cdot)$ is not a concern. Finally, the complexity of our aggregation function $f(\cdot)$ is $\Theta(NCM)$, since it performs $C$ table lookups for each of $M$ output columns and $N$ output rows. This means our overall algorithm has complexity $\Theta(MC(KD + N))$, which reduces to $\Theta(NCM)$ since we fix $K = 16$, and our problem statement requires $N \gg D$.
+
+Our encoding function $g(\A), \A \in \R^{N \times D}$ has complexity $\Theta(NC)$, since it does a constant amount of work per row per codebook. Our table creation function $h(\B), \B \in \R^{D \times M}$ has complexity $\Theta(MKCD)$, since it must compute the inner product between each column of $\B$ and $KC$ prototypes of length $D$. This is a factor of $C$ worse than PQ since we do not require the prototypes for different codebooks to have disjoint nonzero indices. However, this reduction in the speed of $h(\cdot)$ is not a concern because $N \gg M, D$; moreover, the matrix $\B$ is often known ahead of time in realistic settings, allowing $h(\B)$ to be computed offline. Finally, the complexity of our aggregation function $f(\cdot)$ is $\Theta(NCM)$, since it performs $C$ table lookups for each of $M$ output columns and $N$ output rows. This means our overall algorithm has complexity $\Theta(MC(KD + N))$, which reduces to $\Theta(NCM)$ since we fix $K = 16$ and our problem statement requires $N \gg D$.
+
+% ------------------------------------------------
+\subsection{Proof of Generalization Guarantee}
+% ------------------------------------------------
 
 In this section, we prove Theorem~\ref{thm:maddness}, restated below for convenience.
 
