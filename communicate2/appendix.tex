@@ -269,7 +269,7 @@ Given the ubiquity of GPUs and multicore CPUs, it may not be obvious why single-
     % \item Our basic ideas can be applied to GPUs or other devices. The only CPU-specific constraint informing our algorithm is the need to have splits at the same level of a tree all use the same index. We of course cannot know precisely how well our ideas work on any given piece of hardware absent direct testing of a high-performance implementation. We therefore plan to create a GPU implementation of our method in future work.
 \end{itemize}
 
-% ,
+
 
 % ------------------------------------------------
 \subsection{SparsePCA details}
@@ -317,6 +317,21 @@ To allow meaningful speed comparisons across images, we resized and center cropp
 Even though the RGB values at each position are naturally unsigned 8-bit integers, we allowed all rival methods to operate on them as 32-bit floating point, without including the conversion when timing them. Because it only requires checking whether values are above a threshold, \oursp can operate on 8-bit data directly.
 
 % ------------------------------------------------
+\subsection{Why Not Speed Up Whole Neural Nets?}
+% ------------------------------------------------
+
+Using our ideas to accelerate overall neural networks and other layer types would be a valuable contribution. In fact, we are actively working on this problem. However, as we state in the introduction and problem statement, our focus in this paper is \textit{approximate matrix multiplication} (AMM) and we deliberately make no claim about accelerating entire neural networks or convolutional layers. We limit our scope in this way for several reasons:
+\begin{enumerate}
+\item Approximate matrix multiplication is an established research problem of general interest independent of deep learning.
+\item Lifting a method from accelerating a single layer to an overall network is challenging. Just as scalar quantization of network parameters is simple for a single layer but an active area of research for an entire network, so too is using our method on multiple layers at once an open research problem. For example, it is not clear how to deal with the fact that distributions of activations change throughout training, or how to efficiently incorporate our non-differentiable hash function.
+We could show how to accelerate one internal FC layer in a network, but we don’t want to risk misleading the reader---it would be unclear what conclusions to draw from such results, particularly given the difficulty of retraining / fine-tuning without introducing many lurking variables (c.f., \cite{blalock2020}).
+\item It is correct that convolution can be reduced to GEMM using im2col, and that accelerating convolution using our ideas would be a valuable contribution. However, state-of-the-art algorithms for convolution exploit structure that is not available to general matrix multiply algorithms. To match the performance of specialized Winograd, direct, FFT-based, and hybrid convolution schemes that do exploit this additional structure, we would have to make modifications to our approach that would make it less general. For example, the individual spatial positions should be encoded only once, and then reused at multiple filter positions. Regarding Section 5.5: while we do test our method on matrices of flattened image patches, we do not claim that the overall pipeline of flattening + matrix multiply constitutes a state-of-the-art convolution method---we only claim that using our method in this pipeline outperforms using other AMM methods there.
+\item The paper is already heavily space constrained. Even if we had already completed all the additional research and engineering work necessary to generalize our approach to convolutional layers and full neural networks, there simply wouldn't be space to explain the method or include the relevant results.
+\end{enumerate}
+
+In short, while we agree that our ideas show great promise for accelerating full neural networks and more layer types, making this happen requires much more research that cannot cleanly be folded into the current paper. Furthermore, because the problem we consider is important and established on its own, we do not see it as necessary to expand the scope of the present work.
+
+% ------------------------------------------------
 \subsection{Additional Results}
 % ------------------------------------------------
 
@@ -354,7 +369,6 @@ In Section~\ref{sec:results}, we showed the classification accuracy as a functio
 \end{center}
 \end{figure}
 
-
 % ================================================================
 % \vfill\break  % columnbreak
 % \vfill
@@ -377,7 +391,7 @@ Our encoding function $g(\A), \A \in \R^{N \times D}$ has complexity $\Theta(NC)
 
 In this section, we prove Theorem~\ref{thm:maddness}, restated below for convenience.
 
-\begin{theorem*}[Generalization Error of \ours] \label{thm:maddness}
+\begin{theorem*}[Generalization Error of \ours] \label{thm:maddnessAppendix}
 Let $\Dcal$ be a probability distribution over $\R^D$ and suppose that \oursp is trained on a matrix $\tilde{\A} \in R^{N \times D}$ whose rows are drawn independently from $\Dcal$ and with maximum singular value bounded by $\sigma_A$. Let $C$ be the number of codebooks used by \oursp and $\lambda > 0$ be the regularization parameter used in the ridge regression step. %Then for any vector $\b$, any vector $\a \sim \Dcal$, and any $0 < \delta < 1$, we have with probability at least $1 - \delta$ that
 Then for any $\b \in \R^D$, any $\a \sim \Dcal$, and any $0 < \delta < 1$, we have with probability at least $1 - \delta$ that
  % Then for all vectors $\b$ and any vector $\a \sim \Dcal$, we have with probability at least $1 - \delta$, $0 < \delta < 1$,
