@@ -141,7 +141,7 @@ These results suggest that a mixture of hashing, averaging, and byte shufflingâ€
 We introduce \ours, an algorithm that achieves up to a $10\times$ better speed-quality tradeoff than existing methods for the well-studied problem of approximate matrix multiplication (AMM), as measured on a large, diverse, and challenging set of real-world matrices.
 % substantially larger than that used in any previous work.
 % , as measured using a large, diverse, and challenging set of real-world matrices.
-Our method also features theoretical guarantees, as well as standalone algorithmic contributions that may be of independent interest. In particular, we introduce a family of trainable hash functions that can encode data at over 100GB/s in a single thread and a fast approximate algorithm for summing low-bitwidth integers.
+Our method also features theoretical guarantees, as well as standalone algorithmic contributions that may be of independent interest. In particular, we introduce a family of trainable vector quantization functions that can encode data at over 100GB/s in a single thread and a fast approximate algorithm for summing low-bitwidth integers.
 
 Our approach is a significant departure from existing AMM work in that it relies on hashing and table lookups rather than multiply-add operations. It is also unusual as an \textit{application} of machine learning, inserting learned functions and representations even within low-level kernels.
 

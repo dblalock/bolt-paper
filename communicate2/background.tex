@@ -37,7 +37,7 @@ PQ is depicted for a single pair of vectors $\a$ and $\b$ in Figure~\ref{fig:pq}
 \paragraph{Prototype Learning:}
 % ------------------------------------------------
 
-Let $\tilde{A} \in \R^{N \times D}$ be a training set, $K$ be a number of prototypes per subspace, $C$ be a number of subspaces, and $\{\mathcal{J}^{(c)}\}_{c=1}^C$ be the (mutually exclusive and collectively exhaustive) sets of indices associated with each subspace. The training-time task of PQ is to learn $C$ sets of prototypes $\mat{P}^{(c)} \in \R^{K \times |\mathcal{J}^{(c)}|}$ and assignments $\vec{z}^{(c)} \in \R^{N}$ such that:
+Let $\tilde{A} \in \R^{N \times D}$ be a training set, $K$ be a number of prototypes per subspace, $C$ be a number of subspaces, and $\{\mathcal{J}^{(c)}\}_{c=1}^C$ be the mutually exclusive and collectively exhaustive sets of indices associated with each subspace. The training-time task of PQ is to learn $C$ sets of prototypes $\mat{P}^{(c)} \in \R^{K \times |\mathcal{J}^{(c)}|}$ and assignments $\vec{z}^{(c)} \in \R^{N}$ such that:
 \vspace{-2mm}
 \begin{align}
     \sum_{i=1}^N \sum_{c=1}^C \sum_{j\in \mathcal{J}^{(c)}} \left( \tilde{\A}_{ij} - \mat{P}^{(c)}_{z^{(c)},j} \right)^2
@@ -87,7 +87,7 @@ Using these same prototypes, PQ constructs a lookup table $h^{(c)}(\b) \in \R^K$
 \begin{align}
     h^{(c)}(\b)_k \triangleq \sum_{j\in \mathcal{J}^{(c)}} \b_j \mat{P}^{(c)}_{k,j}.
 \end{align}
-Existing work has shown that setting $K = 16$ and quantizing the lookup tables to 8 bits can offer enormous speedups compared to larger $K$ and/or floating-point tables \cite{bolt, quickAdc, quickerAdc}. This is because 16 1-byte entries can be stored in a SIMD register, allowing 16 or more table lookups to be performed in parallel in a single instruction. Since the table entries naturally occupy more than 8 bits even for 8-bit data, some means of quantizing these entries is necessary. This can easily be done by subtracting off the minimum entry in each table and linearly rescaling such that the maximum entry in any table is at most 255. Ignoring rounding error, this affine transform is invertible, and is reflected by the constants $\alpha$ and $\beta$ in equation~\ref{eq:objective}. See Appendix~\ref{sec:lutQuantize} for additional details.
+Existing work has shown that setting $K = 16$ and quantizing the lookup tables to 8 bits can offer enormous speedups compared to larger $K$ and/or floating-point tables \cite{bolt, quickAdc, quickerAdc}. This is because 16 1-byte entries can be stored in a SIMD register, allowing 16 or more table lookups to be performed in parallel using a byte shuffle instruction. Since the table entries naturally occupy more than 8 bits even for 8-bit data, some means of quantizing these entries is necessary. This can easily be done by subtracting off the minimum entry in each table and linearly rescaling such that the maximum entry in any table is at most 255. Ignoring rounding error, this affine transform is invertible, and is reflected by the constants $\alpha$ and $\mat{\beta}$ in equation~\ref{eq:objective}. See Appendix~\ref{sec:lutQuantize} for further details.
 
 % \vspace{-.5mm}
 %This has complexity $\Theta(KD)$ for each $\b$, since it is essentially the same as $g(\cdot)$ except without the $\argmin$ operation.

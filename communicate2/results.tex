@@ -136,10 +136,10 @@ To assess the efficacy of our method on a larger and more diverse set of dataset
 We approximate the Euclidean distances used by the kernel via the identity $\norm{\vec{x} - \vec{y}}_2^2 = \norm{\vec{x}}_2^2 - 2\vec{x}^\top \vec{y} + \norm{\vec{y}}_2^2$, which consists only of dot products.
 This is not the state-of-the-art means of classifying time series, but it does yield fixed-sized matrices and is representative of several modern techniques for constructing highly efficient classifiers \cite{snc,dsnc,bnc,protonn}.
 % This setup also complements the CIFAR results by being an extremely
-This task is difficult because Stochastic Neighbor Compression has already optimized the classifiers to avoid redundancy.
+Because Stochastic Neighbor Compression optimizes the classifiers to avoid redundancy, this task is quite challenging.
 %. This is because 1) Stochastic Neighbor Compression has already optimized the classifer to avoid redundancy, and 2) the distances between time series are often far smaller than their $L_2$ norms, allowing even small approximation errors to change predictions. % since the distances between time series are often far smaller than their euclidean lengths; this property means that even small amounts of approximation error are sufficient to change predictions. It is also difficult because the $\B$ matrix has been optimized to avoid redundancy, so any acceleration
 \vspace{-.5mm}
-As shown in Figure~\ref{fig:ucr}, \oursp is significantly faster at a given level of accuracy.% on this difficult task.
+As shown in Figure~\ref{fig:ucr}, \oursp is significantly faster than alternatives at a given level of accuracy.% on this difficult task.
 % A counter-intuitive result, however, is that optimization of the prototypes occasionally reduces accuracy---see the red line dipping below the blue one in the lowest subplot. Since the optimization strictly increases the expressive power, we believe that this is a product of overfitting and could be corrected were we to tune the ridge regression's parameter (instead of always using $\lambda = 1$).
 % This subplot also shows that even \oursp cannot satisfy the most stringent accuracy requirements on many datasets, since the \oursp curves never approach 1.
 % This subplot also reveals that the most stringent degredation requirements can sometimes only be met using PCA at a low speedup (and not \ours), since this is the only curve approaching $1$.
@@ -166,7 +166,9 @@ To test the extreme limits of \ours, we benchmarked the various techniques' abil
 We report the normalized mean-squared error (NMSE), defined as $\norm{\mat{\hat{C}}_{i,j} - \A\B}^2_F / \norm{\A\B}^2_F$, where $\hat{\mat{C}}$ is the method's estimate of $\A\B$. An NMSE of 0 is perfect and an NMSE of 1 corresponds to always predicting 0.
 
 In Figure~\ref{fig:caltech}, we see that it is only \oursp that offers any advantage over exact matrix products. This is likely because two columns afford almost no time to preprocess $\A$; indeed, rival vector quantization methods cannot logically do less work than brute force in this setting, and dense linear methods can only save work by embedding rows of $\A$ in one-dimensional space.
-\oursp performs much worse on the high-pass filters (top) than the low-pass filters (bottom). This is likely because the former produce outputs with variance that is orders of magnitude lower than that of the original image; this means that the NMSE denominator, $\norm{\A\B}^2_F$, is tiny.  % relative to $\norm{\A}_F$ and $\norm{\B}_F$.
+\oursp performs much worse on the high-pass filters (top) than the low-pass filters (bottom). This is likely because the former produce outputs with variance that is orders of magnitude lower than that of the original image, making the NMSE denominator tiny.
+% this makes the NMSE denominator, $\norm{\A\B}^2_F$, tiny.  % relative to $\norm{\A}_F$ and $\norm{\B}_F$.
+% this means that the NMSE denominator, $\norm{\A\B}^2_F$, is tiny.  % relative to $\norm{\A}_F$ and $\norm{\B}_F$.
 
 \begin{figure}[h]
 \begin{center}
