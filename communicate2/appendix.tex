@@ -250,7 +250,7 @@ Note that the assumption that the elements are independent is not especially str
 Because nearly all existing work on approximate matrix multiplication either focuses on special cases that do not satisfy our problem definition \cite{quickerAdc, pq, opq} or synthetic matrices, there is not a clear set of benchmark matrix multiply tasks to use. We therefore propose a collection of tasks that we believe are both reproducible and representative of many real-world matrices. To the best of our knowledge, our experiments use over an order of magnitude more matrices than any previous study.
 
 % ------------------------------------------------
-\subsection{Choice of Single Threaded Benchmarks}
+\subsection{Choice of Single Threaded Benchmarks} \label{appendix:onethread}
 % ------------------------------------------------
 
 Given the ubiquity of GPUs and multicore CPUs, it may not be obvious why single-threaded experiments are desirable. There are a number of reasons we restrict our focus to CPUs and the single threaded case:

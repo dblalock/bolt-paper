@@ -58,6 +58,8 @@ construct three functions $g(\cdot)$, $h(\cdot)$, and $f(\cdot)$, along with con
 \end{align}
 for as small an error $\eps(\tau)$ possible. The constants $\alpha$ and $\mat{\beta}$ are separated from $f(\cdot,\cdot)$ so that $f(\cdot,\cdot)$ can produce low-bitwidth outputs (e.g., in the range $[0, 255]$) even when the entries of $\A\B$ do not fall in this range.
 
-We assume the existence of a training set $\tilde{\A}$, whose rows are drawn from the same distribution as the rows of $\A$. This is a natural assumption in the case that rows of $\A$ represent examples in training data, or structured subsets thereof (such as patches of images). This assumption is common in the information retrieval literature \cite{bolt,pairq,quip}, though not in most theoretical work. Lastly, while our ideas are not specific to CPUs, we focus on CPU performance throughout this paper and leave implementation on GPUs, FPGAs, etc., to future work.
+We assume the existence of a training set $\tilde{\A}$, whose rows are drawn from the same distribution as the rows of $\A$. This is a natural assumption in the case that rows of $\A$ represent examples in training data, or structured subsets thereof (such as patches of images).
+
+% This assumption is common in the information retrieval literature \cite{bolt,pairq,quip}, though not in most theoretical work. Lastly, while our ideas are not specific to CPUs, we focus on CPU performance throughout this paper and leave implementation on GPUs, FPGAs, etc., to future work.
 
 % While we believe that our results suggest that methods similar to our own could hold promise for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms, such extensions will require additional research---the present work only claims superiority for \textit{approximate matrix multiplication} as described in our problem formulation.
