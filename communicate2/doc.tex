@@ -5,7 +5,7 @@
 \usepackage{booktabs}
 \usepackage{hyperref}
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
-\usepackage{icml2020}
+\usepackage[accepted]{icml2021}
 
 % \newcommand{\oursp}{\textsc{HashMul}\text{ }}
 % \newcommand{\ours}{\textsc{HashMul}}
@@ -40,11 +40,20 @@
 % ================================================================
 
 \begin{icmlauthorlist}
-\icmlauthor{Batman}{WayneEnterprises}
+\icmlauthor{Davis Blalock}{mosaic,csail}
+\icmlauthor{John Guttag}{csail}
 \end{icmlauthorlist}
 
-\icmlaffiliation{WayneEnterprises}{Wayne Enterprises, Gotham, USA}
-\icmlcorrespondingauthor{Batman}{batman@batman.batman}
+\icmlaffiliation{mosaic}{MosaicML, San Francisco, CA, USA}
+\icmlaffiliation{csail}{MIT CSAIL, Cambridge, MA, USA}
+\icmlcorrespondingauthor{Davis Blalock}{dblalock@mit.edu}
+
+\icmlkeywords{Vector Quantization, Approximate Algorithms, Matrix Multiplication}
+
+% \end{icmlauthorlist}
+
+% \icmlaffiliation{WayneEnterprises}{Wayne Enterprises, Gotham, USA}
+% \icmlcorrespondingauthor{Batman}{batman@batman.batman}
 
 \icmlkeywords{Vector Quantization, Approximate Algorithms, Matrix Multiplication}
 
@@ -74,7 +83,9 @@ We introduce a learning-based algorithm for this task that greatly outperforms e
 Experiments using hundreds of matrices from diverse domains show that it often runs $100\times$ faster than exact matrix products and $10\times$ faster than current approximate methods. In the common case that one matrix is known ahead of time,
 our method also has the interesting property that it requires zero multiply-adds.
 
-These results suggest that a mixture of hashing, averaging, and byte shuffling—--the core operations of our method—--could be a more promising building block for machine learning than the sparsified, factorized, and/or scalar quantized matrix products that have been the focus of substantial research and hardware investment in recent years. They also suggest that machine learning can be applied at even the lowest level of the software stack---e.g., our matrix product kernels begin by running inference in decision trees.
+These results suggest that a mixture of hashing, averaging, and byte shuffling—--the core operations of our method—--could be a more promising building block for machine learning than the sparsified, factorized, and/or scalar quantized matrix products that have been the focus of substantial research and hardware investment in recent years.
+% dozens of papers and billions of dollars of hardware investment in recent years.
+%They also suggest that machine learning can be applied at even the lowest level of the software stack---e.g., our matrix product kernels begin by running inference in decision trees.
 
 % These results suggest that a mixture of hashing, averaging, and byte shuffling—--the core operations of our method—--could be a more promising building block than the sparsified, factorized, and/or scalar quantized matrix products that have been the subject of hundreds of papers and enormous hardware investment in recent years.
 
@@ -129,33 +140,42 @@ These results suggest that a mixture of hashing, averaging, and byte shuffling�
 
 \input{results.tex}
 
+% ================================================================
+% \vspace*{-5mm}
+\section{Discussion} \label{sec:limitations}
+% \vspace{-.5mm}
+% ================================================================
+
+\input{limitations.tex}
+
 %================================================================
 % \vspace{-2.5mm}
 % \vspace{-.5mm}
 % \vspace*{.5mm}
-\section{Discussion and Conclusion}
-\vspace{-.5mm}
+\section{Conclusion}
+% \vspace{-.5mm}
 %================================================================
 
 % We introduce \ours, a learning-based algorithm for the well-studied problem of approximate matrix multiplication (AMM). Experiments using a large, diverse, and challenging set of real-world matrices show that our algorithm achieves up to a $10\times$ better speed-quality tradeoff than existing methods. Our method also features theoretical guarantees regarding.
 
 % that achieves up to a $10\times$ better speed-quality tradeoff than existing methods for the well-studied problem of approximate matrix multiplication (AMM). as measured on a large, diverse, and challenging set of real-world matrices.
 
-We introduce \ours, an algorithm that achieves up to a $10\times$ better speed-quality tradeoff than existing methods for the well-studied problem of approximate matrix multiplication (AMM), as measured on a large, diverse, and challenging set of real-world matrices.
+We introduce \ours, an algorithm that achieves up to a $10\times$ better speed-quality tradeoff than existing methods for the well-studied problem of approximate matrix multiplication (AMM), as measured on a large, diverse, and challenging set of real-world matrices. Our approach is a significant departure from existing AMM work in that it relies on hashing and table lookups rather than multiply-add operations. Our results suggest that future methods similar to our own might hold promise for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms.
 % substantially larger than that used in any previous work.
 % , as measured using a large, diverse, and challenging set of real-world matrices.
-Our method also features theoretical guarantees, as well as standalone algorithmic contributions that may be of independent interest. In particular, we introduce a family of trainable vector quantization functions that can encode data at over 100GB/s in a single thread and a fast approximate algorithm for summing low-bitwidth integers.
+% Our method also features theoretical guarantees, as well as standalone algorithmic contributions that may be of independent interest. In particular, we introduce a family of trainable vector quantization functions that can encode data at over 100GB/s in a single thread and a fast approximate algorithm for summing low-bitwidth integers.
 
-Our approach is a significant departure from existing AMM work in that it relies on hashing and table lookups rather than multiply-add operations. It is also unusual as an \textit{application} of machine learning, inserting learned functions and representations even within low-level kernels.
+
+% It is also unusual as an \textit{application} of machine learning, inserting learned functions and representations even within low-level kernels.
 
 %While the focus of this paper is matrix multiplication, our results suggest that future methods similar to our own might hold promise for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms.
 
 % \ours's efficacy for matrix multiplication suggests that similar methods based on vector quantization and byte shuffling may be promising for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms.
 
 % \vspace{-.25mm}
-The main limitation of our work is that we do not demonstrate (or claim) speedups on Google TPUs, recent NVIDIA GPUs, or other accelerators specialized for traditional matrix products. However, 1) such accelerators are a small minority of computational devices, and 2) our work does suggest a possible path for \textit{future} accelerators to be much more efficient. Namely, replacing the multiply-add hardware needed by current approaches with the multi\textit{plex}-add hardware needed for fast table lookups could both save many transistors and perhaps increase output quality.
+% The main limitation of our work is that we do not demonstrate (or claim) speedups on Google TPUs, recent NVIDIA GPUs, or other accelerators specialized for traditional matrix products. However, 1) such accelerators are a small minority of computational devices, and 2) our work does suggest a possible path for \textit{future} accelerators to be much more efficient. Namely, replacing the multiply-add hardware needed by current approaches with the multi\textit{plex}-add hardware needed for fast table lookups could both save many transistors and perhaps increase output quality.
 
-Finally, while the focus of this paper is matrix multiplication and extending it beyond this will require further research, our results suggest that similar methods might hold promise for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms.
+% Finally, while the focus of this paper is matrix multiplication and extending it beyond this will require further research, our results suggest that similar methods might hold promise for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms.
 
 
 % % ------------------------
@@ -209,7 +229,8 @@ Finally, while the focus of this paper is matrix multiplication and extending it
 % \bibliographystyle{ACM-Reference-Format}
 % \bibliographystyle{abbrev}
 % \bibliographystyle{sysml2019}
-\bibliographystyle{icml2020}
+% \bibliographystyle{icml2020}
+\bibliographystyle{icml2021}
 % \bibliography{prune,architectures,misc,understandDnn,classic,datasets,compress,science,metapapers}
 
 

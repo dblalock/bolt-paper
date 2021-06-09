@@ -136,7 +136,7 @@ Once a split index $j$ and an array of split thresholds $\vec{v}$ are chosen, al
 % This is similar to equations~\ref{eq:offset} and \ref{eq:scale}, but with the scale factor pooled across all codebooks instead of unique to each input column. The $\alpha$ used here is the same as that in equation~\ref{eq:objective}, and the matrix $\beta$ in equation~\ref{eq:objective} has entries equal to $\sum_c \vec{\delta}_c$ (plus another constant we inroduce below).
 
 % ------------------------------------------------
-\vspace{-1.5mm}
+\vspace{-2.5mm}
 \subsection{Optimizing the Prototypes}
 \vspace{-.5mm}
 % ------------------------------------------------
@@ -161,7 +161,7 @@ Let $\mat{P} \in \R^{KC \times D}$ be a matrix whose diagonal blocks of size $K 
 where $\mat{G}$ serves to select the appropriate prototype in each subspace. Rows of $\mat{G}$ are formed by concatenating the one-hot encoded representations of each assignment for the corresponding row of $\tilde{\A}$. For example, if a row were assigned prototypes $\langle$\texttt{3 1 2}$\rangle$ with $K = 4$, $C = 3$, its row in $\mat{G}$ would be $\langle$\texttt{0010 1000 0100}$\rangle \in \R^{12}$. Our idea is to optimize $\mat{P}$ conditioned on $\mat{G}$ and $\tilde{\A}$. This is an ordinary least squares problem, and we solve it with ridge regression:
 % Essentially, $\mat{G}$ serves to select the appropriate prototype in each subspace.
 \begin{align}
-\vspace*{-1mm}
+% \vspace*{-1mm}
     \mat{P} \triangleq (\mat{G}^\top \mat{G} + \lambda \mat{I})^{-1} \mat{G}^\top \tilde{\A}.
 % \vspace*{-.5mm}
 \end{align}
@@ -198,9 +198,9 @@ The challenging part of this approach is computing the bias in the estimated sum
 % Our encoding function $g(\A), \A \in \R^{N \times D}$ has complexity $\Theta(NC)$, since it does a constant amount of work per row per codebook. Our table creation function $h(\B), \B \in \R^{D \times M}$ has complexity $\Theta(MKCD)$, since it must compute the inner product between each column of $\B$ and $KC$ prototypes of length $D$. This is a factor of $C$ worse than PQ since we do not require the prototypes for different codebooks to have disjoint nonzero indices. However, as discussed in section~\ref{sec:problemStatement}, this reduction in the speed of $h(\cdot)$ is not a concern. Finally, the complexity of our aggregation function $f(\cdot)$ is $\Theta(NCM)$, since it performs $C$ table lookups for each of $M$ output columns and $N$ output rows. This means our overall algorithm has complexity $\Theta(MC(KD + N))$, which reduces to $\Theta(NCM)$ since we fix $K = 16$, and our problem statement requires $N \gg D$.
 
 % ------------------------------------------------
-\vspace{-1mm}
+% \vspace{-1mm}
 \subsection{Theoretical Guarantees} \label{sec:maddnessMainThm}
-\vspace{-1.5mm}
+% \vspace{-1.5mm}
 % ------------------------------------------------
 
 % All of the guarantees for \textsc{Bolt}\text{} \cite{bolt} also apply to \ours, modulo a small amount of additional error from averaging integers rather than summing exactly. This follows from \textsc{Bolt}'s guarantees depending only upon the quantization errors, rather than the method used to obtain them.
@@ -228,13 +228,15 @@ Let $\Dcal$ be a probability distribution over $\R^D$ and suppose that \oursp is
 % where $\Lcal(\a, \b) \triangleq |\a^\top \b - \alpha f(g(\a), h(\b)) - \mat{\beta}|$ (c.f., Equation~\ref{eq:objective}).
 where $\Lcal(\a, \b) \triangleq |\a^\top \b - \alpha f(g(\a), h(\b)) - \mat{\beta}|$, $\alpha$ is the scale used for quantizing the lookup tables, $\mat{\beta}$ is the constants used in quantizing the lookup tables plus the debiasing constant of Section~\ref{sec:aggregate}, and
 \begin{align}
+\vspace*{-2mm}
     \nu(C, D, \delta) \triangleq C (4\ceil{\log_2(D)} + 256) \log{2} -\log{\delta}.
+\vspace*{-2mm}
 \end{align}
 % The constants $\alpha$ and $\mat{\beta}$ are the values used for quantizing the lookup tables, plus the debiasing constant of Section~\ref{sec:aggregate}.
 % with $\alpha$ and $\mat{\beta}$ the values used for quantizing the lookup tables (plus the debiasing constant of Section~\ref{sec:aggregate}).
 \end{theorem}
 
 See Appendix~\ref{sec:maddnessMath} for a proof and additional analysis, including a discussion of algorithmic complexity. Note that we also inherit all of the guarantees of \textsc{Bolt}\text{} \cite{bolt}, modulo a small amount of additional error from averaging integers rather than summing exactly.
-% This follows from \textsc{Bolt}'s guarantees depending only upon the quantization errors, rather than the method used to obtain them.
+This follows from \textsc{Bolt}'s guarantees depending only upon the quantization errors and not the method used to obtain them.
 
 % The intuition behind the proof is that the overall approximation decomposes into three parts: lookup table quantization error, a learned hash function, and a linear model. The table quantization error is provably small. The learned hash function can be expressed using finitely many bits, and therefore has a finite hypothesis space over which we can union bound. The linear model's generalization error can be bounded using known theorems \cite{kakadeLinear} based on Rademacher complexity \cite{rademacherOrig}. However, using these theorems requires bounds on the norms of linear combinations of the prototypes, which are difficult to obtain. % A key step in bounding these norms is obtaining a guarantee regarding the singular values of weight matrices trained through ridge regression, which may be of independent interest.

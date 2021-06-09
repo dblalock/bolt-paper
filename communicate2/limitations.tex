@@ -1,42 +1,47 @@
 
 
-
-Because our work draws on a number of different fields but does not fit cleanly into any of them, we have found that most readers struggle to correctly identify this paper's strengths and weaknesses. In the interest of clarity, we therefore enumerate them below.
+Because our work draws on a number of different fields but does not fit cleanly into any of them, we have found that many readers struggle to correctly identify this paper's strengths and weaknesses. In the interest of clarity, we therefore enumerate them below.
 
 \subsection{Strengths}
-
+%
+% \vspace{-1mm}
 \paragraph{Importance of problem.}
 Matrix products are ubiquitous computational bottlenecks throughout machine learning and scientific computing.
-Any method to accelerate them in realistic scenarios can therefore have a large impact on many workloads.
-Moreover, companies are investing billions in creating hardware for approximate matrix products \cite{nvidia10k2021}, with the approximation taking the form of sparsity and/or scalar quantization. Our work suggests that there might be an equally actionable, but far more effective, form of approximation.
-
-\paragraph{Huge empirical improvements.} We obtain order-of-magnitude improvements over existing AMM work and two-order-of-magnitude improvements over dense matrix products. As a byproduct of our approach, we also reduce the sizes of matrices by one to two orders of magnitude.
+% Any method to accelerate them in realistic scenarios can therefore have a large impact.
+Moreover, companies are investing billions in creating hardware that approximates matrix products \cite{nvidia10k2021} using scalar quantization and/or sparsity. Our work suggests that there might be an equally actionable, but far more effective, approximation method.
+%
+\vspace{-2mm}
+\paragraph{Large empirical improvements.} We obtain order-of-magnitude improvements over existing AMM work and two-order-of-magnitude improvements over dense matrix products. As a byproduct of our approach, we also reduce the sizes of matrices by one to two orders of magnitude.
 % Moreover, we do this on commodity hardware designed for dense matrix products.
-
-\paragraph{Rigorous experiments.}
-Because there are no standard benchmarks for the AMM task, we use hundreds of matrices from diverse domains and of diverse shapes, stable ranks, etc. This is far more than any previous work. We also take great pains to ensure that all comparisons are fair or biased against us; e.g., we allow other methods to tune their hyperparameters on the test set. We also build on the codebase of our nearest rival \cite{bolt} and use their highly-tuned implementations whenever possible.
-
+% \paragraph{Rigorous experiments.}
+Because there are no standard benchmarks for the AMM task, we obtain these findings using hundreds of matrices from diverse domains and of diverse shapes, stable ranks, etc. This is far more matrices than any previous work. We also take great pains to ensure that all comparisons are fair or biased against us; e.g., we allow other methods to tune their hyperparameters on the test set. Also, we build on the codebase of our nearest rival \cite{bolt} and use their highly-tuned implementations whenever possible.
+%
+\vspace{-3mm}
 \paragraph{Theoretical Grounding.}
-Our method has provably bounded generalization error, inherits the guarantees of existing work, and has closed-form expressions for the errors introduced by some of its subroutines. However, the generalization guarantee is not tight; in particular, it gets looser as the largest singular vector of the training set grows, while it should ideally get looser as the Frobenius norm grows but \textit{tighter} as the singular values become more concentrated.
+Our method has provably bounded generalization error, inherits the guarantees of existing work, and has closed-form expressions for the errors introduced by some of its subroutines. However, the generalization guarantee is not tight. In particular, it gets looser as the largest singular vector of the training set grows; it should ideally get looser as the Frobenius norm grows but \textit{tighter} as the singular values become more concentrated.
 
 \subsection{Limitations}
 
-\paragraph{No results using GPUs or other accelerators.} While GPUs and other accelerators are a small minority of computational devices, they are often used in machine learning. Because creating high-performance GPU implementations of both our algorithm and existing baselines will require a huge amount of implementation time, we leave this to future work. A related limitation is that, on hardware that allocates significant die area to accelerating dense matrix products, we are not sure that any algorithm (including our own) will outperform the dense baseline.
 
+\vspace{-1.5mm}
+\paragraph{No results using GPUs or other accelerators.} While GPUs and other accelerators are a small minority of computational devices, they are often used in machine learning. Because creating high-performance GPU implementations of both our algorithm and existing baselines will require a huge amount of implementation time, we leave this to future work. A related limitation is that, on chips that allocates significant die area to accelerating dense matrix products, we are not sure that any algorithm (including our own) will outperform the dense baseline.
+%
+\vspace{-1.5mm}
 \paragraph{No convolutional layer or overall neural network results.} Similarly, it will require a large amount of work to specialize our method and baselines for large convolutions, and even more work to hook these methods into existing neural network libraries and architectures. Because such methods are inexact and often use non-standard data formats, how best to retrain and/or adapt networks to handle them is a research problem in and of itself.
-
-\paragraph{More restrictive assumptions than other AMM methods.} Our method requires a training set for the larger matrix. This assumption is common in the information retrieval literature \cite{bolt,pairq,quip}, but not in most theoretical AMM work.
-
+%
+\vspace{-1.5mm}
 \paragraph{Limited ablations for two algorithmic components.}
-We perform ablations for some pieces of our algorithm and some design choices, but not all. We do not assess our proposed approximate summation method on its own, instead providing a closed-form expression for its error. We also compare our proposed hash function only to that of Bolt \cite{bolt}, which hashes a $D$-element vector using a $D \times 16$ matrix-vector multiply followed by an $\argmax$. We omit comparison to other hash functions since back-of-the-envelope calculations make clear that this baseline is already far faster than other alternatives. Because locality-sensitive hashing is useful on its own, however, it would be useful to have a separate investigation of our hash function.
+We do not assess the impact of our proposed approximate summation method on its own, instead providing a closed-form expression for its error. We also compare our proposed hash function only to that of Bolt, % which is the fastest existing hash function of which we are aware.
+which hashes a $D$-element vector using a $D \times 16$ matrix-vector multiply followed by an $\argmax$. Back-of-the-envelope calculations make clear that this baseline is already far faster than other alternatives, but further experiments could validate the independent utility of our hash function.
+ % We omit comparison to other hash functions since . % Because locality-sensitive hashing is useful on its own, however, it could be valuable to have a separate investigation of our hash function.
+\vspace{-1.5mm}
+\paragraph{More restrictive assumptions than other AMM methods.} Our method requires a training set for the larger matrix. This assumption is common in information retrieval literature \cite{bolt,pairq,quip}, but not in most theoretical AMM work.
 
 
 \subsection{Non-Limitations}
-
-\paragraph{Absence of comparisons to domain-specific solutions for search, classification, etc.} While all of the matrices used in our experiments are drawn from some real-world task, we do not claim that application of our method is sufficient for state-of-the-art performance on that task. For example, while we show that our method can quickly approximate a linear classifier, this does not mean that we have the most efficient possible classifier for that dataset. We claim only that applying our method to the classifier yields more improvement than applying \textit{other AMM methods}. It is also important to observe that, while our method has much in common with similarity search algorithms, it operates under wholly different assumptions and is not suitable for search tasks.
-
+\paragraph{Absence of comparisons to domain-specific solutions for search, classification, etc.} While all of the matrices used in our experiments are drawn from some real-world task, we do not claim that application of our method is sufficient for state-of-the-art performance on that task. For example, while we show that our method can quickly approximate a linear classifier, this does not mean that we have the most efficient possible classifier for that dataset. We claim only that applying our method to the classifier yields more improvement than applying \textit{other AMM methods}. Also, while our method resembles similarity search algorithms, it operates under different assumptions and is not suitable for search tasks. Most importantly, similarity search methods assume that the larger matrix is fixed or slow-changing enough that there is no need for our fast encoder.
 \paragraph{Focus on single-threaded performance.}
-Our method is intended to accelerate the single-threaded block multiply subroutine found in a multi-threaded implementation, not provide a multi-threaded implementation. See Appendix~\ref{appendix:onethread} for further discussion.
+Our method is intended to accelerate the single-threaded block multiply subroutine found in a multi-threaded matrix multiply implementation, not provide a multi-threaded implementation. See Appendix~\ref{appendix:onethread} for further discussion.
 % Because matrix multiplication is embarassingly parallel, our method parallelizes in the same manner as any other.
 
 

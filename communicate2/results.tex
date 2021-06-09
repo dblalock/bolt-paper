@@ -2,8 +2,7 @@
 To assess \ours's effectiveness, we implemented both it and existing algorithms in C++ and Python. All of our code and raw numerical results are publicly available at \texttt{https://smarturl.it/Maddness}. All experiments use a single thread on a Macbook Pro with a 2.6GHz Intel Core i7-4960HQ processor. Unless stated otherwise, all timing results use five trials, with each trial reporting the fastest among 20 executions. We use the best, rather than average, since this is standard practice in performance benchmarking and is robust to the purely additive noise introduced by competing CPU tasks. Standard deviations are shown for all curves as shaded areas.
 % , but are often too small to see.
 Since training can be performed offline and all methods except SparsePCA \cite{sparsePCA} train in at most a few minutes, we omit profiling of training times. We also do not profile the time to preprocess $\B$, since 1) this time is inconsequential in most cases, and 2) $\B$ is fixed and could be processed offline in all the problems we consider.
-
-% In order to avoid implementation bias, we built upon the source code provided by \citep{bolt}\footnote{https://github.com/dblalock/bolt}, which has the most in common with our method and includes highly tuned implementations of many algorithms to which we compare.
+In order to avoid implementation bias, we built upon the source code provided by \citep{bolt}\footnote{https://github.com/dblalock/bolt}, which has the most in common with our method and includes highly tuned implementations of many algorithms to which we compare.
 
 % The metrics and baselines shown below are only a subset of those evaluated. In particular, we also measured squared errors, correlations, cosine similarities, etc, in addition to classification accuracies, but omit these since they are similar. See Appendix~\ref{sec:experimentDetails} for more results.
 
@@ -105,9 +104,9 @@ We also profile the speed of our aggregation function $f(\cdot, \cdot)$ using th
 
 % ------------------------------------------------
 % \vspace{-1.5}
-\vspace{-2mm}
+% \vspace{-2mm}
 \subsection{Softmax Classifier}
-\vspace{-.5mm}
+% \vspace{-.5mm}
 % \vspace{-1mm}
 % ------------------------------------------------
 
@@ -122,12 +121,12 @@ As shown in Figure~\ref{fig:cifar}, \oursp significantly outperforms all existin
 \end{center}
 \end{figure}
 
-% Moreover, our method achieves this performance despite having worse support from the hardware. Specifically, it obtains speedups much smaller than the level of compression it provides. For example, the third points from the right correspond to speedups of roughly $100\times$. However, they are compressing each $512 \times 4\text{B} = 2048\text{B}$ row of the input down to a mere 4B, a savings of $512\times$ (sizes not shown in figure). \textit{If the hardware could lookup-accumulate as many bytes per cycle as it can multiply-accumulate, our method would be roughly $4\times$ faster than it is}. Combined with the fact that multiplexers require many fewer transistors than multipliers, this suggests that a hardware implementation of our method might offer large efficiency gains compared to existing accelerators.
+Moreover, our method achieves this performance despite having worse support from the hardware. Concretely, it obtains speedups much smaller than the level of compression it provides. For example, the third points from the right correspond to speedups of roughly $100\times$. However, they are compressing each $512 \times 4\text{B} = 2048\text{B}$ row of the input down to a mere 4B, a savings of $512\times$ (sizes not shown in figure). \textit{If the hardware could lookup-accumulate as many bytes per cycle as it can multiply-accumulate, our method would be roughly $4\times$ faster}. Combined with the fact that multiplexers require many fewer transistors than multipliers, this suggests that a hardware implementation of our method might offer large efficiency gains compared to existing accelerators.
 
 % ------------------------------------------------
-\vspace{-2mm}
+% \vspace{-2mm}
 \subsection{Kernel-based classification}
-\vspace{-.5mm}
+% \vspace{-.5mm}
 % \vspace{-1mm}
 % ------------------------------------------------
 
@@ -136,11 +135,14 @@ To assess the efficacy of our method on a larger and more diverse set of dataset
 We approximate the Euclidean distances used by the kernel via the identity $\norm{\vec{x} - \vec{y}}_2^2 = \norm{\vec{x}}_2^2 - 2\vec{x}^\top \vec{y} + \norm{\vec{y}}_2^2$, which consists only of dot products.
 This is not the state-of-the-art means of classifying time series, but it does yield fixed-sized matrices and is representative of several modern techniques for constructing highly efficient classifiers \cite{snc,dsnc,bnc,protonn}.
 % This setup also complements the CIFAR results by being an extremely
-Because Stochastic Neighbor Compression optimizes the classifiers to avoid redundancy, this task is quite challenging.
-%. This is because 1) Stochastic Neighbor Compression has already optimized the classifer to avoid redundancy, and 2) the distances between time series are often far smaller than their $L_2$ norms, allowing even small approximation errors to change predictions. % since the distances between time series are often far smaller than their euclidean lengths; this property means that even small amounts of approximation error are sufficient to change predictions. It is also difficult because the $\B$ matrix has been optimized to avoid redundancy, so any acceleration
-\vspace{-.5mm}
+Because Stochastic Neighbor Compression optimizes the classifiers to avoid redundancy, this task is quite difficult.
+% This is because 1) Stochastic Neighbor Compression has already optimized the classifier to avoid redundancy, and 2) the distances between time series are often far smaller than their $L_2$ norms, allowing even small approximation errors to change predictions.
+% since the distances between time series are often far smaller than their euclidean lengths; this property means that even small amounts of approximation error are sufficient to change predictions. It is also difficult because the $\B$ matrix has been optimized to avoid redundancy, so any acceleration
+% \vspace{-.5mm}
+
 As shown in Figure~\ref{fig:ucr}, \oursp is significantly faster than alternatives at a given level of accuracy.% on this difficult task.
-% A counter-intuitive result, however, is that optimization of the prototypes occasionally reduces accuracy---see the red line dipping below the blue one in the lowest subplot. Since the optimization strictly increases the expressive power, we believe that this is a product of overfitting and could be corrected were we to tune the ridge regression's parameter (instead of always using $\lambda = 1$).
+A counter-intuitive result, however, is that optimization of the prototypes occasionally reduces accuracy---see the red line dipping below the blue one in the lowest subplot. Since the optimization strictly increases the expressive power, we believe that this is a product of overfitting and could be corrected by not fixing $\lambda = 1$ in the ridge regression.
+% were we to tune the ridge regression's parameter (instead of always using $\lambda = 1$).
 % This subplot also shows that even \oursp cannot satisfy the most stringent accuracy requirements on many datasets, since the \oursp curves never approach 1.
 % This subplot also reveals that the most stringent degredation requirements can sometimes only be met using PCA at a low speedup (and not \ours), since this is the only curve approaching $1$.
 % , at high accuracy preservation thresholds,  % However as indicated by \oursp never approaching a fraction of 1 on the bottom subplot, \oursp does not consistently preserve the full accuracy. This suggests that, for difficult classification problems in which almost no accuracy can be sacrificed, \outsp is often not the best choice. The only methods that reliably preserve nearly the full original accuracy are PCA with a small speedup and, with certain parameter settings, Bolt.
@@ -150,7 +152,7 @@ As shown in Figure~\ref{fig:ucr}, \oursp is significantly faster than alternativ
 \includegraphics[width=\linewidth]{amm/ucr2_Speedup_Relative Accuracy_rbf}
 \caption{Fraction of UCR datasets for which each method preserves a given fraction of the original accuracy.
 % , versus the method's degree of speedup
-\oursp enables much greater speedups for a given level of accuracy degredation.}
+\oursp enables much greater speedups for a given level of accuracy degradation.}
 \label{fig:ucr}
 \end{center}
 \end{figure}
