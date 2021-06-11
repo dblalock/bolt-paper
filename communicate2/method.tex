@@ -9,7 +9,7 @@ The main idea behind our function is to determine the ``most similar'' prototype
 % Each bucket is associated with a prototype, defined to be the mean of all training vectors hashing to that bucket.
 
 % ------------------------------------------------
-\vspace{-1mm}
+% \vspace{-1mm}
 \subsection{Hash Function Family, $\bm{g(\cdot)}$}
 % ------------------------------------------------
 
@@ -25,6 +25,7 @@ The family of hash functions we choose is balanced binary regression trees, with
 
 % Formally, consider a set of four indices ${j_1,\ldots,j_d}$ and four arrays of split values $\vec{v}_1,\ldots,\vec{v}_d$, with $v_d^\prime$ having length $2^{d^\prime} - 1$. A vector $\x$ is mapped to an index using Algorithm~\ref{algo:ourEnc}.
 Formally, consider a set of four indices ${j^1,\ldots,j^4}$ and four arrays of split thresholds $\vec{v}^1,\ldots,\vec{v}^4$, with $v_t$ having length $2^{t-1}$. A vector $\x$ is mapped to an index using Algorithm~\ref{algo:ourEnc}.
+% \begin{centering}
 \begin{algorithm}[t]
 \caption{\oursHash} \label{algo:ourEnc}
 \begin{algorithmic}[1]
@@ -46,6 +47,8 @@ Formally, consider a set of four indices ${j^1,\ldots,j^4}$ and four arrays of s
     % \RETURN {$i$}
 \end{algorithmic}
 \end{algorithm}
+% \vspace*{5mm}
+% \end{centering}
 % \vspace{-3mm}
 This function is simple, only depends on a constant number of indices in the input vector, and can easily be vectorized provided that the matrix whose rows are being encoded is stored in column-major order. % The only subtlety in doing this vectorization is that one may need to convert floating point data to integers depending on one's processor; see Appendix~\ref{sec:hashQuantize} for further discussion.
 
@@ -54,7 +57,9 @@ This function is simple, only depends on a constant number of indices in the inp
 % first computing the minimum and maximum split value within each $\vec{v}$, subtracting the smallest value
 
 % ------------------------------------------------
-\vspace{-2mm}
+% \vspace{-2mm}
+% \vspace{4mm}
+% \phantom{\newline}
 \subsection{Learning the Hash Function Parameters}
 % ------------------------------------------------
 
@@ -63,10 +68,15 @@ The split indices ${j^1,\ldots,j^4}$ and split thresholds $\vec{v}^1,\ldots,\vec
 %  and chooses the best among those considered
 % it will be helpful to
 To describe this algorithm, we introduce the notion of a \textit{bucket} $\mathcal{B}^t_i$, which is the set of vectors mapped to node $i$ in level $t$ of the tree. The root of the tree is level 0 and $\mathcal{B}^0_1$ contains all the vectors. It will also be helpful to define the sum of squared errors (SSE) loss associated with a bucket, or a specific (index, bucket) pair:
-\begin{align}
+\begin{equation}
+\setlength{\jot}{10pt}
+\begin{aligned}
+% \text{\vspace{-3mm}}
     \mathcal{L}(j \text{, } \mathcal{B}) &\triangleq \sum_{\x \in \mathcal{B}} \left( x_j - \frac{1}{|\mathcal{B}|}\sum_{\x^\prime \in \mathcal{B}} x^\prime_j \right)^2  \\
     \mathcal{L}(\mathcal{B}) &\triangleq \sum_j \mathcal{L}(j \text{, } \mathcal{B}).
-\end{align}
+% \vspace*{-3mm}
+\end{aligned}
+\end{equation}
 % I.e., this loss for each index is the sum of squared errors (SSE) when estimating each $x_j$ as equal to its mean value within the bucket, and the overall loss for a bucket is the sum of the values in each dimension. The overall loss can also be understood as the ``energy'' of the bucket [].
 Using this notation, it suffices to characterize the learning algorithm by describing the construction of level $t$ of the tree given the buckets $\mathcal{B}^{t-1}_1,\ldots,\mathcal{B}^{t-1}_{2^{t-1}}$ from the previous level. This procedure is given in Algorithm~\ref{algo:learnTree}.
 
@@ -117,6 +127,7 @@ Once a split index $j$ and an array of split thresholds $\vec{v}$ are chosen, al
     \ENDFOR \label{line:splitBucketsEnd}
     \STATE{\textbf{return } $\bm{\mathcal{B}} \text{, } l^{min} \text{, } j^{min} \text{, } v^{min}$}
 \end{algorithmic}
+% \vspace*{4mm}
 \end{algorithm}
 
 % % ------------------------------------------------
@@ -136,9 +147,9 @@ Once a split index $j$ and an array of split thresholds $\vec{v}$ are chosen, al
 % This is similar to equations~\ref{eq:offset} and \ref{eq:scale}, but with the scale factor pooled across all codebooks instead of unique to each input column. The $\alpha$ used here is the same as that in equation~\ref{eq:objective}, and the matrix $\beta$ in equation~\ref{eq:objective} has entries equal to $\sum_c \vec{\delta}_c$ (plus another constant we inroduce below).
 
 % ------------------------------------------------
-\vspace{-2.5mm}
+% \vspace{-2.5mm}
 \subsection{Optimizing the Prototypes}
-\vspace{-.5mm}
+% \vspace{-.5mm}
 % ------------------------------------------------
 
 At this point, we have a complete algorithm. We could simply drop our hash-based encoding function into PQ and approximate matrix products. However, we contribute two additional enhancements: a means of optimizing the prototypes with no runtime overhead, and a means of quickly summing low-bitwidth integers.
@@ -171,13 +182,14 @@ One could obtain better performance by cross-validating to find $\lambda$, but f
 This procedure allows the prototypes to be nonzero outside of their original subspaces. Because of our hashing procedure, we avoid the dramatically increased overhead faced by other methods with non-orthogonal prototypes (c.f. \cite{otq,aq,cq,grvq,lsq,stackedQuantizers}).
 
 % ------------------------------------------------
-\vspace{-1.5mm}
+% \vspace{-1.5mm}
 \subsection{Fast 8-bit Aggregation, $\bm{f(\cdot,\cdot)}$} \label{sec:aggregate}
-\vspace{-.5mm}
+% \vspace{-.5mm}
 % ------------------------------------------------
 Let $\mat{T} \in \R^{M \times C \times K}$ be the tensor of lookup tables for all $M$ columns of $\B$.
 Given the encodings $\mat{G}$, the function $f(\cdot,\cdot)$ is defined as
 \begin{align}
+\vspace*{2mm}
     % f(g(\A), h(\B))_{n,m} \triangleq \sum_{c=1}^C \sum_{k=1}^K \mat{T}^{q}_{m,c,k} I\{\mat{G}_{n,c} = k \}
     f(g(\A), h(\B))_{n,m} \triangleq \sum_{c=1}^C \mat{T}_{m,c,k} \cs\text{ } k = g^{(c)}(\a_n).
 \end{align}
@@ -204,10 +216,12 @@ The challenging part of this approach is computing the bias in the estimated sum
 % ------------------------------------------------
 
 % All of the guarantees for \textsc{Bolt}\text{} \cite{bolt} also apply to \ours, modulo a small amount of additional error from averaging integers rather than summing exactly. This follows from \textsc{Bolt}'s guarantees depending only upon the quantization errors, rather than the method used to obtain them.
-% Beyond these existing guarantees, our central theoretical result is a generalization guarantee for the overall performance of \ours, stated below. See Appendix~\ref{sec:maddnessMath} for a proof and additional analysis, including a discussion of algorithmic complexity.
+% Beyond these existing guarantees,
+
+Our central theoretical result is a generalization guarantee for the overall approximation error of \ours, stated below. See Appendix~\ref{sec:maddnessMath} for a proof and additional analysis, including a discussion of algorithmic complexity. Besides this main guarantee, we also inherit all of the guarantees for \textsc{Bolt}\text{} \cite{bolt}, modulo a small amount of additional error from averaging integers rather than summing exactly. This follows from Bolt's guarantees depending only on the quantization errors, rather than the method used to obtain them.
 
 \begin{theorem}[Generalization Error of \ours] \label{thm:maddness}
-Let $\Dcal$ be a probability distribution over $\R^D$ and suppose that \oursp is trained on a matrix $\tilde{\A} \in R^{N \times D}$ whose rows are drawn independently from $\Dcal$ and with maximum singular value bounded by $\sigma_A$. Let $C$ be the number of codebooks used by \oursp and $\lambda > 0$ be the regularization parameter used in the ridge regression step. Then for any $\b \in \R^D$, any $\a \sim \Dcal$, and any $0 < \delta < 1$, we have with probability at least $1 - \delta$ that
+Let $\Dcal$ be a probability distribution over $\R^D$ and suppose that \oursp is trained on a matrix $\tilde{\A} \in \R^{N \times D}$ whose rows are drawn independently from $\Dcal$ and with maximum singular value bounded by $\sigma_A$. Let $C$ be the number of codebooks used by \oursp and $\lambda > 0$ be the regularization parameter used in the ridge regression step. Then for any $\b \in \R^D$, any $\a \sim \Dcal$, and any $0 < \delta < 1$, we have with probability at least $1 - \delta$ that
 \begin{align}
     \begin{split}
     \E_{\Dcal}[&\Lcal(\a, \b)] \le \E_{\tilde{\A}}[\Lcal(\a, \b)] + \\
@@ -236,7 +250,7 @@ where $\Lcal(\a, \b) \triangleq |\a^\top \b - \alpha f(g(\a), h(\b)) - \mat{\bet
 % with $\alpha$ and $\mat{\beta}$ the values used for quantizing the lookup tables (plus the debiasing constant of Section~\ref{sec:aggregate}).
 \end{theorem}
 
-See Appendix~\ref{sec:maddnessMath} for a proof and additional analysis, including a discussion of algorithmic complexity. Note that we also inherit all of the guarantees of \textsc{Bolt}\text{} \cite{bolt}, modulo a small amount of additional error from averaging integers rather than summing exactly.
-This follows from \textsc{Bolt}'s guarantees depending only upon the quantization errors and not the method used to obtain them.
+% See Appendix~\ref{sec:maddnessMath} for a proof and additional analysis, including a discussion of algorithmic complexity. Note that we also inherit all of the guarantees of \textsc{Bolt}\text{} \cite{bolt}, modulo a small amount of additional error from averaging integers rather than summing exactly.
+% This follows from \textsc{Bolt}'s guarantees depending only upon the quantization errors and not the method used to obtain them.
 
 % The intuition behind the proof is that the overall approximation decomposes into three parts: lookup table quantization error, a learned hash function, and a linear model. The table quantization error is provably small. The learned hash function can be expressed using finitely many bits, and therefore has a finite hypothesis space over which we can union bound. The linear model's generalization error can be bounded using known theorems \cite{kakadeLinear} based on Rademacher complexity \cite{rademacherOrig}. However, using these theorems requires bounds on the norms of linear combinations of the prototypes, which are difficult to obtain. % A key step in bounding these norms is obtaining a guarantee regarding the singular values of weight matrices trained through ridge regression, which may be of independent interest.

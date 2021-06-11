@@ -1,50 +1,100 @@
 
+% \section{Conclusion}
 
-Because our work draws on a number of different fields but does not fit cleanly into any of them, we have found that many readers struggle to correctly identify this paper's strengths and weaknesses. In the interest of clarity, we therefore enumerate them below.
-
-\subsection{Strengths}
 %
 % \vspace{-1mm}
-\paragraph{Importance of problem.}
-Matrix products are ubiquitous computational bottlenecks throughout machine learning and scientific computing.
-% Any method to accelerate them in realistic scenarios can therefore have a large impact.
-Moreover, companies are investing billions in creating hardware that approximates matrix products \cite{nvidia10k2021} using scalar quantization and/or sparsity. Our work suggests that there might be an equally actionable, but far more effective, approximation method.
-%
-\vspace{-2mm}
-\paragraph{Large empirical improvements.} We obtain order-of-magnitude improvements over existing AMM work and two-order-of-magnitude improvements over dense matrix products. As a byproduct of our approach, we also reduce the sizes of matrices by one to two orders of magnitude.
-% Moreover, we do this on commodity hardware designed for dense matrix products.
-% \paragraph{Rigorous experiments.}
-Because there are no standard benchmarks for the AMM task, we obtain these findings using hundreds of matrices from diverse domains and of diverse shapes, stable ranks, etc. This is far more matrices than any previous work. We also take great pains to ensure that all comparisons are fair or biased against us; e.g., we allow other methods to tune their hyperparameters on the test set. Also, we build on the codebase of our nearest rival \cite{bolt} and use their highly-tuned implementations whenever possible.
-%
-\vspace{-3mm}
-\paragraph{Theoretical Grounding.}
-Our method has provably bounded generalization error, inherits the guarantees of existing work, and has closed-form expressions for the errors introduced by some of its subroutines. However, the generalization guarantee is not tight. In particular, it gets looser as the largest singular vector of the training set grows; it should ideally get looser as the Frobenius norm grows but \textit{tighter} as the singular values become more concentrated.
-
-\subsection{Limitations}
 
 
-\vspace{-1.5mm}
-\paragraph{No results using GPUs or other accelerators.} While GPUs and other accelerators are a small minority of computational devices, they are often used in machine learning. Because creating high-performance GPU implementations of both our algorithm and existing baselines will require a huge amount of implementation time, we leave this to future work. A related limitation is that, on chips that allocates significant die area to accelerating dense matrix products, we are not sure that any algorithm (including our own) will outperform the dense baseline.
-%
-\vspace{-1.5mm}
-\paragraph{No convolutional layer or overall neural network results.} Similarly, it will require a large amount of work to specialize our method and baselines for large convolutions, and even more work to hook these methods into existing neural network libraries and architectures. Because such methods are inexact and often use non-standard data formats, how best to retrain and/or adapt networks to handle them is a research problem in and of itself.
-%
-\vspace{-1.5mm}
-\paragraph{Limited ablations for two algorithmic components.}
-We do not assess the impact of our proposed approximate summation method on its own, instead providing a closed-form expression for its error. We also compare our proposed hash function only to that of Bolt, % which is the fastest existing hash function of which we are aware.
-which hashes a $D$-element vector using a $D \times 16$ matrix-vector multiply followed by an $\argmax$. Back-of-the-envelope calculations make clear that this baseline is already far faster than other alternatives, but further experiments could validate the independent utility of our hash function.
- % We omit comparison to other hash functions since . % Because locality-sensitive hashing is useful on its own, however, it could be valuable to have a separate investigation of our hash function.
-\vspace{-1.5mm}
-\paragraph{More restrictive assumptions than other AMM methods.} Our method requires a training set for the larger matrix. This assumption is common in information retrieval literature \cite{bolt,pairq,quip}, but not in most theoretical AMM work.
+Because our work draws on a number of different fields but does not fit cleanly into any of them, it is useful to discuss what we have and have not demonstrated, as well as possible implications and extensions of our work.
+
+% ================================================================
+
+Our main empirical finding is that our proposed method, \ours, achieves order-of-magnitude speedups compared to existing AMM methods and up to two-order-of-magnitude speedups compared to the dense baseline. It also compresses matrices by up to three orders of magnitude. These results are evaluated on a CPU, and are obtainable only when there is a training set for one matrix. We also claim superior performance only when one matrix is larger than the other, and both matrices are tall---the regime wherein our extremely fast (but less accurate) encoding function is beneficial. Our method also loses utility when the larger matrix is known ahead of time; this assumption is common in similarity search, and eliminates the need for a fast encoding function entirely. Our approximate integer summation and fused table lookups would likely be useful independent of any of these assumptions, but demonstrating this is future work.
+% It would be interesting to evaluate \textsc{MaddnessHash}\text{ } on its own as a tool for approximate nearest neighbors problems.
+
+We also have several theoretical findings, taking the form of guarantees regarding the errors introduced by our method and its constituent subroutines. While we do obtain an overall generalization guarantee, this guarantee is not tight. In particular, it should grow looser with the large matrix's Frobenius norm and tighter as its singular values become more concentrated; at present, however, it simply grows looser as the largest singular value grows. The missing step is a guarantee that our encoding function will yield lower quantization errors when the singular values are more concentrated, which is its behavior in practice.
+
+We have not demonstrated results using GPUs or other accelerators. While such accelerators are a small minority of hardware, they are often used in machine learning. Our method is not inherently tied to CPUs, but the differing performance characteristics of accelerators mean that adapting our method to them would require both algorithmic and implementation work, with the details depending on the device. We also have not evaluated a multi-CPU-threaded extension of our algorithm, though this is because our method is intended to serve as the low-level, compute-bound, block matrix product routine called by individual threads. % and 2) our method would parallelize in the same way as any other.
+
+Finally, we have not demonstrated results using convolutional layers in neural networks, or results accelerating full networks. The weight reuse in convolutional layers presents many opportunities for algorithmic optimizations, and we hope to exploit them using a specialized extension of our method in future work. Accelerating overall networks will require two significant undertakings: first, the engineering work of building and integrating custom operators, data layouts, etc., into existing frameworks and networks; and second, the research necessary to determine when, how, and to what extent to include approximate kernels inspired by our approach. A particular difficulty with the latter is that our hash function is not differentiable.
+
+We believe that accelerating full networks with our ideas is a promising direction, particularly for inference. This is especially true at the hardware level---our method requires only multi\textit{plexers}, not multi\textit{pliers}, and can therefore be implemented easily and with far less power than current matrix product logic. Moreover, our encoded representation and lookup tables have contiguous and uniformly-sized elements, making our approximate GEMM inner loops nearly identical to their dense counterparts--i.e., there is no need for complex sparsity handling.
+
+In summary, we introduced \ours, an algorithm that achieves up to a $10\times$ better speed-quality tradeoff than existing methods for the well-studied problem of approximate matrix multiplication (AMM), as measured on a large, diverse, and challenging set of real-world matrices. Our approach is a significant departure from existing AMM work in that it relies on hashing and table lookups rather than multiply-add operations. Our results suggest that future methods similar to our own might hold promise for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms.
 
 
-\subsection{Non-Limitations}
-\paragraph{Absence of comparisons to domain-specific solutions for search, classification, etc.} While all of the matrices used in our experiments are drawn from some real-world task, we do not claim that application of our method is sufficient for state-of-the-art performance on that task. For example, while we show that our method can quickly approximate a linear classifier, this does not mean that we have the most efficient possible classifier for that dataset. We claim only that applying our method to the classifier yields more improvement than applying \textit{other AMM methods}. Also, while our method resembles similarity search algorithms, it operates under different assumptions and is not suitable for search tasks. Most importantly, similarity search methods assume that the larger matrix is fixed or slow-changing enough that there is no need for our fast encoder.
-\paragraph{Focus on single-threaded performance.}
-Our method is intended to accelerate the single-threaded block multiply subroutine found in a multi-threaded matrix multiply implementation, not provide a multi-threaded implementation. See Appendix~\ref{appendix:onethread} for further discussion.
-% Because matrix multiplication is embarassingly parallel, our method parallelizes in the same manner as any other.
+% % ================================================================
+
+% Matrix products are ubiquitous computational bottlenecks throughout machine learning and scientific computing.
+% % Any method to accelerate them in realistic scenarios can therefore have a large impact.
+% Moreover, companies are investing billions in creating hardware that approximates matrix products \cite{nvidia10k2021} using scalar quantization and/or sparsity. Our work suggests that, when there is training data for the larger of the two matrices, there is an equally actionable, but more effective, matrix product approximation method. Such training data is common in information retrieval \cite{bolt,pairq,quip} and some machine learning problems.
 
 
-% \begin{itemize}
-% \end{itemize}
+
+% % Our AMM method has provably bounded generalization error, inherits the guarantees of existing work, and has closed-form expressions for the errors introduced by some of its subroutines. However, the generalization guarantee is not tight. In particular, it gets looser as the largest singular vector of the training set grows; it should ideally get looser as the Frobenius norm grows but \textit{tighter} as the singular values become more concentrated.
+
+% % Moreover, we do this on commodity hardware designed for dense matrix products.
+% % \paragraph{Rigorous experiments.}
+% Though there are no standard benchmarks for the AMM task, we evaluate the performance of our approach using hundreds of matrices from diverse domains and of diverse shapes, intrinsic dimensionalities, etc. We also tried to ensure that all comparisons are fair or biased against us; e.g., we allow other methods to tune their hyperparameters on the test set. Our method obtains order-of-magnitude improvements over existing AMM work and two-order-of-magnitude improvements over dense matrix products. Our approach also reduces the sizes of matrices by one to two orders of magnitude.
+% %
+
+% We did not evaluate our method on GPUs or other hardware accelerators. While many of the ideas underlying our approach should be applicable to such devices, the details would be sufficiently different that it is hard to estimate what performance would be like. We also did not experiment with multi-threaded implementations of our method. Parallelization in modern numerical libraries is often managed at a higher level than the lowest-level subroutines. Typically a multithreaded library calls single-threaded subroutines for functions such as matrix multiplication. Our method is intended to be used as such a single-threaded subroutine.
+% %
+
+% While we believe that the ideas underlying our approach could eventually be used to speed up convolutional neural networks, we have not yet demonstrated this. A substantial amount of work needs to be done to specialize our method for large convolutions, and even more work to hook our method and relevant baselines into existing neural network libraries and architectures. Because such methods are inexact and often use non-standard data formats, how best to retrain and/or adapt networks to handle them is a research problem in and of itself.
+% %
+
+% In summary, we introduced \ours, an algorithm that achieves up to a $10\times$ better speed-quality tradeoff than existing methods for the well-studied problem of approximate matrix multiplication (AMM), as measured on a large, diverse, and challenging set of real-world matrices. Our approach is a significant departure from existing AMM work in that it relies on hashing and table lookups rather than multiply-add operations. Our results suggest that future methods similar to our own might hold promise for accelerating convolution, deep learning, and other workloads bottlenecked by linear transforms.
+% % \begin{itemize}
+% % \end{itemize}
+
+
+
+% Because our work draws on a number of different fields but does not fit cleanly into any of them, we have found that many readers struggle to correctly identify this paper's strengths and weaknesses. In the interest of clarity, we therefore enumerate them below.
+
+% \subsection{Strengths}
+% %
+% % \vspace{-1mm}
+% \paragraph{Importance of problem.}
+% Matrix products are ubiquitous computational bottlenecks throughout machine learning and scientific computing.
+% % Any method to accelerate them in realistic scenarios can therefore have a large impact.
+% Moreover, companies are investing billions in creating hardware that approximates matrix products \cite{nvidia10k2021} using scalar quantization and/or sparsity. Our work suggests that there might be an equally actionable, but far more effective, approximation method.
+% %
+% \vspace{-2mm}
+% \paragraph{Large empirical improvements.} We obtain order-of-magnitude improvements over existing AMM work and two-order-of-magnitude improvements over dense matrix products. As a byproduct of our approach, we also reduce the sizes of matrices by one to two orders of magnitude.
+% % Moreover, we do this on commodity hardware designed for dense matrix products.
+% % \paragraph{Rigorous experiments.}
+% Because there are no standard benchmarks for the AMM task, we obtain these findings using hundreds of matrices from diverse domains and of diverse shapes, stable ranks, etc. This is far more matrices than any previous work. We also take great pains to ensure that all comparisons are fair or biased against us; e.g., we allow other methods to tune their hyperparameters on the test set. Also, we build on the codebase of our nearest rival \cite{bolt} and use their highly-tuned implementations whenever possible.
+% %
+% \vspace{-3mm}
+% \paragraph{Theoretical Grounding.}
+% Our method has provably bounded generalization error, inherits the guarantees of existing work, and has closed-form expressions for the errors introduced by some of its subroutines. However, the generalization guarantee is not tight. In particular, it gets looser as the largest singular vector of the training set grows; it should ideally get looser as the Frobenius norm grows but \textit{tighter} as the singular values become more concentrated.
+
+% \subsection{Limitations}
+
+
+% \vspace{-1.5mm}
+% \paragraph{No results using GPUs or other accelerators.} While GPUs and other accelerators are a small minority of computational devices, they are often used in machine learning. Because creating high-performance GPU implementations of both our algorithm and existing baselines will require a huge amount of implementation time, we leave this to future work. A related limitation is that, on chips that allocates significant die area to accelerating dense matrix products, we are not sure that any algorithm (including our own) will outperform the dense baseline.
+% %
+% \vspace{-1.5mm}
+% \paragraph{No convolutional layer or overall neural network results.} Similarly, it will require a large amount of work to specialize our method and baselines for large convolutions, and even more work to hook these methods into existing neural network libraries and architectures. Because such methods are inexact and often use non-standard data formats, how best to retrain and/or adapt networks to handle them is a research problem in and of itself.
+% %
+% \vspace{-1.5mm}
+% \paragraph{Limited ablations for two algorithmic components.}
+% We do not assess the impact of our proposed approximate summation method on its own, instead providing a closed-form expression for its error. We also compare our proposed hash function only to that of Bolt, % which is the fastest existing hash function of which we are aware.
+% which hashes a $D$-element vector using a $D \times 16$ matrix-vector multiply followed by an $\argmax$. Back-of-the-envelope calculations make clear that this baseline is already far faster than other alternatives, but further experiments could validate the independent utility of our hash function.
+%  % We omit comparison to other hash functions since . % Because locality-sensitive hashing is useful on its own, however, it could be valuable to have a separate investigation of our hash function.
+% \vspace{-1.5mm}
+% \paragraph{More restrictive assumptions than other AMM methods.} Our method requires a training set for the larger matrix. This assumption is common in information retrieval literature \cite{bolt,pairq,quip}, but not in most theoretical AMM work.
+
+
+% \subsection{Non-Limitations}
+% \paragraph{Absence of comparisons to domain-specific solutions for search, classification, etc.} While all of the matrices used in our experiments are drawn from some real-world task, we do not claim that application of our method is sufficient for state-of-the-art performance on that task. For example, while we show that our method can quickly approximate a linear classifier, this does not mean that we have the most efficient possible classifier for that dataset. We claim only that applying our method to the classifier yields more improvement than applying \textit{other AMM methods}. Also, while our method resembles similarity search algorithms, it operates under different assumptions and is not suitable for search tasks. Most importantly, similarity search methods assume that the larger matrix is fixed or slow-changing enough that there is no need for our fast encoder.
+% \paragraph{Focus on single-threaded performance.}
+% Our method is intended to accelerate the single-threaded block multiply subroutine found in a multi-threaded matrix multiply implementation, not provide a multi-threaded implementation. See Appendix~\ref{appendix:onethread} for further discussion.
+% % Because matrix multiplication is embarassingly parallel, our method parallelizes in the same manner as any other.
+
+
+% % \begin{itemize}
+% % \end{itemize}
 

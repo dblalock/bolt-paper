@@ -10,8 +10,8 @@ Since the lookup table entries naturally occupy more than 8 bits even for 8-bit 
     \vec{\delta}_c &\triangleq \min_{m,k} \text{ } \mat{T}_{m,c,k} \\
     \alpha^{-1} \triangleq 2^l \cs l &= \max_c \floor{ \log_2 \left( \frac{255}{
             \max_{m,k} (\mat{T}_{m,c,k} - \delta_{c})
-        } \right)}. \\
-    \mat{T}^q_{m,c,k} &\triangleq \alpha^{-1}(\mat{T}_{m,c,k} - \delta_{c})
+        } \right)} \\
+    \mat{T}^q_{m,c,k} &\triangleq \alpha^{-1}(\mat{T}_{m,c,k} - \delta_{c}).
 \end{align}
 This is similar to equations~\ref{eq:offset} and \ref{eq:scale}, but with the scale factor pooled across all codebooks instead of unique to each input column. The $\alpha$ used here is the same as that in equation~\ref{eq:objective}, and the matrix $\beta$ in equation~\ref{eq:objective} has entries equal to $\sum_c \vec{\delta}_c$ (plus the debiasing constant from our averaging-based aggregation).
 
@@ -112,11 +112,11 @@ These algorithms exploit the fact that the sum of squared errors can be computed
 \section{Aggregation Using Pairwise Averages} \label{sec:aggregateAnalysis}
 % ================================================================
 
-Recall that we estimate sums of low-bitwidth integers by averaging pairs of values, then pairs of pairs, and so on. One could reduce all $C$ values this way, but we find that one obtains a better speed-accuracy tradeoff by computing the average of blocks of $U$ values and then upcasting to obtain exact sums of these averages. Multiplying this sum of averages by $U$ and adding in a bias correction term gives one the overall estimate of the sum. One could tune $U$ for a particular problem and hardware, but we simply set $U = 16$ in all our experiments. Having a larger $U$ imposes less overhead because upcasting happens less often, but there are sharp diminishing returns to this; once upcasting is much rare, doing it even less often is of little help thanks to Amdahl's law.
+Recall that we estimate sums of low-bitwidth integers by averaging pairs of values, then pairs of pairs, and so on. One could reduce all $C$ values this way, but we find that one obtains a better speed-accuracy tradeoff by computing the average of blocks of $U$ values and then upcasting to obtain exact sums of these averages. Multiplying this sum of averages by $U$ and adding in a bias correction term gives one the overall estimate of the sum. One could tune $U$ for a particular problem and hardware, but we simply set $U = 16$ in all our experiments. Having a larger $U$ imposes less overhead because upcasting happens less often, but there are sharp diminishing returns to this; once upcasting is rare, doing it even less often is of little help thanks to Amdahl's law.
 
 Because of our assumption that we are operating on matrices, rather than a matrix and a vector, we can also improve on the aggregation of existing methods \cite{bolt, quickAdc, quickerAdc} by fusing the aggregation of two or more output columns to hide read latency. Conceptually, this amounts to tiling the loop over output columns and alternating reads between the two corresponding tables within the innermost loop. This fusion does not change the output of the computation---only how efficiently it runs.
 
-Having addressed these practical details, we may know proceed to the analysis of our estimator's bias.
+Having addressed these practical details, we may now proceed to the analysis of our estimator's bias.
 
 \begin{definition}[Averaging Integer Sum Estimator]
 Let $\x \in \{0, 1\}^C, C \text{ \% } U = 0, U = 2^p, p \ge 0$. The Averaging Integer Sum Estimator (AISE) $\hat{s}(\x)$ is defined as:

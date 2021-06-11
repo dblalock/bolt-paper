@@ -52,6 +52,7 @@ is minimized. It does this by running K-means separately in each subspace $\math
 \caption{Product Quantization. The $g(\cdot)$ function returns the index of the most similar prototype to the data vector a in each subspace. The $h(\cdot)$ function computes a lookup table of dot products between the query vector b and each protoype in each subspace. The aggregation function $f(\cdot,\cdot)$ sums the table entries corresponding to each index.}
 % $\vec{a}$
 \label{fig:pq}
+\vspace*{2mm}
 \end{center}
 \end{figure}
 
@@ -66,6 +67,8 @@ is minimized. It does this by running K-means separately in each subspace $\math
 % ------------------------------------------------
 % \subsection{Encoding Function - $g(\A)$}
 % \vspace{-2.5mm}
+% \vspace{144pt}
+% \vspace{288pt}
 \paragraph{Encoding Function, $\bm{g(\A)}$:}
 % ------------------------------------------------
 
@@ -100,7 +103,7 @@ Existing work has shown that setting $K = 16$ and quantizing the lookup tables t
 % ------------------------------------------------
 
 Given the encoding of $\a$ and the lookup tables for $\b$, the product can be approximated as
-\vspace*{-2mm}
+% \vspace*{-2mm}
 \begin{align}
     \a^\top \b = \sum_{c=1}^C \a^{(c)\top} \b^{(c)} \approx \sum_{c=1}^C h^{(c)}(\b)_k, \text{ }k = g^{(c)}(\a).
 \end{align}

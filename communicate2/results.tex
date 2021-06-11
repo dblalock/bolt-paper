@@ -1,8 +1,8 @@
 
-To assess \ours's effectiveness, we implemented both it and existing algorithms in C++ and Python. All of our code and raw numerical results are publicly available at \texttt{https://smarturl.it/Maddness}. All experiments use a single thread on a Macbook Pro with a 2.6GHz Intel Core i7-4960HQ processor. Unless stated otherwise, all timing results use five trials, with each trial reporting the fastest among 20 executions. We use the best, rather than average, since this is standard practice in performance benchmarking and is robust to the purely additive noise introduced by competing CPU tasks. Standard deviations are shown for all curves as shaded areas.
+To assess \ours's effectiveness, we implemented both it and existing algorithms in C++ and Python. All of our code and raw numerical results are publicly available at \texttt{https://smarturl.it/Maddness}. All experiments use a single thread on a Macbook Pro with a 2.6GHz Intel Core i7-4960HQ processor. Unless stated otherwise, all timing results use five trials, with each trial reporting the fastest among 20 executions. We use the best, rather than the average, since this is standard practice in performance benchmarking and is robust to the purely additive noise introduced by competing CPU tasks. Standard deviations are shown for all curves as shaded areas.
 % , but are often too small to see.
 Since training can be performed offline and all methods except SparsePCA \cite{sparsePCA} train in at most a few minutes, we omit profiling of training times. We also do not profile the time to preprocess $\B$, since 1) this time is inconsequential in most cases, and 2) $\B$ is fixed and could be processed offline in all the problems we consider.
-In order to avoid implementation bias, we built upon the source code provided by \citep{bolt}\footnote{https://github.com/dblalock/bolt}, which has the most in common with our method and includes highly tuned implementations of many algorithms to which we compare.
+In order to avoid implementation bias, we build upon the source code provided by \citet{bolt}\footnote{https://github.com/dblalock/bolt}, which includes highly tuned implementations of many algorithms to which we compare.
 
 % The metrics and baselines shown below are only a subset of those evaluated. In particular, we also measured squared errors, correlations, cosine similarities, etc, in addition to classification accuracies, but omit these since they are similar. See Appendix~\ref{sec:experimentDetails} for more results.
 
@@ -25,8 +25,9 @@ Further details regarding our experimental setup and choices (e.g., use of a sin
 % Recall that most baselines take the form of selecting a matrix $\V \in \R^{D \times d}, d < D$ such that $\A \B \approx (\A \V) (\V^\top \B)$. Here $d$ is a free parameter that adjusts the quality vs speed tradeoff. We therefore characterize these methods by how they set $\V$.
 Recall that most baselines take the form of selecting a matrix $\V \in \R^{D \times d}, d < D$ such that $\A \B \approx (\A \V) (\V^\top \B)$. Here $d$ is a free parameter that adjusts the quality versus speed tradeoff. We therefore characterize most of these methods by how they set $\V$.
 \vspace{-2.5mm}
-\begin{itemize}\itemsep-1mm
+% \begin{itemize}\itemsep-1mm
 % \begin{itemize}\itemsep0mm
+\begin{itemize}\itemsep1mm
 % \begin{itemize}[nosep]
     \item \textbf{PCA}. Set $\V$ equal to the top principal components of $\tilde{\A}$.
     \item \textbf{SparsePCA} \cite{sparsePCA}. Set $\V = \argmin_{\V} \min_{\mat{U}} \frac{1}{2 N_{train}} \norm{ \tilde{\A} - \mat{U}\mat{V}^\top }^2_F + \lambda \norm{\V}_1$, where $\mat{U}^\top \mat{U} = \mat{I}$. This is not the only dictionary learning formulation referred to as SparsePCA \cite{spcaSurvey1,spcaSurvey2}, but it is a good representative and is the only one with support in a major Python library.%\footnote{https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.SparsePCA.html}.
@@ -47,7 +48,7 @@ Recall that most baselines take the form of selecting a matrix $\V \in \R^{D \ti
     % \item OrthoGauss \cite{superbitLSH}. The entries of $\V$ initialized as in RandGauss, and then $\V$ is set to the $\mat{Q}$ matrix in a QR decomposition of a RandGauss matrix.
     % \item Rademacher \cite{rademacherJL}. The entries of $\V$ are i.i.d. Rademacher random variables scaled by $\frac{1}{\sqrt{D}}$. TODO is that the right scale?
     % \item \textbf{Bolt} \cite{bolt}. Bolt is an extension of PQ that uses quantized lookup tables and a reduced number of codebooks to obtain $10\times$ speedups over traditional PQ. It is the most similar method to our own, differing only in the encoding function, the use of averaging instead of upcasting, and the optimization of centroids. % It is not optimized for small $M$, however, effectively performing a preliminary matrix product with $M=16$ as a preprocessing step.
-    \item \textbf{Bolt} \cite{bolt}. \textsc{Bolt}
+    \item \textbf{Bolt} \cite{bolt}. Bolt
     % is an extension of PQ that uses quantized lookup tables and a reduced number of codebooks to obtain $10\times$ speedups over traditional PQ. It
     is the most similar method to our own, differing only in the encoding function, the use of averaging instead of upcasting, and the optimization of centroids. % It is not optimized for small $M$, however, effectively performing a preliminary matrix product with $M=16$ as a preprocessing step.
     % As discussed in Section~\ref{sec:relatedWork},
@@ -121,11 +122,11 @@ As shown in Figure~\ref{fig:cifar}, \oursp significantly outperforms all existin
 \end{center}
 \end{figure}
 
-Moreover, our method achieves this performance despite having worse support from the hardware. Concretely, it obtains speedups much smaller than the level of compression it provides. For example, the third points from the right correspond to speedups of roughly $100\times$. However, they are compressing each $512 \times 4\text{B} = 2048\text{B}$ row of the input down to a mere 4B, a savings of $512\times$ (sizes not shown in figure). \textit{If the hardware could lookup-accumulate as many bytes per cycle as it can multiply-accumulate, our method would be roughly $4\times$ faster}. Combined with the fact that multiplexers require many fewer transistors than multipliers, this suggests that a hardware implementation of our method might offer large efficiency gains compared to existing accelerators.
+Moreover, our method achieves this performance despite having worse support from the hardware. More precisely, it obtains speedups much smaller than the level of compression it provides. For example, the third points from the right in both plots correspond to speedups of roughly $100\times$. However, they are compressing each $512 \times 4\text{B} = 2048\text{B}$ row of the input down to a mere 4B, a savings of $512\times$ (sizes not shown in figure). \textit{If the hardware could lookup-accumulate as many bytes per cycle as it can multiply-accumulate, our method would be over $4\times$ faster}. Combined with the fact that multiplexers require many fewer transistors than multipliers, this suggests that a hardware implementation of our method might offer large efficiency gains compared to existing accelerators.
 
 % ------------------------------------------------
 % \vspace{-2mm}
-\subsection{Kernel-based classification}
+\subsection{Kernel-based Classification}
 % \vspace{-.5mm}
 % \vspace{-1mm}
 % ------------------------------------------------
@@ -140,7 +141,7 @@ Because Stochastic Neighbor Compression optimizes the classifiers to avoid redun
 % since the distances between time series are often far smaller than their euclidean lengths; this property means that even small amounts of approximation error are sufficient to change predictions. It is also difficult because the $\B$ matrix has been optimized to avoid redundancy, so any acceleration
 % \vspace{-.5mm}
 
-As shown in Figure~\ref{fig:ucr}, \oursp is significantly faster than alternatives at a given level of accuracy.% on this difficult task.
+As shown in Figure~\ref{fig:ucr}, \oursp is significantly faster than alternatives at a given level of accuracy. % on this difficult task.
 A counter-intuitive result, however, is that optimization of the prototypes occasionally reduces accuracy---see the red line dipping below the blue one in the lowest subplot. Since the optimization strictly increases the expressive power, we believe that this is a product of overfitting and could be corrected by not fixing $\lambda = 1$ in the ridge regression.
 % were we to tune the ridge regression's parameter (instead of always using $\lambda = 1$).
 % This subplot also shows that even \oursp cannot satisfy the most stringent accuracy requirements on many datasets, since the \oursp curves never approach 1.
