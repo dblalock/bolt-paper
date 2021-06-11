@@ -214,7 +214,7 @@ Observe that the computation graph can be cast as a balanced binary tree with $U
 \begin{align}
     E[\xi(t, n)] = \frac{1}{2} \cdot 2^{t - 1}
 \end{align}
-where the $\frac{1}{2}$ follows from Lemma~\ref{thm:avgBias} and the scale $2^{t - 1}$ is the number of leaf nodes to which the bias is effectively applied. E.g., adding 1 to the estimated average of four leaf nodes would increase the estimated sum by four. Since there are $U \cdot 2^{-t}$ nodes per level, this means that the total expected error introduced at level $t$ is $\frac{1}{2} \cdot 2^{t - 1} \cdot 2^{-t} = \frac{1}{4}$. Summing from $t = 1$ to $t = \log_2(U)$ completes the proof of the expected error. Note that $t=0$ is omitted since the leaf nodes are not the result of averaging operations and so introduce no error.
+where the $\frac{1}{2}$ follows from Lemma~\ref{thm:avgBias} and the scale $2^{t - 1}$ is the number of leaf nodes to which the bias is effectively applied. E.g., adding one to the estimated average of four leaf nodes would increase the estimated sum by four. Since there are $U \cdot 2^{-t}$ nodes per level, this means that the total expected error introduced at level $t$ is $\frac{1}{2} \cdot 2^{t - 1} \cdot 2^{-t} = \frac{1}{4}$. Summing from $t = 1$ to $t = \log_2(U)$ completes the proof of the expected error. Note that $t=0$ is omitted since the leaf nodes are not the result of averaging operations and so introduce no error.
 
 % Identical reasoning can be used to derive the variance of the error, since the variances from different nodes add.
 \end{proof}
@@ -231,7 +231,7 @@ Suppose that the scalar elements $x_i$ of $\vec{x}$ are drawn from independent B
 \end{align}
 \end{theorem}
 \begin{proof}
-This follows immediately from Lemma~\ref{thm:avgSubspace}, the fact that the overall sum is estimated within each of $C / U$ subspaces of size $U$, and assumption that the errors in each subspace are independent.
+This follows immediately from Lemma~\ref{thm:avgSubspace}, the fact that the overall sum is estimated within each of $C / U$ subspaces of size $U$, and the assumption that the errors in each subspace are independent.
 \end{proof}
 
 We also verified Theorem~\ref{thm:overallBias} numerically by summing large numbers of integers drawn uniformly from the interval $0,\ldots,255$.
@@ -240,7 +240,7 @@ Note that the assumption that the elements are independent is not especially str
 
 % ================================================================
 \vfill\break  % columnbreak
-\section{Additional experimental details} \label{sec:experimentDetails}
+\section{Additional Experimental Details} \label{sec:experimentDetails}
 % ================================================================
 
 % ------------------------------------------------
@@ -250,10 +250,10 @@ Note that the assumption that the elements are independent is not especially str
 Because nearly all existing work on approximate matrix multiplication either focuses on special cases that do not satisfy our problem definition \cite{quickerAdc, pq, opq} or synthetic matrices, there is not a clear set of benchmark matrix multiply tasks to use. We therefore propose a collection of tasks that we believe are both reproducible and representative of many real-world matrices. To the best of our knowledge, our experiments use over an order of magnitude more matrices than any previous study.
 
 % ------------------------------------------------
-\subsection{Choice of Single Threaded Benchmarks} \label{appendix:onethread}
+\subsection{Choice of Single-Threaded Benchmarks} \label{appendix:onethread}
 % ------------------------------------------------
 
-Given the ubiquity of GPUs and multicore CPUs, it may not be obvious why single-threaded experiments are desirable. There are a number of reasons we restrict our focus to CPUs and the single threaded case:
+Given the ubiquity of GPUs and multicore CPUs, it may not be obvious why single-threaded experiments are desirable. There are a number of reasons we restrict our focus to CPUs and the single-threaded case:
 % We only implemented our algorithm on the CPU for simplicity and
 \begin{itemize}
     \item To enable fair comparisons to existing work, particularly the nearest rival, Bolt \cite{bolt}.
@@ -262,7 +262,7 @@ Given the ubiquity of GPUs and multicore CPUs, it may not be obvious why single-
     \item Matrix multiplication is embarrassingly parallel with respect to rows of the input and columns of the output. There is therefore nothing ``interesting'' about how our method parallelizes relative to any other; all methods reduce to a single-threaded kernel that can easily be applied to disjoint submatrices. While we certainly could spend the considerable time required to construct and debug multicore benchmarks, this would be unlikely to yield any useful insights.
     \item Parallelization in modern numerical libraries is often managed at a higher level than the lowest-level subroutines. For example, the authors of FBGEMM \cite{fbgemm} state: \textit{``Internally, FBGEMM is intentionally designed not to create any threads. Usually, such a library is intended to be used as a backend by deep learning frameworks, such as PyTorch and Caffe2, that create and manage their own threads.''}\footnote{https://engineering.fb.com/ml-applications/fbgemm/} I.e., a multithreaded library calls into single-threaded subroutines (such as a matrix multiplication function); it is this single-threaded subroutine where we make contributions, and therefore where we focus our experimental efforts. Independent of common practices in modern libraries, this pattern is also the only sensible strategy for small matrices, like many of those we consider---the overhead of launching and joining threads is extremely unlikely to be worth it for sufficiently small matrices. We could perhaps characterize where this breakpoint is, but this is a hardware-specific result that has little to do with our contributions.
     % \item Our method is the only effective AMM approach of which we are aware that requires sublinear memory bandwidth in the matrix size. This is because our encoding function intelligently selects a subset of columns to read. Moreover, our compressed representations are often orders of magnitude smaller than the original matrices. This suggests that, in the memory-bound case, our method would still offer a large advantage over alternatives. However, assessing this in detail requires answering many questions that are extremely workload-specific; e.g., was the matrix A just produced by some subset of cores, and is it therefore already cache-resident? Is it replicated across this cores or sharded? Is it sharded by rows or columns? Can these cores encode their portions of A before sending them to the remaining cores? Or can the overall matrix product be sharded across cores such that no cross-core communication is necessary at all? Must other code be executed that will evict results from caches? Is the encoding of B already in cache for all cores? In other words, assessing the memory-bandwidth bound case requires a detailed specification of the code \textit{around} the matrix product---not merely at the level of the overall task and matrix, but at the level of the exact implementation of the surrounding code. Consequently, we are willing to simply restrict our claims to the compute-bound case (as we do in the paper) rather than attempt to work around all of these lurking variables.
-    \item While training of deep neural networks is typically done on GPUs or other accelerators, trained models (including, but not limited to, neural networks) are commonly deployed on smartphones with just CPUs and/or graphics acceleration that is no better than the CPU \cite{fbAtEdge}. And since most of the billions of smartphones in the world tend to be low end or old, the need to deploy models on CPUs (including those with few cores) is unlikely to change for many years.
+    \item While training of deep neural networks is typically done on GPUs or other accelerators, trained models (including, but not limited to, neural networks) are commonly deployed on smartphones with just CPUs and/or graphics acceleration that is no better than the CPU \cite{fbAtEdge}. Since most of the billions of smartphones in the world tend to be low-end or old, the need to deploy models on CPUs (including those with few cores) is unlikely to change for many years.
     \item Creating, benchmarking, and analyzing a performant implementation of our method for GPUs would require a great deal of engineering work. We plan to create such an implementation in the future, but believe that the many empirical and theoretical results we currently have are more than adequate proof
     of concept and already worth sharing with the community. % Moreover, given both the rapid pace of change in accelerator hardware and diversity of existing hardware, even results on GPUs would quickly
     % \item While it would require a great deal of engineering work to produce a performant GPU version of our method, experiments on CPUs are sufficient proof of concept to suggest
@@ -272,10 +272,10 @@ Given the ubiquity of GPUs and multicore CPUs, it may not be obvious why single-
 
 
 % ------------------------------------------------
-\subsection{SparsePCA details}
+\subsection{SparsePCA Details}
 % ------------------------------------------------
 
-We took steps to ensure that SparsePCA's results were not hampered by insufficient hyperparameter tuning. First, for each matrix product, we tried a range of lambda values which we found to encompass the full gamut of nearly 0\% to nearly 100\% sparsity: $\lambda \in 2^i, i \in \{-5, -4, -3, -2, -1, 0, 1, 2, 3\}$. Second, because different sparsity patterns may yield different execution times, we report not times from the single matrix SparsePCA produces for a given ($d, \lambda$) pair, but the best times from any of ten random matrices of the same size and at most the same sparsity. Finally and most importantly, we plot only the Pareto frontier of (speed, quality) pairs produced for a given matrix multiply. I.e., we let SparsePCA cherrypick its best results on each individual matrix multiply.
+We took steps to ensure that SparsePCA's results were not hampered by insufficient hyperparameter tuning. First, for each matrix product, we tried a range of $\lambda$ values which we found to encompass the full gamut of nearly 0\% to nearly 100\% sparsity: $\lambda \in 2^i, i \in \{-5, -4, -3, -2, -1, 0, 1, 2, 3\}$. Second, because different sparsity patterns may yield different execution times, we report not times from the single matrix SparsePCA produces for a given ($d, \lambda$) pair, but the best times from any of 10 random matrices of the same size and at most the same sparsity. Finally and most importantly, we plot only the Pareto frontier of (speed, quality) pairs produced for a given matrix multiply. I.e., we let SparsePCA cherry-pick its best results on each individual matrix multiply.
 
 % ------------------------------------------------
 \subsection{Exact Matrix Multiplication}
@@ -287,7 +287,7 @@ We also implemented our own matrix product function specialized for tall, skinny
 \subsection{Additional Baselines}
 % ------------------------------------------------
 
-We also tested Frequent Directions / Fast frequent directions \cite{liberty_simple_2012, ghashami_frequent_2016, isvd}, many variations of the sampling method of \cite{drineas_fast_2006}, projection using orthogonalized gaussian random matrices \cite{superbitLSH}, projection using matrices of scaled i.i.d. rademacher random variables \cite{rademacherJL}, projection using orthonormalized matrices of rademacher random variables, the co-occuring directions sketch \cite{mroueh_co-occuring_2016}, OSNAP \cite{osnap}, Product Quantization \cite{pq}, and Optimized Product Quanization \cite{opq}.
+We also tested Frequent Directions / Fast Frequent Directions \cite{liberty_simple_2012, ghashami_frequent_2016, isvd}, many variations of the sampling method of \citet{drineas_fast_2006}, projection using orthogonalized Gaussian random matrices \cite{superbitLSH}, projection using matrices of scaled i.i.d. Rademacher random variables \cite{rademacherJL}, projection using orthonormalized matrices of Rademacher random variables, the co-occurring directions sketch \cite{mroueh_co-occuring_2016}, OSNAP \cite{osnap}, Product Quantization \cite{pq}, and Optimized Product Quantization \cite{opq}.
 
 The poor performance of many of these methods is unsurprising in our setting. Given that we have access to a training set on which to learn the true principal components, the Eckart-Young-Mirsky theorem \cite{eckartYoungMirskyThm} indicates that PCA should outperform any other individual matrix sketching method employing dense projection matrices, at least in the limit of infinite training data. Also, since PQ and OPQ use 256 dense centroids (except in the Bolt / QuickerADC variations), it is also impossible for them to perform well when $\min(D, M)$ is not significantly larger than 256.
 
@@ -297,7 +297,7 @@ The poor performance of many of these methods is unsurprising in our setting. Gi
 
 We set the number of returned neighbors to 128 (results with 64 and 256 were similar). We omitted datasets with fewer than 128 training examples, since it is not possible for Stochastic Neighbor Compression to draw 128 samples without replacement in this case.
 
-In addition to being a large, public corpus of over a hundred datasets from a huge variety of different domains, the UCR Time Series Archive also has the advantage that it can be used to produce matrix multiplication tasks of a fixed size. This is necessary for meaningful comparison of speed vs accuracy tradeoffs across datasets. We constructed training and test matrices $\tilde{\A}$ and $\A$ by resampling each time series in each dataset's train and test set to a length of $320$ (the closest multiple of 32 to the median length of 310). We obtained the matrix $\B$ for each dataset by running Stochastic Neighbor Compression \cite{snc} on the training set with an RBF kernel of bandwidth one. We set the number of returned neighbors to 128 (results with 64 and 256 were similar), yielding a $\B$ matrix of size $320 \times 128$. %See Appendix~\ref{sec:experimentDetails} for additional details.
+In addition to being a large, public corpus of over a hundred datasets from a huge variety of different domains, the UCR Time Series Archive also has the advantage that it can be used to produce matrix multiplication tasks of a fixed size. This is necessary for meaningful comparison of speed versus accuracy tradeoffs across datasets. We constructed training and test matrices $\tilde{\A}$ and $\A$ by resampling each time series in each dataset's train and test set to a length of $320$ (the closest multiple of 32 to the median length of 310). We obtained the matrix $\B$ for each dataset by running Stochastic Neighbor Compression \cite{snc} on the training set with an RBF kernel of bandwidth one. We set the number of returned neighbors to 128 (results with 64 and 256 were similar), yielding a $\B$ matrix of size $320 \times 128$. %See Appendix~\ref{sec:experimentDetails} for additional details.
 Since different datasets have different test set sizes, all results are for a standardized test set size of 1000 rows. We wanted the length to be a multiple of 32 since existing methods operate best with sizes that are either powers of two or, failing that, multiples of large powers of two.
 
 We approximate Euclidean distances using the identity $\norm{\vec{x} - \vec{y}}_2^2 = \norm{\vec{x}}_2^2 - 2\vec{x}^\top \vec{y} + \norm{\vec{y}}_2^2$. We approximate only the inner products $\vec{x}^\top \vec{y}$, since $\norm{\vec{y}}_2^2$ can be precomputed for fixed exemplars $\vec{y}$ and $\norm{\vec{x}}_2^2$ doesn't affect the class prediction since it is constant across all exemplars for a given input $\vec{x}$.
@@ -312,7 +312,7 @@ We only extracted valid windows---i.e., never past the edge of an image. We extr
 
 We used pairs of filters because using a single filter would mean timing a matrix-vector product instead of a matrix-matrix product.
 
-To allow meaningful speed comparisons across images, we resized and center cropped each image to $224 \times 224$ as commonly done in image classification pipelines \cite{resNet,resnet2,densenet}. We then extracted sliding windows of the appropriate size and used each (flattened) window as one row of $\tilde{\A}$ or $\A$. We similarly flattened the filters, with each set of coefficients forming one column of $\B$. In both cases, $\B$ has two columns---this is because using a single filter would mean timing a matrix-vector product instead of a matrix-matrix product. Two columns also made sense since Sobel filters are often used in horizontal and vertical pairings, and Gaussian filters are often used together to perform difference-of-Gaussians transforms.
+To allow meaningful speed comparisons across images, we resized and center-cropped each image to $224 \times 224$ as commonly done in image classification pipelines \cite{resNet,resnet2,densenet}. We then extracted sliding windows of the appropriate size and used each (flattened) window as one row of $\tilde{\A}$ or $\A$. We similarly flattened the filters, with each set of coefficients forming one column of $\B$. In both cases, $\B$ has two columns---this is because using a single filter would mean timing a matrix-vector product instead of a matrix-matrix product. Two columns also made sense since Sobel filters are often used in horizontal and vertical pairings, and Gaussian filters are often used together to perform difference-of-Gaussians transforms.
 
 Even though the RGB values at each position are naturally unsigned 8-bit integers, we allowed all rival methods to operate on them as 32-bit floating point, without including the conversion when timing them. Because it only requires checking whether values are above a threshold, \oursp can operate on 8-bit data directly.
 
@@ -326,10 +326,11 @@ Using our ideas to accelerate overall neural networks and other layer types woul
 \item Lifting a method from accelerating a single layer to an overall network is challenging. Just as scalar quantization of network parameters is simple for a single layer but an active area of research for an entire network, so too is using our method on multiple layers at once an open research problem. For example, it is not clear how to deal with the fact that distributions of activations change throughout training, or how to efficiently incorporate our non-differentiable hash function.
 We could show how to accelerate one internal FC layer in a network, but we don’t want to risk misleading the reader---it would be unclear what conclusions to draw from such results, particularly given the difficulty of retraining / fine-tuning without introducing many lurking variables (c.f., \cite{blalock2020}).
 \item It is correct that convolution can be reduced to GEMM using im2col, and that accelerating convolution using our ideas would be a valuable contribution. However, state-of-the-art algorithms for convolution exploit structure that is not available to general matrix multiply algorithms. To match the performance of specialized Winograd, direct, FFT-based, and hybrid convolution schemes that do exploit this additional structure, we would have to make modifications to our approach that would make it less general. For example, the individual spatial positions should be encoded only once, and then reused at multiple filter positions. Regarding Section 5.5: while we do test our method on matrices of flattened image patches, we do not claim that the overall pipeline of flattening + matrix multiply constitutes a state-of-the-art convolution method---we only claim that using our method in this pipeline outperforms using other AMM methods there.
-\item The paper is already heavily space constrained. Even if we had already completed all the additional research and engineering work necessary to generalize our approach to convolutional layers and full neural networks, there simply wouldn't be space to explain the method or include the relevant results.
+% \item The paper is already heavily space constrained. Even if we had already completed all the additional research and engineering work necessary to generalize our approach to convolutional layers and full neural networks, there simply wouldn't be space to explain the method or include the relevant results.
 \end{enumerate}
 
-In short, while we believe that our ideas show great promise for accelerating full neural networks and more layer types, making this happen requires much more research that cannot cleanly be folded into the current paper. Furthermore, because the problem we consider is important and established on its own, we do not see it as necessary to expand the scope of the present work.
+In short, while we believe that our ideas show great promise for accelerating full neural networks and more layer types, making this happen requires much more research.% that cannot cleanly be folded into the current paper.
+% Furthermore, because the problem we consider is important and established on its own, we do not see it as necessary to expand the scope of the present work.
 
 % ------------------------------------------------
 \subsection{Additional Results}
@@ -340,7 +341,7 @@ In Section~\ref{sec:results}, we showed the classification accuracy as a functio
 \begin{figure}[h]
 \begin{center}
 \includegraphics[width=\linewidth]{amm/cifar_Speedup_1 - NMSE}
-\caption{\oursp achieves a far better speed versus squared error tradeoff than any existing method when approximating two softmax classifiers. These results parallel the speed vs classification accuracy results, except that the addition of our ridge regression is much more beneficial on CIFAR-100.}
+\caption{\oursp achieves a far better speed versus squared error tradeoff than any existing method when approximating two softmax classifiers. These results parallel the speed versus classification accuracy results, except that the addition of our ridge regression is much more beneficial on CIFAR-100.}
 \label{fig:cifarNMSE}
 \end{center}
 \end{figure}
@@ -451,9 +452,9 @@ Let $C$ be the number of codebooks used by \oursp and let $D$ be the number of c
 
 There are four split indices per tree because there is one for each of the tree's four levels. Each index requires $\ceil{\log_2(D)}$ bits to store, so the split indices require a total of $4 \ceil{\log_2(D)}$ bits per tree. For each split index, there is one split offset and scale, used to map floating point data in an arbitrary range to the interval $[0, 255]$ to match up with the 8-bit split values.
 
-The offsets require at most 25 bits each for 32-bit floating point data, since the low 7 bits can be dropped without affecting the post-scaling quantized output. The scales are constrained to be powers of two, and so require at most 9 bits for non-subnormal 32-bit floating point inputs (which have one sign bit and eight exponent bits). The offsets and scales together therefore contribute $4 (25 + 9) = 136$ bits per tree.
+The offsets require at most 25 bits each for 32-bit floating point data, since the low seven bits can be dropped without affecting the post-scaling quantized output. The scales are constrained to be powers of two, and so require at most 9 bits for non-subnormal 32-bit floating point inputs (which have one sign bit and eight exponent bits). The offsets and scales together therefore contribute $4 (25 + 9) = 136$ bits per tree.
 
-There are $15$ split values because there is one for the root of each tree, then two for the second level, four for the third, and eight for the fourth. Each split value is stored using eight bits, so each tree requires $15 \cdot 8 = 120$ bits for split values. The total number of bits used for all trees is therefore $C(4 \ceil{\log_2(D)} + 256)$. Note that the constant 256 being a power of two is just an accident of floating point formats. The claimed hypothesis count follows from the number of expressible hypotheses being at most $2$ to the power of the largest number of bits used to store any hypothesis.
+There are 15 split values because there is one for the root of each tree, then two for the second level, four for the third, and eight for the fourth. Each split value is stored using eight bits, so each tree requires $15 \cdot 8 = 120$ bits for split values. The total number of bits used for all trees is therefore $C(4 \ceil{\log_2(D)} + 256)$. Note that the constant 256 being a power of two is just an accident of floating point formats. The claimed hypothesis count follows from the number of expressible hypotheses being at most two to the power of the largest number of bits used to store any hypothesis.
 % Finally, it is necessary to encode the number of bits used to store split indices, $\ceil{\log_2(D)}$; assuming $D$ can be stored in 32 bits, this is at most 5 bits.
 \end{proof}
 
@@ -519,7 +520,7 @@ The first step follows from Cauchy-Schwarz. The second follows from $\g$ being z
 
 \begin{lemma}[Maximum Table Quantization Loss] \label{lemma:lutQuantBound}
 Let $\ahat = g(\a)^\top\P$, where $g(\cdot)$ and $P$ are trained using $C$ codebooks and ridge regression penalty $\lambda > 0$ on a matrix $\tilde{\A}$ with maximum singular value at most $\sigma_A$, and $\a \in \R^D$ is an arbitrary vector. Then for any vector $\b \in \R^D$, $|\ahat^\top \b - \yhat| < \frac{C \sigma_A \norm{\b}_2}{512 \sqrt{\lambda}} $, where %$\yhat \triangleq g(\a)^\top (\P^\top \b)$.
-$\yhat \triangleq \alpha g(\a)^\top g(\b) + \mat{\beta}$ is \ours's approximation to $\a^\top \b$, with $\alpha$ and $\mat{\beta}$ the scale and offsets used to quantize the lookup tables.
+$\yhat \triangleq \alpha g(\a)^\top g(\b) + \mat{\beta}$ is \ours's approximation to $\a^\top \b$. $\alpha$ and $\mat{\beta}$ are the scale and offsets used to quantize the lookup tables.
 %defined in Equation~\ref{eq:objective} except without the averaging debias constant added to $\mat{\beta}$.
 \end{lemma}
 \begin{proof} If \oursp had infinite-precision lookup tables, $\yhat$ would exactly equal $\ahat^\top \b$. We therefore need only bound the error introduced by the quantization. By Lemma~\ref{lemma:embedNorm}, $\norm{\ahat}_2 \le \frac{C \sigma_A}{2 \sqrt{\lambda}} $. This implies that
@@ -531,13 +532,13 @@ and therefore
     \frac{-C \sigma_A \norm{\b}_2}{2 \sqrt{\lambda}} \le \ahat^\top \b \le \frac{C \sigma_A \norm{\b}_2}{2 \sqrt{\lambda}}.
 \end{align}
 For each of the $C$ codebooks, this means that the value to be quantized lies in the interval $[\frac{-\sigma_A \norm{\b}_2}{2 \sqrt{\lambda}}, \frac{\sigma_A \norm{\b}_2}{2 \sqrt{\lambda}}]$ of width $\frac{\sigma_A \norm{\b}_2}{\sqrt{\lambda}}$.
-Because \oursp quantizes the lookup tables such that largest and smallest entries for any row of $\P$ are linearly mapped to $255.5$ and $-0.5$,\footnote{We use $255.5$ and $-0.5$ rather than $255$ and $0$ because the latter only guarantees that a point is within $1 / 510$ of the interval width, not $1 / 512$. This is not an important choice and either option would be fine.} respectively, the worst-case quantization error is when the quantized value lies exactly between two quantization levels.% (as opposed to lying outside the linearly rescaled interval).
+Because \oursp quantizes the lookup tables such that largest and smallest entries for any row of $\P$ are linearly mapped to $255.5$ and $-0.5$,\footnote{We use $255.5$ and $-0.5$ rather than $255$ and $0$ because the latter only guarantees that a point is within $1 / 510$ of the interval width, not $1 / 512$. This is not an important choice and either option would be fine.} respectively, the worst-case quantization error is when the quantized value lies exactly between two quantization levels. % (as opposed to lying outside the linearly rescaled interval).
 We therefore need to compute the largest possible gap between a value and its quantization. Using 256 quantization levels, the largest possible gap is $1 / (256 / .5) = 1/512$ of the interval width. Multiplying by the above interval width yields a maximum quantization error for a given codebook of $\frac{\sigma_A \norm{\b}_2}{512 \sqrt{\lambda}}$.
  % Using the worst-case interval above and observing that 256 quantization levels imply a maximum quantization error of $1 / (256 / .5) = 1/512$ of the interval width gives us a maximum error for each codebook of $\frac{\sigma_A \norm{\b}_2}{512 \sqrt{\lambda}}$.
 Because the errors in each subspace may not agree in sign, their sum is an upper bound on the overall quantization error.
 \end{proof}
 
-At this point, we have all of the pieces necessary to prove a generalization guarantee for \texttt{Maddness-Regress} save one: a theorem linking the norms of the various vectors and matrices involved to a probabilistic guarantee. Kakade et al. \cite{kakadeLinear} provide such a gaurantee, based on Rademacher complexity \cite{rademacherOrig}.
+At this point, we have all of the pieces necessary to prove a generalization guarantee for \texttt{Maddness-Regress} save one: a theorem linking the norms of the various vectors and matrices involved to a probabilistic guarantee. \citet{kakadeLinear} provide such a gaurantee, based on Rademacher complexity \cite{rademacherOrig}.
 
 \begin{theorem}[\cite{kakadeLinear}, Corollary 5] \label{thm:linearGeneralize}
 Let $\Fcal = \{\w^\top \x : \norm{\w}_2 \le W \}$ be the class of linear functions with bounded $L_2$ norms, let $\Scal$ be a set of $n$ samples drawn i.i.d. from some distribution $\Dcal$ over the $L_2$ ball of radius $X$,
